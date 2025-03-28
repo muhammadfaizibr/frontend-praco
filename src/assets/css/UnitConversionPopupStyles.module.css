@@ -1,0 +1,61 @@
+/* ========================================================================== */
+/* Wrapper */
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  padding: clamp(1.2rem, 2vw, 1.8rem);
+  gap: clamp(1.6rem, 2.5vw, 2.4rem);
+  width: 100%;
+  box-shadow: var(--shadow-form);
+  background-color: var(--clr-white);
+}
+
+/* ========================================================================== */
+/* Input Grid */
+.inputGrid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(1rem, 1.5vw, 1.5rem);
+}
+
+/* ========================================================================== */
+/* Input Group */
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.4rem, 1vw, 0.6rem);
+}
+
+.inputGroup .unitInputWrapper {
+  padding: 0;
+  border: 1px solid var(--clr-border);
+  display: flex;
+}
+
+.inputGroup .unitInputWrapper input {
+  border: none;
+  width: 100%;
+  border-right: 1px solid var(--clr-border);
+  padding: clamp(0.8rem, 1vw, 1.2rem);
+  outline: none;
+  color: var(--clr-text);
+  z-index: 10;
+}
+
+.inputGroup .unitInputWrapper .copyBtn {
+  aspect-ratio: 1 / 1;
+  height: 100%;
+  border: none;
+  background-color: var(--clr-accent);
+  color: var(--clr-text);
+}
+
+/* ========================================================================== */
+/* Media Queries */
+@media (max-width: 480px) {
+  .inputGrid {
+      grid-template-columns: 1fr;
+      gap: clamp(0.8rem, 1.5vw, 1.2rem);
+  }
+}

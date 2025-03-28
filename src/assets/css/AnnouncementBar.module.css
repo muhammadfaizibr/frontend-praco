@@ -1,0 +1,61 @@
+/* ========================================================================== */
+/* Announcement Bar */
+.announcementBar {
+  background-color: var(--clr-primary);
+  color: var(--clr-white);
+  width: 100%;
+}
+
+/* ========================================================================== */
+/* Marquee */
+.marquee {
+  height: 2.8rem;
+  max-width: min(90%, 75vw);
+  overflow-x: hidden;
+  position: relative;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.marquee div {
+  display: flex;
+  width: 200%;
+  position: absolute;
+  overflow: hidden;
+  -webkit-animation: marquee 40s linear infinite;
+  animation: marquee 40s linear infinite;
+}
+
+.marquee span {
+  float: left;
+  width: 50%;
+  min-width: clamp(32rem, 50vw, 58rem);
+}
+
+/* ========================================================================== */
+/* Animations */
+@-webkit-keyframes marquee {
+  0% { left: 0; }
+  100% { left: -100%; }
+}
+
+@keyframes marquee {
+  0% { left: 0; }
+  100% { left: -100%; }
+}
+
+/* ========================================================================== */
+/* Media Queries */
+@media (max-width: 1200px) {
+  .marquee {
+      max-width: 95%;
+  }
+}
+
+@media (max-width: 480px) {
+  .marquee span {
+    min-width: 420px !important;
+  }
+}

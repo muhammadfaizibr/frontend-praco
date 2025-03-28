@@ -1,0 +1,37 @@
+/* ========================================================================== */
+/* Container */
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(2rem, 4vw, 4rem);
+}
+
+/* ========================================================================== */
+/* Product Grid */
+.productGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(30rem, 1fr));
+  gap: clamp(1.2rem, 2vw, 2rem);
+  justify-content: space-between;
+}
+
+/* ========================================================================== */
+/* Media Queries */
+@media (max-width: 768px) {
+  .container {
+      gap: clamp(1.5rem, 3vw, 3rem);
+  }
+  .productGrid {
+      grid-template-columns: repeat(auto-fill, minmax(24rem, 1fr));
+      gap: clamp(1rem, 1.5vw, 1.5rem);
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+      gap: clamp(1rem, 2vw, 2rem);
+  }
+  .productGrid {
+      grid-template-columns: 1fr 1fr;
+  }
+}

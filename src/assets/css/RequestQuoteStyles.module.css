@@ -1,0 +1,56 @@
+/* ========================================================================== */
+/* Container */
+.container {
+    display: flex;
+    gap: clamp(4rem, 7vw, 7rem);
+    align-items: center;
+    
+}
+
+/* ========================================================================== */
+/* Content Wrapper */
+.contentWrapper {
+    display: flex;
+    flex-direction: column;
+    gap: var(--whitespace-bwt-heading-items);
+    align-items: flex-start;
+}
+
+.textContentWrapper {
+    display: flex;
+    flex-direction: column;
+    gap: var(--whitespace-bwt-heading-para);
+    align-items: flex-start;
+}
+
+.actionBtnWrapper{
+    display: flex;
+    gap: var(--whitespace-bwt-heading-para);
+}
+
+/* ========================================================================== */
+/* Icons Group */
+.iconsGroup {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(1rem, 1.5vw, 1.4rem);
+}
+
+.iconWrapperRow {
+    display: flex;
+    gap: clamp(1rem, 1.5vw, 1.4rem);
+}
+
+.iconWrapper {
+    background-color: var(--clr-secondary-light);
+    padding: clamp(1.8rem, 2.2vw, 2.2rem);
+    border-radius: 2.4rem;
+}
+
+/* ========================================================================== */
+/* Media Queries */
+@media (max-width: 768px) {
+    .iconsGroup{
+        display: none;
+    }
+}

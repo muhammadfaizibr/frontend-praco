@@ -1,26 +1,110 @@
-import React from 'react'
-import NavbarStyles from "assets/css/NavbarStyles.module.css"
+import React, { useState, useEffect } from "react";
+import NavBarStyles from "assets/css/NavBarStyles.module.css";
+import {
+  Calculator,
+  ShoppingBag,
+  CircleUserRound,
+  Search,
+  X,
+} from "lucide-react";
+import Logo from "assets/images/logo.svg";
+import { NavLink } from "react-router-dom";
+import SearchBarHeader from "components/SearchBarHeader";
+import UnitConversionPopup from "components/UnitConversionPopup";
 
 const Navbar = () => {
+  const [searchMobile, setSearchMobile] = useState(false);
+  const [toggleUnitConversionPopup, setToggleUnitConversionPopup] =
+    useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 1200) {
+        setSearchMobile(false);
+      }
+    };
+
+    handleResize();
+
+    window.addEventListener("resize", handleResize);
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   return (
     <nav>
-        <div className={NavbarStyles.logo}>
-            <img src="logo" alt="Praco Logo" />
-        </div>
-        <div className={NavbarStyles.searchbar}>
-            <input type="text" name="product-search" id="product-search" />
-            <button type="button" name='show-advance-search' id='show-advance-search'>AS</button>
-            <button type="button" name='search' id='search'>AS</button>
-        </div>
-        <div className={NavbarStyles.actionButtons}>
-            <button type="button" name="unit-converter">Converter</button>
-            <button type="button" name="cart">Cart</button>
-            <button className={'primary-button'} type="button" name="login">Login</button>
-            <button type="button" name="user-account">Account</button>
-            <h1>Test</h1>
-        </div>
-    </nav>
-  )
-}
+      <div className={NavBarStyles.navbarContentWrapper}>
+        <div className={NavBarStyles.childWrapper}>
+          <div className={NavBarStyles.logo}>
+            <NavLink to="/">
+              <img src={Logo} alt="Praco Logo" />
+            </NavLink>
+          </div>
+          <div
+            className={`${NavBarStyles.searchBarWrapper} ${
+              searchMobile ? NavBarStyles.searchBarMobile : ""
+            }`}
+          >
+            <SearchBarHeader />
+          </div>
+          <div className={NavBarStyles.actionButtons}>
+            <button
+              className={`${NavBarStyles.actionButtonStyle} ${toggleUnitConversionPopup ? "primary-btn" : "accent-palette"}`}
+              type="button"
+              name="unit-converter"
+              onClick={() => {setToggleUnitConversionPopup(!toggleUnitConversionPopup); setSearchMobile(false)}}
+            >
+              <Calculator className={`icon-md ${toggleUnitConversionPopup ? "clr-white" : "icon-blue-accent-dark"}`} />
+            </button>
+            <button
+              className={`${NavBarStyles.actionButtonStyle} accent-palette`}
+              type="button"
+              name="cart"
+            >
+              <ShoppingBag className={"icon-md icon-blue-accent-dark"} />
+            </button>
+            <button
+              className={`${NavBarStyles.actionButtonStyle} accent-palette`}
+              type="button"
+              name="user-account"
+            >
+              <CircleUserRound className={"icon-md icon-blue-accent-dark"} />
+            </button>
+            <button
+              className={`${NavBarStyles.actionButtonStyle} ${NavBarStyles.searchMobileToggleBtn} accent-palette`}
+              type="button"
+              name="user-account"
+              onClick={() => {setSearchMobile(!searchMobile); setToggleUnitConversionPopup(false)}}
+            >
+              {searchMobile ? (
+                <X className={"icon-md icon-blue-accent-dark"} />
+              ) : (
+                <Search className={"icon-md icon-blue-accent-dark"} />
+              )}
+            </button>
+            <a href="tel:01162607078"><button
+              className={`${NavBarStyles.callBtn} primary-btn b2`}
+              type="button"
+              name="login"
+            >
+              0116 260 7078
+            </button></a>
 
-export default Navbar
+            <div className={NavBarStyles.unitConversionContainer}>
+              {toggleUnitConversionPopup ? <UnitConversionPopup /> : ""}
+            </div>
+          </div>
+        </div>
+        {searchMobile ? (
+          <div className={NavBarStyles.mobileSearchBarWrapper}>
+            <SearchBarHeader />
+          </div>
+        ) : (
+          ""
+        )}
+      </div>
+    </nav>
+  );
+};
+
+export default Navbar;

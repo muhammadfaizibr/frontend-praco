@@ -1,0 +1,92 @@
+/* ========================================================================== */
+/* Wrapper */
+.wrapper {
+    display: flex;
+    flex-direction: column;
+    padding: clamp(1.2rem, 2vw, 1.8rem);
+    gap: clamp(1.6rem, 2.5vw, 2.4rem);
+    width: 100%;
+    box-shadow: var(--shadow-form);
+    background-color: var(--clr-white);
+}
+
+/* ========================================================================== */
+/* Attributes */
+.attributes {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(1.6rem, 2.5vw, 2.4rem);
+}
+
+.attribute {
+    display: flex;
+    justify-content: space-between;
+    gap: clamp(0.8rem, 1.5vw, 1.2rem);
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.attribute .options,
+.attribute .radioBtnWithLabelsWrapper {
+    display: flex;
+    gap: clamp(0.8rem, 1.5vw, 1.2rem);
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.attribute .radioBtnWithLabel {
+    display: flex;
+    gap: clamp(0.4rem, 1vw, 0.6rem);
+    align-items: center;
+}
+
+/* ========================================================================== */
+/* Buttons */
+.productCategoryBtn {
+    background-color: var(--clr-accent);
+    color: var(--clr-text);
+    padding: clamp(0.8rem, 1vw, 1.2rem);
+    border: none;
+    font-size: 1.4rem;
+}
+
+.productCategoryBtn.productCategoryBtnActive {
+    background-color: var(--clr-gray-dark);
+    color: var(--clr-white);
+}
+
+/* ========================================================================== */
+/* Inputs and Icons */
+.dimensionInput {
+    display: flex;
+    text-align: center;
+    padding: clamp(0.8rem, 1vw, 1.2rem);
+    width: 6rem;
+    border: 1px solid var(--clr-border);
+}
+
+.sizeDimensions svg {
+    color: var(--clr-text);
+    width: 1.2rem;
+    height: 1.2rem;
+}
+
+/* ========================================================================== */
+/* Media Queries */
+@media (max-width: 480px) {
+    .attribute {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: clamp(0.8rem, 1.5vw, 1.2rem);
+    }
+    .attribute .options,
+    .attribute .radioBtnWithLabelsWrapper {
+        /* justify-content: space-between !important; */
+        width: 100%;
+    }
+    .options input[type="number"],
+    .options button {
+        flex-grow: 1;
+    }
+}

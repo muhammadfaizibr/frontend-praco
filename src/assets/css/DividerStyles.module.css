@@ -1,0 +1,20 @@
+/* ========================================================================== */
+/* Divider */
+.divider {
+    background-color: var(--clr-border);
+    height: 0.1rem;
+    flex-grow: 1;
+    display: inline-block;
+    width: 100%;
+    -webkit-box-flex: 1;
+    -ms-flex-positive: 1;
+}
+
+.dividerDark {
+    background-color: var(--clr-border-dark);
+}
+
+.dividerLight{
+    background-color: var(--clr-border);
+
+}

@@ -1,0 +1,48 @@
+/* ========================================================================== */
+/* Search Bar */
+.searchBar {
+    background-color: var(--clr-white);
+    border: 1px solid var(--clr-border);
+    display: flex;
+    gap: clamp(0.8rem, 1vw, 1rem);
+    align-items: center;
+    width: 100%;
+}
+
+.searchBar input {
+    width: 100%;
+    padding: clamp(0.8rem, 1vw, 1.2rem) 0 clamp(0.8rem, 1vw, 1.2rem) clamp(1.2rem, 2vw, 2rem);
+    border: none;
+    outline: none;
+    box-sizing: border-box;
+    color: var(--clr-text);
+}
+
+.searchBar button {
+    padding: clamp(0.8rem, 1vw, 1.2rem);
+    border: none;
+}
+
+/* ========================================================================== */
+/* Buttons */
+.advanceSearchButton {
+    color: var(--clr-gray-dark);
+    background-color: transparent;
+}
+
+.searchButton {
+    color: var(--clr-white);
+    background-color: var(--clr-primary);
+}
+
+/* ========================================================================== */
+/* Advance Search Container */
+.advanceSearchContainer {
+    position: absolute;
+    top: 120%;
+    right: 0;
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    z-index: 1000;
+}

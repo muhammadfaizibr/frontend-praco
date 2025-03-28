@@ -1,0 +1,18 @@
+/* ========================================================================== */
+/* Home Hero */
+.homeHero {
+  display: flex;
+  flex-grow: 1;
+  border: 1px solid var(--clr-border);
+  aspect-ratio: 2 / 1;
+  max-height: calc(100vh - 10rem);
+}
+
+/* ========================================================================== */
+/* Media Queries */
+@media (max-width: 768px) {
+  .homeHero {
+      overflow-x: hidden;
+      flex-direction: column-reverse;
+  }
+}
