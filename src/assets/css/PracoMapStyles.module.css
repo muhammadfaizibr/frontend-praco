@@ -1,0 +1,15 @@
+.mapWrapper{
+    height: 60rem;
+}
+
+.mapWrapper iframe{
+    width: 100%;
+    border: none;
+}
+
+.mapWrapper p{
+    width: 100%;
+    background-color: var(--clr-gray-dark);
+    padding: 0.3rem;
+    text-align: center;
+}

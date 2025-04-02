@@ -47,8 +47,8 @@
   --clr-link: #ffaa33;
   --clr-link-hover: #b36b00;
   --clr-icon-blue-dark: #1a3553;
-  --shadow-primary-pressed: 0 0 0 0.3rem var(--clr-primary-dark);
-  --shadow-secondary-pressed: 0 0 0 0.3rem var(--clr-info-dark);
+  --shadow-primary-pressed: 0 0 0 0.25rem var(--clr-primary-dark);
+  --shadow-secondary-pressed: 0 0 0 0.25rem var(--clr-info-dark);
   --shadow-form: 0 1rem 3rem var(--clr-secondary);
   --shadow-card: 0 2rem 4rem var(--clr-secondary);
   --whitespace-bwt-heading-para: clamp(0.8rem, 1.5vw, 1.2rem);
@@ -67,6 +67,50 @@
   --square-btn-medium-padding: clamp(0.6rem, 1vw, 0.8rem);
   --square-btn-small-padding: clamp(0.4rem, 0.8vw, 0.6rem);
   --square-btn-tiny-padding: clamp(0.3rem, 0.6vw, 0.4rem);
+
+  --form-input-padding: clamp(1rem, 1vw, 1rem);
+  --form-input-padding-icon-whitespace: clamp(5rem, 5vw, 5rem);
+
+  --form-input-icon-stroke: 1.25px;
+
+  --layout-spacing: clamp(2rem, 4vw, 6rem);
+  --layout-spacing-768: clamp(4rem, 6vw, 8rem);
+
+  --gap-xxs: clamp(0.4rem, 0.6rem, 0.8rem);
+  --gap-xs: clamp(1rem, 1.2rem, 1.4rem);
+  --gap-s: clamp(1.6rem, 1.8rem, 2rem);
+  --gap-m: clamp(2.2rem, 2.4rem, 2.6rem);
+  --gap-l: clamp(2.8rem, 3rem, 3.2rem);
+  --gap-xl: clamp(3.4rem, 3.6rem, 3.8rem);
+  --gap-xxl: clamp(4rem, 4.2rem, 4.4rem);
+
+
+  --padding-xxs: clamp(0.4rem, 0.6vw, 0.8rem);
+  --padding-xs: clamp(1rem, 1.2vw, 1.4rem);
+  --padding-s: clamp(1.6rem, 1.8vw, 2rem);
+  --padding-m: clamp(2.2rem, 2.4vw, 2.6rem);
+  --padding-l: clamp(2.8rem, 3vw 3.2rem);
+  --padding-xl: clamp(3.4rem, 3.6vw, 3.8rem);
+  --padding-xxl: clamp(4rem, 4.2vw, 4.4rem);
+
+
+  --radius-xxs: clamp(0.4rem, 0.6vw, 0.8rem);
+  --radius-xs: clamp(1rem, 1.2vw, 1.4rem);
+  --radius-s: clamp(1.6rem, 1.8vw, 2rem);
+  --radius-m: clamp(2.2rem, 2.4vw, 2.6rem);
+  --radius-l: clamp(2.8rem, 3vw 3.2rem);
+  --radius-xl: clamp(3.4rem, 3.6vw, 3.8rem);
+  --radius-xxl: clamp(4rem, 4.2vw, 4.4rem);
+
+  --icon-stroke-xxs: 0.5px;
+  --icon-stroke-xs: 0.75px;
+  --icon-stroke-s: 1px;
+  --icon-stroke-m: 1.25px;
+  --icon-stroke-l: 1.5px;
+  --icon-stroke-xl: 1.75px;
+  --icon-stroke-xxl: 2px;
+
+
 }
 
 body {
@@ -90,28 +134,28 @@ h6 {
 }
 
 h1 {
-  font-size: clamp(3.2rem, 5vw, 4.8rem);
-  line-height: 1.2;
+  font-size: clamp(4.4rem, 4.6vw, 4.8rem);
+  line-height: 1.1;
 }
 h2 {
-  font-size: clamp(2.8rem, 4vw, 4rem);
-  line-height: 1.2;
+  font-size: clamp(3.4rem, 3.8vw, 4rem);
+  line-height: 1.15;
 }
 h3 {
-  font-size: clamp(2.4rem, 3.5vw, 3.2rem);
+  font-size: clamp(2.8rem, 3vw, 3.2rem);
   line-height: 1.2;
 }
 h4 {
-  font-size: clamp(2rem, 3vw, 2.8rem);
-  line-height: 1.2;
+  font-size: clamp(2.2rem, 2.4vw, 2.4rem);
+  line-height: 1.25;
 }
 h5 {
-  font-size: clamp(1.8rem, 2.5vw, 2.4rem);
-  line-height: 1.2;
+  font-size: clamp(1.4rem, 1.8vw, 1.8rem);
+  line-height: 1.3;
 }
 h6 {
-  font-size: clamp(1.6rem, 2vw, 2rem);
-  line-height: 1.2;
+  font-size: clamp(1.2rem, 1.4vw, 1.4rem);
+  line-height: 1.35;
 }
 
 .text-justified {
@@ -153,12 +197,28 @@ h6 {
   line-height: 1.5;
 }
 .l1 {
+  font-weight: 500;
+  font-size: 1.4rem;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+
+.l2 {
+  font-weight: 500;
+  font-size: 1.2rem;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+
+.l3 {
   font-weight: 600;
   font-size: 1.4rem;
   line-height: 1.3;
   text-transform: uppercase;
 }
-.l2 {
+
+
+.l4 {
   font-weight: 600;
   font-size: 1.2rem;
   line-height: 1.3;
@@ -231,14 +291,14 @@ h6 {
 /* ========================================================================== */
 /* Links */
 a {
-  color: var(--clr-link);
+  /* color: var(--clr-link); */
   text-decoration: none;
   cursor: pointer;
 }
 
-a:hover,
-a:active,
-a:focus {
+a.link:hover,
+a.link:active,
+a.link:focus {
   color: var(--clr-link-hover);
 }
 
@@ -258,12 +318,18 @@ button {
   border: none;
   padding: clamp(0.8rem, 1vw, 1rem) clamp(1.2rem, 1.5vw, 1.6rem);
   cursor: pointer;
-  display: inline-flex;
+  display: flex;
   gap: 0.8rem;
   align-items: center;
   justify-content: center;
   background-color: transparent;
   font-size: 1.6rem;
+}
+
+a.anchor-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 button:disabled,
@@ -360,36 +426,50 @@ button:disabled:hover {
 }
 
 
+.full-width-btn{
+  width: 100%;
+}
+
 /* ========================================================================== */
 /* Icons */
 .icon-xxl {
   width: 7.2rem;
   height: 7.2rem;
   stroke-width: 0.75;
+  stroke-width: var(--icon-stroke-xs);
 }
 .icon-xl {
   width: 3.6rem;
   height: 3.6rem;
+  stroke-width: var(--icon-stroke-s);
+
 }
 .icon-lg {
   width: 3.2rem;
   height: 3.2rem;
+  stroke-width: var(--icon-stroke-s);
 }
 .icon-md {
   width: 2.8rem;
   height: 2.8rem;
+  stroke-width: var(--icon-stroke-xl);
+
 }
 .icon-sm {
   width: 2.4rem;
   height: 2.4rem;
+  stroke-width: var(--icon-stroke-s);
 }
 .icon-xs {
   width: 2rem;
   height: 2rem;
+  stroke-width: var(--icon-stroke-xl);
+
 }
 .icon-xxs {
-  width: 1.6rem;
-  height: 1.6rem;
+  width: 1.8rem;
+  height: 1.8rem;
+  stroke-width: var(--icon-stroke-xs);
 }
 .icon-primary {
   color: var(--clr-primary);
@@ -400,10 +480,17 @@ button:disabled:hover {
   color: var(--clr-white);
 }
 
+.icon-wrapper-accent-dark svg{
+  color: var(--clr-icon-blue-dark);
+}
+
 /* ========================================================================== */
 /* Inputs */
 input[type="text"],
-input[type="number"] {
+input[type="email"],
+input[type="number"],
+input[type="password"],
+textarea {
   border: 1px solid var(--clr-border);
   padding: clamp(0.8rem, 1vw, 1rem);
   color: var(--clr-black);
@@ -411,11 +498,15 @@ input[type="number"] {
 }
 
 input:focus,
-input:active {
+input:active,
+textarea:focus,
+textarea:active {
   box-shadow: var(--shadow-primary-pressed);
 }
 
-input::placeholder {
+
+input::placeholder,
+textarea::placeholder {
   color: var(--clr-placeholder);
 }
 
@@ -432,6 +523,24 @@ input[type="radio"] {
 }
 
 input[type="radio"]:checked {
+  background-color: var(--clr-gray-dark);
+  border: 0.3rem solid var(--clr-white);
+  box-shadow: 0 0 0 0.1rem var(--clr-gray-dark);
+}
+
+input[type="checkbox"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 1.6rem;
+  height: 1.6rem;
+  background-color: var(--clr-border);
+  border: 0.3rem solid var(--clr-border);
+  border-radius: 30%;
+  outline: none;
+  cursor: pointer;
+}
+
+input[type="checkbox"]:checked {
   background-color: var(--clr-gray-dark);
   border: 0.3rem solid var(--clr-white);
   box-shadow: 0 0 0 0.1rem var(--clr-gray-dark);
@@ -488,7 +597,9 @@ h2.light,
 h3.light,
 h4.light,
 h5.light,
-h6.light {
+h6.light,
+label.light
+a.light {
   color: var(--clr-white);
 }
 
@@ -501,7 +612,9 @@ h2.dark,
 h3.dark,
 h4.dark,
 h5.dark,
-h6.dark {
+h6.dark, 
+label.dark
+a.dark {
   color: var(--clr-black);
 }
 
@@ -511,6 +624,15 @@ p.dark {
 
 .text-uppercase {
   text-transform: uppercase;
+}
+
+label{
+  color: var(--clr-gray-darkest);
+}
+
+
+.clr-accent-dark-blue{
+  color: var(--clr-icon-blue-dark);
 }
 
 /* ========================================================================== */

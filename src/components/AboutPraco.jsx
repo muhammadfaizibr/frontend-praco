@@ -55,9 +55,8 @@ const AboutPraco = () => {
         <div className={AboutPracoStyles.featuresDisplayWrapper}>
           {featuresDisplay.map((featuresDisplayElement, index) => {
             return (
-              <div class={AboutPracoStyles.featureDisplayBlock}>
+              <div key={`featuresDisplay$_${index}`} className={AboutPracoStyles.featureDisplayBlock}>
               <div
-                key={`featuresDisplay$_${index}`}
                 className={AboutPracoStyles.featureDisplay}
               >
                 {featuresDisplayElement.icon}

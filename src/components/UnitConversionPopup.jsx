@@ -48,7 +48,6 @@ const UnitConversionPopup = () => {
     if (input) {
       input.focus();
       input.select();
-      console.log(values)
       copyToClipboard(values[unit]);
     }
   };

@@ -1,0 +1,29 @@
+.contentWrapper{
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    width: 100%;
+    /* gap: var(--layout-spacing); */
+    gap: var(--layout-spacing);
+    /* flex-wrap: wrap; */
+}
+
+
+@media (max-width: 1200px) {
+    .contentWrapper{
+        flex-direction: column-reverse;
+        align-items: center;
+    }
+
+    .contactPage{
+        flex-direction: column;
+    }
+}
+
+
+@media (max-width: 768px) {
+    .contentWrapper{
+    gap: var(--layout-spacing-768);
+
+    }
+}

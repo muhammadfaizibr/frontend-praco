@@ -3,7 +3,7 @@ import HeadingBarStyles from 'assets/css/HeadingBarStyles.module.css';
 import Divider from 'components/Divider';
 import PropTypes from "prop-types";
 
-const HeadingBar = ({displayType, headline, headlineSize, headlineSizeType, highlightedText, theme}) => {
+const HeadingBar = ({displayType, headline, headlineSize, headlineSizeType, highlightedText, theme, hideDivider}) => {
   const Tag = headlineSize;
   const color_palatte = theme === "dark" ? "light" : "dark" ;
   return (
@@ -12,7 +12,7 @@ const HeadingBar = ({displayType, headline, headlineSize, headlineSizeType, high
         <p className={`${headlineSize} ${color_palatte}`}>{headline}</p>
         : <Tag className={color_palatte}>{headline} {highlightedText ? <span className='clr-primary'>{highlightedText}</span> : ""}</Tag>
       }
-        <div className={HeadingBarStyles.dividerWrapper}><Divider color={theme}/></div>
+        {hideDivider ? "" : <div className={HeadingBarStyles.dividerWrapper}><Divider color={theme}/></div>}
     </div>
   )
 }
@@ -22,6 +22,13 @@ HeadingBar.propTypes = {
   headline: PropTypes.string.isRequired, 
   headlineSize: PropTypes.string.isRequired,                 
   headlineSizeType: PropTypes.string.isRequired,   
+  hideDivider: PropTypes.bool.isRequired,   
+  
 };
+
+HeadingBar.defaultProps = {
+  hideDivider: false,   
+
+}
 
 export default HeadingBar
