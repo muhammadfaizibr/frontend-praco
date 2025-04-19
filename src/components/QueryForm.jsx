@@ -92,7 +92,7 @@ const LoginForm = () => {
       </div>
 
       <button
-        className="primary-btn large-btn full-width-btn text-large"
+        className="primary-btn large-btn full-width text-large"
         onClick={handleLogin}
       >
         Send

@@ -7,11 +7,11 @@
   padding: 0;
   box-sizing: border-box;
   font-family: "Inter", sans-serif;
-  -webkit-transition: all 0.2s ease;
-  transition: all 0.2s ease;
+  -webkit-transition: all 0.15s ease;
+  transition: all 0.15s ease;
 }
 
-:root {
+/* :root {
   font-size: 10px;
   --clr-black: #000;
   --clr-gray-darkest: #111;
@@ -41,7 +41,6 @@
   --clr-info-light: #4ab3e2;
   --clr-info-dark: #117a8b;
   --clr-text: #444444;
-  /* --clr-text-light: #495057; */
   --clr-text-light: #878c92;
   --clr-text-disabled: #999999;
   --clr-link: #ffaa33;
@@ -101,6 +100,7 @@
   --radius-l: clamp(2.8rem, 3vw 3.2rem);
   --radius-xl: clamp(3.4rem, 3.6vw, 3.8rem);
   --radius-xxl: clamp(4rem, 4.2vw, 4.4rem);
+  
 
   --icon-stroke-xxs: 0.5px;
   --icon-stroke-xs: 0.75px;
@@ -111,7 +111,117 @@
   --icon-stroke-xxl: 2px;
 
 
+} */
+
+:root {
+  font-size: 9px;
+
+  /* Colors stay the same */
+  --clr-black: #000;
+  --clr-gray-darkest: #111;
+  --clr-white: #ffffff;
+  --clr-gray-light: #f2f2f2;
+  --clr-gray: #6c757d;
+  --clr-gray-dark: #2b2b2b;
+  --clr-border: #e5e5e5;
+  --clr-border-dark: #5e5e5e;
+  --clr-placeholder: #737373;
+  --clr-primary: #ff6a01;
+  --clr-primary-light: #ff8833;
+  --clr-primary-dark: #b34b00;
+  --clr-secondary: #e1e8fa;
+  --clr-secondary-light: #f4f6fa;
+  --clr-accent: #ecf0f5;
+  --clr-success: #28a745;
+  --clr-success-light: #61bd4f;
+  --clr-success-dark: #1e7e34;
+  --clr-danger: #dc3545;
+  --clr-danger-light: #e4606d;
+  --clr-danger-dark: #bd2130;
+  --clr-warning: #ffc107;
+  --clr-warning-light: #ffd33d;
+  --clr-warning-dark: #d39e00;
+  --clr-info: #17a2b8;
+  --clr-info-light: #4ab3e2;
+  --clr-info-dark: #117a8b;
+  --clr-text: #444444;
+  --clr-text-light: #878c92;
+  --clr-text-disabled: #999999;
+  --clr-link: #ffaa33;
+  --clr-link-hover: #b36b00;
+  --clr-icon-blue-dark: #1a3553;
+
+  /* Shadows unchanged */
+  --shadow-primary-pressed: 0 0 0 0.25rem var(--clr-primary-dark);
+  --shadow-secondary-pressed: 0 0 0 0.25rem var(--clr-info-dark);
+  --shadow-form: 0 1rem 3rem var(--clr-secondary);
+  --shadow-card: 0 2rem 4rem var(--clr-secondary);
+
+  /* White space tweaks */
+  --whitespace-bwt-heading-para: clamp(0.6rem, 1vw, 1rem);
+  --whitespace-bwt-heading-items: clamp(1.2rem, 2vw, 1.8rem);
+
+  /* Button paddings (slightly smaller) */
+  --giant-btn-padding: clamp(0.8rem, 1.2vw, 1rem) clamp(2rem, 3vw, 3rem);
+  --large-btn-padding: clamp(0.6rem, 1vw, 0.8rem) clamp(2rem, 2.5vw, 2.4rem);
+  --medium-btn-padding: clamp(0.4rem, 0.8vw, 0.6rem) clamp(1rem, 2vw, 2rem);
+  --small-btn-padding: clamp(0.3rem, 0.6vw, 0.4rem) clamp(1rem, 1.6vw, 1.4rem);
+  --tiny-btn-padding: clamp(0.2rem, 0.5vw, 0.3rem) clamp(0.8rem, 1.2vw, 1.2rem);
+
+  /* Square buttons */
+  --square-btn-giant-padding: clamp(0.8rem, 1.2vw, 1rem);
+  --square-btn-large-padding: clamp(0.6rem, 1vw, 0.8rem);
+  --square-btn-medium-padding: clamp(0.4rem, 0.8vw, 0.6rem);
+  --square-btn-small-padding: clamp(0.3rem, 0.6vw, 0.4rem);
+  --square-btn-tiny-padding: clamp(0.2rem, 0.5vw, 0.3rem);
+
+  /* Form input padding */
+  --form-input-padding: clamp(0.8rem, 0.9vw, 0.9rem);
+  --form-input-padding-icon-whitespace: clamp(4rem, 4vw, 4.5rem);
+
+  --form-input-icon-stroke: 1.1px;
+
+  /* Layout spacing (reduced) */
+  --layout-spacing: clamp(1.6rem, 3vw, 4.8rem);
+  --layout-spacing-768: clamp(3rem, 5vw, 6rem);
+
+  /* Gaps (reduced) */
+  --gap-xxs: clamp(0.3rem, 0.5rem, 0.6rem);
+  --gap-xs: clamp(0.8rem, 1rem, 1.2rem);
+  --gap-s: clamp(1.2rem, 1.4rem, 1.6rem);
+  --gap-m: clamp(1.8rem, 2rem, 2.2rem);
+  --gap-l: clamp(2.4rem, 2.6rem, 2.8rem);
+  --gap-xl: clamp(3rem, 3.2rem, 3.4rem);
+  --gap-xxl: clamp(3.6rem, 3.8rem, 4rem);
+
+  /* Paddings (reduced) */
+  --padding-xxs: clamp(0.3rem, 0.5vw, 0.6rem);
+  --padding-xs: clamp(0.8rem, 1vw, 1.2rem);
+  --padding-s: clamp(1.2rem, 1.6vw, 1.6rem);
+  --padding-m: clamp(1.6rem, 2vw, 2rem);
+  --padding-l: clamp(2.2rem, 2.6vw, 2.6rem);
+  --padding-xl: clamp(2.8rem, 3vw, 3rem);
+  --padding-xxl: clamp(3.4rem, 3.6vw, 3.8rem);
+
+  /* Border radii (slightly reduced) */
+  --radius-xxs: clamp(0.3rem, 0.5vw, 0.6rem);
+  --radius-xs: clamp(0.8rem, 1vw, 1.2rem);
+  --radius-s: clamp(1.2rem, 1.4vw, 1.6rem);
+  --radius-m: clamp(1.6rem, 1.8vw, 2rem);
+  --radius-l: clamp(2rem, 2.4vw, 2.4rem);
+  --radius-xl: clamp(2.4rem, 2.8vw, 2.8rem);
+  --radius-xxl: clamp(3rem, 3.4vw, 3.4rem);
+
+  /* Icon strokes (same or lightly reduced) */
+  --icon-stroke-xxs: 0.4px;
+  --icon-stroke-xs: 0.65px;
+  --icon-stroke-s: 0.9px;
+  --icon-stroke-m: 1.1px;
+  --icon-stroke-l: 1.3px;
+  --icon-stroke-xl: 1.5px;
+  --icon-stroke-xxl: 1.75px;
 }
+
 
 body {
   background-color: var(--clr-white);
@@ -343,11 +453,14 @@ button:disabled:hover {
 .primary-btn {
   background-color: var(--clr-primary);
   color: var(--clr-white);
+  border: 1px solid var(--clr-primary);
+
 }
 
 .primary-btn:hover,
 .primary-btn:active,
 .primary-btn:focus {
+  border-color: var(--clr-primary-light);
   background-color: var(--clr-primary-light);
   box-shadow: var(--shadow-primary-pressed);
 }
@@ -426,7 +539,7 @@ button:disabled:hover {
 }
 
 
-.full-width-btn{
+.full-width{
   width: 100%;
 }
 
@@ -469,8 +582,15 @@ button:disabled:hover {
 .icon-xxs {
   width: 1.8rem;
   height: 1.8rem;
-  stroke-width: var(--icon-stroke-xs);
+  stroke-width: var(--icon-stroke-xl);
 }
+
+.icon-xms {
+  width: 1.6rem;
+  height: 1.6rem;
+  stroke-width: var(--icon-stroke-xl);
+}
+
 .icon-primary {
   color: var(--clr-primary);
 }
@@ -562,13 +682,16 @@ input[type="checkbox"]:checked {
 }
 
 .layout-spacing {
+  gap: clamp(2rem, 4vw, 6rem);
+}
+
+.full-width-flex-col{
   display: flex;
   width: 100%;
-  gap: clamp(2rem, 4vw, 6rem);
   flex-direction: column;
 }
 
-.list-content {
+.column-content {
   display: flex;
   flex-direction: column;
 }
@@ -619,6 +742,10 @@ a.dark {
 }
 
 p.dark {
+  color: var(--clr-black);
+}
+
+p.neutral {
   color: var(--clr-text);
 }
 
@@ -657,9 +784,118 @@ label{
 
 /* ========================================================================== */
 /* Properties & Variables as Classes */
+.bg-clr-accent{
+  background-color: var(--clr-accent);
+}
+
+.bg-clr-secondary-light{
+  background-color: var(--clr-secondary-light);
+}
+.justify-content-flex-end{
+  justify-content: flex-end;
+}
+
+
+.align-items-flex-end{
+  align-items: flex-end;
+}
+
 .border-none {
   border: none !important;
 }
+
+.no-padding{
+  padding: 0 !important;
+}
+
+.padding-xxs{
+  padding: var(--padding-xxs);
+}
+.padding-xs{
+  padding: var(--padding-xs);
+}
+.padding-s{
+  padding: var(--padding-s);
+}
+.padding-m{
+  padding: var(--padding-m);
+}
+.padding-l{
+  padding: var(--padding-l);
+}
+.padding-xl{
+  padding: var(--padding-xl);
+}
+.padding-xxl{
+  padding: var(--padding-xxl);
+}
+
+.padding-xxs-x{
+  padding: 0 var(--padding-xxs);
+}
+.padding-xs-x{
+  padding: 0 var(--padding-xs);
+}
+.padding-s-x{
+  padding: 0 var(--padding-s);
+}
+.padding-m-x{
+  padding: 0 var(--padding-m);
+}
+.padding-l-x{
+  padding: 0 var(--padding-l);
+}
+.padding-xl-x{
+  padding: 0 var(--padding-xl);
+}
+.padding-xxl-x{
+  padding: 0 var(--padding-xxl);
+}
+
+.padding-xxs-y{
+  padding: var(--padding-xxs) 0;
+}
+.padding-xs-y{
+  padding: var(--padding-xs) 0;
+}
+.padding-s-y{
+  padding: var(--padding-s) 0;
+}
+.padding-m-y{
+  padding: var(--padding-m) 0;
+}
+.padding-l-y{
+  padding: var(--padding-l) 0;
+}
+.padding-xl-y{
+  padding: var(--padding-xl) 0;
+}
+.padding-xxl-y{
+  padding: var(--padding-xxl) 0;
+}
+
+.gap-xxs{
+  gap: var(--gap-xxs);
+}
+.gap-xs{
+  gap: var(--gap-xs);
+}
+.gap-s{
+  gap: var(--gap-s);
+}
+.gap-m{
+  gap: var(--gap-m);
+}
+.gap-l{
+  gap: var(--gap-l);
+}
+.gap-xl{
+  gap: var(--gap-xl);
+}
+.gap-xxl{
+  gap: var(--gap-xxl);
+}
+
 
 /* ========================================================================== */
 /* Search Bar */

@@ -51,7 +51,7 @@ const VerifyOTPForm = () => {
       })}
 
       <Link to="/login" className="clr-black b4">Back to Login</Link>
-      <button className="primary-btn large-btn full-width-btn text-large" onClick={handleVerifyOTP}>
+      <button className="primary-btn large-btn full-width text-large" onClick={handleVerifyOTP}>
         Verify
       </button>
     </form>

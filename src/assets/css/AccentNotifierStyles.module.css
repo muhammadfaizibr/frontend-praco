@@ -1,0 +1,7 @@
+.container{
+    padding: var(--padding-s);
+    border-radius: var(--padding-s);
+    display: flex;
+    gap: var(--gap-s);
+    align-items: center;
+}

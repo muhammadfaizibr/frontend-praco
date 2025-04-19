@@ -5,11 +5,19 @@ import AboutPraco from "components/AboutPraco";
 import RequestQuote from "components/RequestQuote";
 
 const Home = () => {
+      const products = Array(6).fill({
+        image: "https://praco.co.uk/cdn/shop/collections/coloured-stretch-wrap-1062x708_600x.jpg?v=1707147471",
+        title: "Ph'nglui mglw'nafh",
+        description: "Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn",
+        alt: "kalita",
+        price: "$20.00"
+      });
   return (
-    <div className="centered-layout-wrapper layout-spacing layout-vertical-padding">
-      <div className="centered-layout page-layout layout-spacing">
+    <div className="centered-layout-wrapper full-width-flex-col layout-spacing layout-vertical-padding">
+      <div className="centered-layout page-layout full-width-flex-col layout-spacing">
         <HomeHero />
-        <Products />
+
+        <Products title="Pallet Wraps" products={products}/>
       </div>
         <AboutPraco />
 

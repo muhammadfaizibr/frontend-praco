@@ -1,0 +1,252 @@
+.container{
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-m);
+}
+
+.tableContentWrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.tableContainer {
+  width: 100%;
+  overflow-x: auto;
+  box-sizing: border-box;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: var(--white);
+  border: 1px solid var(--clr-border);
+  font-family: Arial, sans-serif;
+}
+
+
+.table th,
+.table td {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--gap-xs);
+  text-align: center;
+  width: 200px;
+  /* min-width: clamp(100px, 10vw, 150px) !important; */
+  border-right: 1px solid var(--clr-border);
+
+}
+.table .nestedTh{
+  padding: 0 !important;
+  border-right: 0 !important;
+  width: 100%;
+}
+
+.table .nestedTh th, .table .nestedTh td{
+  width: 100%;
+}
+
+.table .nestedTh th{
+  border-top: 1px solid var(--clr-border);
+  border-right: 1px solid var(--clr-border);
+}
+
+.table .tdWrapperForNestedContent{
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: center;
+  padding: 0;  
+}
+
+.table .nestedTd{
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  padding: 0;
+}
+
+.table .nestedTd td{
+  width: 100%;
+  padding: 0;
+
+}
+
+.table tr{
+  display: flex;
+  overflow: hidden;
+  flex-direction: row;
+  width: 100%;
+
+}
+
+thead tr {
+  border-bottom: 1px solid var(--clr-border);
+  background-color: var(--clr-secondary-light);
+  font-weight: 600;
+}
+
+.table tr td {
+  color: var(--clr-black);
+  font-weight: 600;
+}
+
+.table tr:nth-child(even) {
+  background-color: var(--clr-gray-light);
+}
+
+.table tr:hover {
+  background-color: var(--clr-secondary-light);
+}
+
+.colLongWidth {
+  min-width: 400px;
+  flex-grow: 2;
+  /* min-width: clamp(200px, 20vw, 400px) !important; */
+}
+
+
+.colImageWrapper{
+  display: flex;
+  width: 100%;
+  justify-content: center;
+}
+
+.colImageContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: clamp(6rem, 12vw, 8rem);
+  width: clamp(6rem, 12vw, 8rem);
+  border: 1px solid var(--clr-border);
+  position: relative;
+  align-self: center;
+}
+
+.colImageWrapper img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+
+.cartUnitsColWrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: var(--gap-xs);
+}
+
+.cartButton {
+  padding: var(--gap-xxs);
+  border: 1px solid var(--clr-border);
+  background-color: var(--clr-white);
+  border-radius: var(--radius-xxs);
+  color: var(--clr-gray-darkest);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: fit-content;
+  cursor: pointer;
+}
+
+.cartButton:hover {
+  background-color: var(--clr-gray-light);
+}
+
+.thWithButtons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--gap-xxs);
+}
+
+.thWithButtonsRow{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: var(--gap-xs);
+}
+
+.thButtonsWrapper {
+  display: flex;
+  flex-direction: row;
+  gap: var(--gap-xs);
+}
+
+.thButton {
+  /* border-radius: var(--radius-s); */
+  padding: var(--gap-xxs) var(--gap-xs);
+  background-color: var(--clr-white);
+  border: 1px solid var(--clr-border);
+  cursor: pointer;
+}
+
+.thButton:hover {
+  background-color: var(--clr-gray-light);
+}
+
+.orderSummary{
+  padding: 0 0 0 var(--padding-xs);
+  background-color: var(--clr-white);
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  width: 100%;
+  /* border: 1px solid var(--clr-border); */
+  border-top: 0;
+  background-color: var(--clr-white);
+}
+
+.orderSummaryInfo{
+  display: flex;
+  flex-direction: column;
+}
+
+.orderSummaryRow{
+  display: flex;
+  border: 1px solid var(--clr-border);
+  border-top: 0;
+}
+
+.orderDataWrapper{
+  display: flex;
+  border-right: 1px solid var(--clr-border);
+}
+
+.orderDataWrapper:nth-last-child(1), .table .nestedTh th:nth-last-child(1), .table th:nth-last-child(1),
+.table td:nth-last-child(1){
+  border-right: none;
+}
+
+.orderSummaryData{
+  min-width: clamp(120px, 10vw, 150px);
+  padding: var(--padding-xs);
+  font-weight: 600;
+  color: var(--clr-black);
+}
+
+
+
+@media (max-width: 540px) {
+  .orderSummary{
+    width: 100%;
+    justify-content: stretch;
+    padding: 0;
+  }
+  .orderSummary, .orderSummaryInfo, .orderDataWrapper{
+    width: 100%;
+  }
+
+  .orderSummaryData{
+    min-width: 50%;
+  }
+}
+
+

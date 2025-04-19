@@ -48,7 +48,7 @@ const VerifyEmailForm = () => {
       })}
 
       <Link to="/login" className="clr-black b4">Back to Login</Link>
-      <button className="primary-btn large-btn full-width-btn text-large" onClick={handleVerifyEmail}>
+      <button className="primary-btn large-btn full-width text-large" onClick={handleVerifyEmail}>
         Send One-Time Password
       </button>
     </form>

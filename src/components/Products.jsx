@@ -2,22 +2,18 @@ import React from 'react'
 import HeadingBar from 'components/HeadingBar'
 import productsStyles from 'assets/css/ProductsStyles.module.css'
 import Product from 'components/Product'
+import PropTypes from 'prop-types'
 
-const Products = () => {
-    const products = Array(6).fill({
-        image: "https://praco.co.uk/cdn/shop/collections/coloured-stretch-wrap-1062x708_600x.jpg?v=1707147471",
-        title: "Ph'nglui mglw'nafh",
-        description: "Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn",
-        alt: "kalita",
-        price: "$20.00"
-      });
+const Products = ({title, products, highlightedText}) => {
+    
   return (
     <section className={productsStyles.container}>
 <HeadingBar
         displayType={"row"}
-        headline={"Top Selling Products"}
+        headline={title}
         headlineSize={"h3"}
         headlineSizeType={"tag"}
+        highlightedText={highlightedText}
       />        <div className={productsStyles.gridContainer}>
       <div className={productsStyles.productGrid}>
         {products.map((product, index) => (
@@ -33,6 +29,22 @@ const Products = () => {
     </div>
     </section>
   )
+}
+
+Products.propTypes = {
+  title: PropTypes.string.isRequired,
+  products: PropTypes.array.isRequired,   
+  
+};
+
+Products.defaultProps = {
+  products: Array(6).fill({
+    image: "https://praco.co.uk/cdn/shop/collections/coloured-stretch-wrap-1062x708_600x.jpg?v=1707147471",
+    title: "Ph'nglui mglw'nafh",
+    description: "Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn",
+    alt: "kalita",
+    price: "$20.00"
+  })
 }
 
 export default Products

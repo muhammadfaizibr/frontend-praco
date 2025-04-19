@@ -71,6 +71,42 @@ nav {
 }
 
 /* ========================================================================== */
+/* Account Popup */
+.accountWrapper {
+    position: relative;
+}
+
+.accountPopup {
+    position: absolute;
+    top: calc(100% + var(--gap-xs));
+    right: 0;
+    background: var(--clr-white);
+    box-shadow: var(--shadow-form);
+    border-radius: var(--radius-xxs);
+    padding: var(--padding-xs);
+    z-index: 1000;
+    min-width: 150px;
+}
+
+.logoutButton {
+    display: flex;
+    align-items: center;
+    gap: var(--gap-xs);
+    padding: var(--padding-xs);
+    background: none;
+    border: none;
+    color: var(--clr-text);
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    font-size: 1.4rem;
+}
+
+.logoutButton:hover {
+    background: var(--clr-gray-light);
+}
+
+/* ========================================================================== */
 /* Unit Conversion */
 .unitConversionContainer {
     position: absolute;

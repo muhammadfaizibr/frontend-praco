@@ -74,7 +74,7 @@ const ChangePasswordForm = () => {
         Back to Shop
       </Link>
       <button
-        className="primary-btn large-btn full-width-btn text-large"
+        className="primary-btn large-btn full-width text-large"
         onClick={handleChangePassword}
       >
         Update Password

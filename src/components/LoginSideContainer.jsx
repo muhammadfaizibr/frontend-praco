@@ -15,7 +15,7 @@ const LoginSideContainer = () => {
            hideDivider={true}
          />
          <p className='c3'>Create a customer account for easy shopping, exclusive deals, and fast checkout on Praco packaging supplies.</p>
-         <Link className="primary-btn large-btn full-width-btn text-large anchor-btn" to={'/register'}>
+         <Link className="primary-btn large-btn full-width text-large anchor-btn" to={'/signup'}>
         Create an Account
       </Link>
     </div>

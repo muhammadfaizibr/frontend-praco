@@ -1,49 +1,52 @@
-.container{
-    padding: clamp(2.6rem, 2.6vw, 3rem);
-    display: flex;
-    flex-direction: column;
-    gap: clamp(2rem, 1.5vw, 2rem);
-    max-width: clamp(480px, 50vw, 540px);
-    align-items: flex-start;
-    background-color: var(--clr-secondary-light);
-    border-radius: clamp(1.2rem, 3.4rem, 4rem);
-    width: 100%;
+.container {
+  padding: clamp(2.6rem, 2.6vw, 3rem);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(2rem, 1.5vw, 2rem);
+  max-width: clamp(480px, 50vw, 540px);
+  align-items: flex-start;
+  background-color: var(--clr-secondary-light);
+  border-radius: clamp(1.2rem, 3.4rem, 4rem);
+  width: 100%;
+}
 
+.signupFeaturesWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-s);
+}
+
+.signupFeature {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--gap-xs);
+  flex-direction: row;
+}
+
+.signupFeature .featureIcon svg {
+  color: var(--clr-icon-blue-dark) !important;
+  width: 1.8rem;
+  height: 1.8rem;
+}
+
+.signupFeature .signupFeatureContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-xxs);
+}
+
+.container button {
+  width: 100%;
 }
 
 
-.signupFeaturesWrapper{
-    display: flex;
-    flex-direction: column;
-    gap: var(--gap-s);
-  }
-  
-  .signupFeature{
-    display: flex;
-    align-items: flex-start;
-    gap: var(--gap-xs);
-    flex-direction: row;
-  }
-  
-  .signupFeature .featureIcon svg{
-    color: var(--clr-icon-blue-dark) !important;
-    width: 1.8rem;
-    height: 1.8rem;
-  }
-  
-  .signupFeature .signupFeatureContent{
-    display: flex;
-    flex-direction: column;
-    gap: var(--gap-xxs);
-  
-  }
-
-.container button{
-    width: 100%;
+.row{
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
 }
-
 @media (max-width: 480px) {
-    .container{
-        width: 100%;
-    }
+  .container {
+    width: 100%;
   }
+}

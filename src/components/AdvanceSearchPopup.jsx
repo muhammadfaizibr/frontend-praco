@@ -122,7 +122,7 @@ const AdvanceSearchPopup = () => {
 
  
 
-      <button className="primary-btn large-btn full-width-btn text-large">Search</button>
+      <button className="primary-btn large-btn full-width text-large">Search</button>
     </div>
   );
 };

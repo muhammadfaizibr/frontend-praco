@@ -1,0 +1,5 @@
+.container{
+    box-shadow: none !important;
+    max-width: 100% !important;
+    gap: var(--gap-l) !important;
+}

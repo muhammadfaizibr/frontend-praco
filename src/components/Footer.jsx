@@ -29,7 +29,7 @@ const Footer = () => {
             <img src={Logo} alt="Praco Logo" />
           </div>
 
-          <div className="list-content space-1vw">
+          <div className="column-content space-1vw">
             <p className="b2 clr-white">Email: info@praco.co.uk</p>
             <p className="b2 clr-white">Call: 0116 260 7078</p>
           </div>
@@ -51,7 +51,7 @@ const Footer = () => {
 
         <div className={FooterStyles.childWrapper}>
           <h5 className="light">Links</h5>
-          <div className="list-content space-1vw">
+          <div className="column-content space-1vw">
             {menu.map((menuElement, index) => {
               return (
                 <Link
@@ -68,7 +68,7 @@ const Footer = () => {
 
         <div className={FooterStyles.childWrapper}>
           <h5 className="light">Categories</h5>
-          <div className="list-content space-1vw">
+          <div className="column-content space-1vw">
             {categories.map((categoriesElement, index) => {
               return (
                 <Link

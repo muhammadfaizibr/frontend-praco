@@ -7,7 +7,14 @@ import ChangePassword from 'pages/ChangePassword';
 import VerifyEmail from 'pages/VerifyEmail';
 import VerifyOtp from 'pages/VerifyOTP';
 import Contact from 'pages/Contact'
-// import { About } from 'pages/About';
+import Shop from 'pages/Shop'
+import Checkout from 'pages/Checkout'
+import TrackOrder from 'pages/TrackOrder';
+import OrderHistory from 'pages/OrderHistory';
+import Search from 'pages/Search';
+import Cart from 'pages/Cart';
+import SearchAdvance from 'pages/SearchAdvance';
+import ProductDetails from 'pages/ProductDetails';
 
 export function AppRoutes() {
   return (
@@ -17,10 +24,19 @@ export function AppRoutes() {
       <Route path="/signup" element={<Signup />} />
       <Route path="/forget-password" element={<ForgetPassword />} />
       <Route path="/change-password" element={<ChangePassword />} />
-      <Route path="/verify-email" element={<VerifyEmail />} />
-      <Route path="/verify-otp" element={<VerifyOtp />} />
       <Route path="/contact" element={<Contact />} />
-      {/* <Route path="/about" element={<About />} /> */}
+      <Route path="/shop" element={<Shop />} />
+      <Route path="/checkout" element={<Checkout />} />
+      <Route path="/track-order" element={<TrackOrder />} />
+      <Route path="/order-history" element={<OrderHistory />} />
+      <Route path="/search" element={<Search />} />
+      <Route path="/cart" element={<Cart />} />
+      <Route path="/search-advance" element={<SearchAdvance />} />
+      <Route path="/product-details" element={<ProductDetails />} />
     </Routes>
   );
 }
+
+
+{/* <Route path="/verify-email" element={<VerifyEmail />} />
+<Route path="/verify-otp" element={<VerifyOtp />} /> */}

@@ -3,7 +3,7 @@
 .container {
   display: flex;
   flex-direction: column;
-  gap: clamp(2rem, 4vw, 4rem);
+  gap: var(--padding-m);
 }
 
 /* ========================================================================== */

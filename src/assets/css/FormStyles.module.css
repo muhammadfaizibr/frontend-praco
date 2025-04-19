@@ -1,64 +1,128 @@
 .container {
-    padding: clamp(2.6rem, 2.6vw, 3rem);
-    box-shadow: var(--shadow-form);
-    display: flex;
-    flex-direction: column;
-    gap: clamp(1.5rem, 1.5vw, 2rem);
-    max-width: clamp(480px, 50vw, 540px);
-    align-items: flex-start;
-    width: 100%;
-  }
-  
-  .inputGroup {
-    display: flex;
-    flex-direction: column;
-    gap: clamp(0.5rem, 0.8vw, 0.8rem);
-    width: 100%;
-  }
-  
-  .inputWrapper {
-    display: flex;
-    gap: clamp(0.3rem, 0.6vw, 0.6rem);
-    position: relative;
-    flex-grow: 1;
-    width: 100%;
-  }
-  
-  .inputIcon {
-    position: absolute;
-    display: flex;
-    align-items: center;
-    height: 100%;
-    padding: 0 clamp(1.2rem, 1.2vw, 1.2rem);
-  }
-  
-  .inputIcon svg {
-    stroke-width: var(--form-input-icon-stroke);
-    color: var(--clr-black);
-    width: clamp(2rem, 2vw, 2rem);
-    height: clamp(2rem, 2vw, 2rem);
-  }
-  
-  .inputWrapper input, .inputWrapper textarea {
-    border: 1px solid var(--clr-border);
-    flex-grow: 1;
-    padding: var(--form-input-padding);
-    padding-left: var(--form-input-padding-icon-whitespace);
-    border-radius: 0;
-    width: 100%;
-    box-sizing: border-box;
-  }
-  
+  padding: clamp(2.6rem, 2.6vw, 3rem);
+  box-shadow: var(--shadow-form);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.5rem, 1.5vw, 2rem);
+  max-width: clamp(480px, 50vw, 540px);
+  align-items: flex-start;
+  width: 100%;
+  background: var(--clr-white);
+}
 
-.checkBoxInput{
+.formWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.5rem, 1.5vw, 2rem);
+  width: 100%;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.5rem, 0.8vw, 0.8rem);
+  width: 100%;
+}
+
+.inputWrapper {
+  display: flex;
+  gap: clamp(0.3rem, 0.6vw, 0.6rem);
+  position: relative;
+  flex-grow: 1;
+  width: 100%;
+}
+
+.inputIcon {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 clamp(1.2rem, 1.2vw, 1.2rem);
+}
+
+.inputIcon svg {
+  stroke-width: var(--form-input-icon-stroke);
+  color: var(--clr-black);
+  width: clamp(2rem, 2vw, 2rem);
+  height: clamp(2rem, 2vw, 2rem);
+}
+
+.inputWrapper input {
+  border: 1px solid var(--clr-border);
+  flex-grow: 1;
+  padding: var(--form-input-padding);
+  padding-left: var(--form-input-padding-icon-whitespace);
+  border-radius: 0;
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 1.6rem;
+}
+
+.inputWrapper input:disabled {
+  background: var(--clr-gray-light);
+  cursor: not-allowed;
+}
+
+.inputError {
+  border-color: var(--clr-danger);
+}
+
+.errorText {
+  color: var(--clr-danger);
+  font-size: 1.4rem;
+}
+
+.errorMessage {
+  background: var(--clr-danger-light);
+  color: var(--clr-danger-dark);
+  padding: var(--padding-xs);
+  border-radius: var(--radius-xxs);
+  text-align: center;
+  width: 100%;
+}
+
+.successMessage {
+  background: var(--clr-success-light);
+  color: var(--clr-success-dark);
+  padding: var(--padding-xs);
+  border-radius: var(--radius-xxs);
+  text-align: center;
+  width: 100%;
+}
+
+.loading {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.formWrapper button {
+  background: var(--clr-primary);
+  color: var(--clr-white);
+  border: none;
+  padding: var(--large-btn-padding);
+  border-radius: var(--radius-xxs);
+  cursor: pointer;
+  font-size: 1.6rem;
+  width: 100%;
+}
+
+.formWrapper button:hover:not(:disabled) {
+  background: var(--clr-primary-dark);
+}
+
+.checkBoxInput {
   display: flex;
   gap: var(--gap-xs);
   align-items: center;
 }
 
+.checkBoxInput label {
+  font-size: 1.4rem;
+  color: var(--clr-text);
+}
 
-  @media (max-width: 620px) {
-    .container{
-        width: 100%;
-    }
+@media (max-width: 620px) {
+  .container {
+    width: 100%;
   }
+}

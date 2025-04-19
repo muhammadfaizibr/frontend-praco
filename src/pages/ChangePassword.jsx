@@ -4,8 +4,8 @@ import FormsPageStyles from "assets/css/FormsPageStyles.module.css"
 
 const ChangePassword = () => {
   return (
-    <div className="centered-layout-wrapper layout-spacing layout-vertical-padding">
-      <div className="centered-layout page-layout layout-spacing">
+    <div className="centered-layout-wrapper full-width-flex-col layout-spacing layout-vertical-padding">
+      <div className="centered-layout page-layout full-width-flex-col layout-spacing">
       <div className={FormsPageStyles.contentWrapper}>
       <ChangePasswordForm />
       </div>

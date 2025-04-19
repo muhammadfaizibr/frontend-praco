@@ -7,7 +7,7 @@ const Product = ({ image, title, price, alt }) => {  return (
         <img src={image} alt={alt} />
       </div>
         <div className={ProductCardStyles.contentWrapper}>
-        <p className="s1">{title}</p>
+        <p className={`${ProductCardStyles.productPrice} s1`}>{title}</p>
       <div className={ProductCardStyles.content}>
         <p className="s1 clr-primary">{price}</p>
         <button className="primary-btn small-btn text-medium hover-primary">

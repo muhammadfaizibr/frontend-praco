@@ -1,0 +1,14 @@
+.wrapper{
+    background-color: var(--clr-secondary-light);
+}
+.breadCrumb, .breadCrumb p{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--gap-xxs);    
+}
+
+.breadCrumb{
+    padding: var(--padding-xxs) 0;
+}
