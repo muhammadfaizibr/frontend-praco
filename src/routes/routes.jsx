@@ -7,7 +7,7 @@ import ChangePassword from 'pages/ChangePassword';
 import VerifyEmail from 'pages/VerifyEmail';
 import VerifyOtp from 'pages/VerifyOTP';
 import Contact from 'pages/Contact';
-import Shop from 'pages/Shop';
+import Categories from 'pages/Categories';
 import Checkout from 'pages/Checkout';
 import TrackOrder from 'pages/TrackOrder';
 import OrderHistory from 'pages/OrderHistory';
@@ -22,7 +22,6 @@ const ProtectedRoute = ({ children }) => {
   const location = useLocation();
 
   if (!isAuthenticated) {
-    // Redirect to login with 'from' query parameter
     return <Navigate to={`/login?from=${encodeURIComponent(location.pathname)}`} replace />;
   }
 
@@ -34,7 +33,6 @@ const GuestRoute = ({ children }) => {
   const isAuthenticated = !!localStorage.getItem('authToken');
 
   if (isAuthenticated) {
-    // Redirect to home if logged in
     return <Navigate to="/" replace />;
   }
 
@@ -47,10 +45,11 @@ export function AppRoutes() {
       {/* Public Routes */}
       <Route path="/" element={<Home />} />
       <Route path="/contact" element={<Contact />} />
-      <Route path="/shop" element={<Shop />} />
+      <Route path="/category/:slug" element={<Categories />} />
       <Route path="/order-history" element={<OrderHistory />} />
       <Route path="/search" element={<Search />} />
       <Route path="/cart" element={<Cart />} />
+      <Route path="/details/:category/:product" element={<ProductDetails />} />
       <Route path="/search-advance" element={<SearchAdvance />} />
       <Route path="/product-details" element={<ProductDetails />} />
 
@@ -121,6 +120,9 @@ export function AppRoutes() {
           </ProtectedRoute>
         }
       />
+
     </Routes>
+
+    
   );
 }
