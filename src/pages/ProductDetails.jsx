@@ -11,7 +11,7 @@ import {
 } from "utils/api/ecommerce";
 
 const ProductDetails = () => {
-  const { category, product } = useParams(); // Get category and product slugs
+  const { category, product } = useParams();
   const [productData, setProductData] = useState(null);
   const [variantsWithData, setVariantsWithData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -30,12 +30,15 @@ const ProductDetails = () => {
 
         // Fetch product variants
         const variants = await getProductVariants(productResponse.id);
-        
+        console.log("Variants:", variants);
+
         // Fetch items, table fields, and pricing tier data for each variant
         const variantsData = [];
         for (const variant of variants) {
           const items = await getItemsByProductVariant(variant.id);
+          console.log(`Items for variant ${variant.id}:`, items);
           const tableFields = await getTableFieldsByProductVariant(variant.id);
+          console.log(`TableFields for variant ${variant.id}:`, tableFields);
           const itemsWithPricing = await Promise.all(
             items.map(async (item) => {
               const pricingTierData = await getPricingTierDataByItem(item.id);
@@ -44,6 +47,7 @@ const ProductDetails = () => {
           );
           variantsData.push({ ...variant, items: itemsWithPricing, tableFields });
         }
+        console.log("Variants with data:", variantsData);
         setVariantsWithData(variantsData);
       } catch (err) {
         setError(err.message || "Failed to fetch product data");

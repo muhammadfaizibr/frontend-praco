@@ -68,7 +68,7 @@ export const getProductVariants = async (productId) => {
       const response = await apiClient.get(url);
       const data = response.data;
       allVariants = allVariants.concat(data.results || []);
-      url = data.next; // Continue to next page if available
+      url = data.next;
     }
     return allVariants;
   } catch (error) {
@@ -79,7 +79,7 @@ export const getProductVariants = async (productId) => {
 export const getProductBySlug = async (productSlug) => {
   try {
     const response = await apiClient.get(`products/?slug=${productSlug}`);
-    return response.data.results[0]; // Assuming the API returns a list with one matching product
+    return response.data.results[0];
   } catch (error) {
     throw error;
   }
@@ -93,7 +93,7 @@ export const getItemsByProductVariant = async (productVariantId) => {
       const response = await apiClient.get(url);
       const data = response.data;
       allItems = allItems.concat(data.results || []);
-      url = data.next; // Continue to next page if available
+      url = data.next;
     }
     return allItems;
   } catch (error) {
@@ -109,7 +109,7 @@ export const getTableFieldsByProductVariant = async (productVariantId) => {
       const response = await apiClient.get(url);
       const data = response.data;
       allFields = allFields.concat(data.results || []);
-      url = data.next; // Continue to next page if available
+      url = data.next;
     }
     return allFields;
   } catch (error) {
@@ -125,7 +125,7 @@ export const getPricingTierDataByItem = async (itemId) => {
       const response = await apiClient.get(url);
       const data = response.data;
       allPricingData = allPricingData.concat(data.results || []);
-      url = data.next; // Continue to next page if available
+      url = data.next;
     }
     return allPricingData;
   } catch (error) {
