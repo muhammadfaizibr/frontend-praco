@@ -1,14 +1,14 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Home from 'pages/Home';
 import Login from 'pages/Login';
-import Signup from 'pages/Signup'
+import Signup from 'pages/Signup';
 import ForgetPassword from 'pages/ForgetPassword';
 import ChangePassword from 'pages/ChangePassword';
 import VerifyEmail from 'pages/VerifyEmail';
 import VerifyOtp from 'pages/VerifyOTP';
-import Contact from 'pages/Contact'
-import Shop from 'pages/Shop'
-import Checkout from 'pages/Checkout'
+import Contact from 'pages/Contact';
+import Shop from 'pages/Shop';
+import Checkout from 'pages/Checkout';
 import TrackOrder from 'pages/TrackOrder';
 import OrderHistory from 'pages/OrderHistory';
 import Search from 'pages/Search';
@@ -16,27 +16,111 @@ import Cart from 'pages/Cart';
 import SearchAdvance from 'pages/SearchAdvance';
 import ProductDetails from 'pages/ProductDetails';
 
+// Protected Route: Requires user to be logged in
+const ProtectedRoute = ({ children }) => {
+  const isAuthenticated = !!localStorage.getItem('authToken');
+  const location = useLocation();
+
+  if (!isAuthenticated) {
+    // Redirect to login with 'from' query parameter
+    return <Navigate to={`/login?from=${encodeURIComponent(location.pathname)}`} replace />;
+  }
+
+  return children;
+};
+
+// Guest Route: Requires user to be not logged in
+const GuestRoute = ({ children }) => {
+  const isAuthenticated = !!localStorage.getItem('authToken');
+
+  if (isAuthenticated) {
+    // Redirect to home if logged in
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+};
+
 export function AppRoutes() {
   return (
     <Routes>
+      {/* Public Routes */}
       <Route path="/" element={<Home />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/signup" element={<Signup />} />
-      <Route path="/forget-password" element={<ForgetPassword />} />
-      <Route path="/change-password" element={<ChangePassword />} />
       <Route path="/contact" element={<Contact />} />
       <Route path="/shop" element={<Shop />} />
-      <Route path="/checkout" element={<Checkout />} />
-      <Route path="/track-order" element={<TrackOrder />} />
       <Route path="/order-history" element={<OrderHistory />} />
       <Route path="/search" element={<Search />} />
       <Route path="/cart" element={<Cart />} />
       <Route path="/search-advance" element={<SearchAdvance />} />
       <Route path="/product-details" element={<ProductDetails />} />
+
+      {/* Guest Routes (not logged in) */}
+      <Route
+        path="/login"
+        element={
+          <GuestRoute>
+            <Login />
+          </GuestRoute>
+        }
+      />
+      <Route
+        path="/signup"
+        element={
+          <GuestRoute>
+            <Signup />
+          </GuestRoute>
+        }
+      />
+      <Route
+        path="/forget-password"
+        element={
+          <GuestRoute>
+            <ForgetPassword />
+          </GuestRoute>
+        }
+      />
+      <Route
+        path="/verify-email"
+        element={
+          <GuestRoute>
+            <VerifyEmail />
+          </GuestRoute>
+        }
+      />
+      <Route
+        path="/verify-otp"
+        element={
+          <GuestRoute>
+            <VerifyOtp />
+          </GuestRoute>
+        }
+      />
+
+      {/* Protected Routes (require login) */}
+      <Route
+        path="/change-password"
+        element={
+          <ProtectedRoute>
+            <ChangePassword />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/checkout"
+        element={
+          <ProtectedRoute>
+            <Checkout />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/track-order"
+        element={
+          <ProtectedRoute>
+            <TrackOrder />
+          </ProtectedRoute>
+        }
+      />
     </Routes>
   );
 }
-
-
-{/* <Route path="/verify-email" element={<VerifyEmail />} />
-<Route path="/verify-otp" element={<VerifyOtp />} /> */}
