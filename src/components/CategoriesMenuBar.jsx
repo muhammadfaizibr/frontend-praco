@@ -25,7 +25,7 @@ const CategoriesMenuBar = () => {
           const mappedCategories = (response.results || []).map((cat) => ({
             id: cat.id,
             label: cat.name,
-            url: `/category/${cat.id}`,
+            url: `/category/${cat.slug}`,
             icon: "Boxes", // Default icon; extend mapping if needed
           }));
           setCategories(mappedCategories);

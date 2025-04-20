@@ -17,7 +17,7 @@ const Home = () => {
       <div className="centered-layout page-layout full-width-flex-col layout-spacing">
         <HomeHero />
 
-        <Products title="Pallet Wraps" products={products}/>
+        {/* <Products title="Pallet Wraps" products={products}/> */}
       </div>
         <AboutPraco />
 

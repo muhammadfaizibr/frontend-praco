@@ -1,7 +1,3 @@
-.mapWrapper{
-    height: 60rem;
-}
-
 .mapWrapper iframe{
     width: 100%;
     border: none;

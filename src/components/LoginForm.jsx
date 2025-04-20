@@ -1,74 +1,66 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, memo, useContext } from "react";
+import PropTypes from "prop-types";
 import FormStyles from "assets/css/FormStyles.module.css";
 import { Link, useNavigate } from "react-router-dom";
 import { Lock, Mail } from "lucide-react";
 import { login, clearRequestCache } from "utils/api/account";
+import { AuthContext } from "utils/AuthContext";
 
 const LoginForm = () => {
-  const [emailValue, setEmailValue] = useState("");
-  const [passwordValue, setPasswordValue] = useState("");
+  const { setIsLoggedIn } = useContext(AuthContext);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState("");
   const navigate = useNavigate();
-
   const abortController = new AbortController();
 
-  const formInputs = [
-    {
-      label: "Email Address",
-      name: "email",
-      type: "email",
-      icon: <Mail />,
-      value: emailValue,
-      onchange: (e) => setEmailValue(e.target.value),
-    },
-    {
-      label: "Password",
-      name: "password",
-      type: "password",
-      icon: <Lock />,
-      value: passwordValue,
-      onchange: (e) => setPasswordValue(e.target.value),
-    },
-  ];
-
-  const validateForm = () => {
+  const validateForm = useCallback(() => {
     const newErrors = {};
-    if (!emailValue) newErrors.email = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(emailValue)) newErrors.email = "Invalid email format";
-    if (!passwordValue) newErrors.password = "Password is required";
-    else if (passwordValue.length < 6) newErrors.password = "Password must be at least 6 characters";
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) newErrors.email = "Email is required";
+    else if (!/\S+@\S+\.\S+/.test(trimmedEmail)) newErrors.email = "Invalid email format";
+    if (!password) newErrors.password = "Password is required";
+    else if (password.length < 6) newErrors.password = "Password must be at least 6 characters";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
+  }, [email, password]);
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setApiError("");
-
-    if (!validateForm()) return;
-
-    setIsLoading(true);
-    try {
-      const response = await login(
-        { email: emailValue, password: passwordValue },
-        { signal: abortController.signal }
-      );
-
-      localStorage.setItem("authToken", response.token);
-
-      setEmailValue("");
-      setPasswordValue("");
+  const handleLogin = useCallback(
+    async (e) => {
+      e.preventDefault();
+      setApiError("");
       setErrors({});
 
-      navigate("/dashboard");
-    } catch (error) {
-      setApiError(error.message || "Login failed. Please check your credentials.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      if (!validateForm()) return;
+
+      setIsLoading(true);
+      try {
+        const response = await login(
+          { email: email.trim(), password: password.trim() },
+          { signal: abortController.signal }
+        );
+
+        if (!response?.token?.access || !response?.token?.refresh) {
+          throw new Error("Invalid token response from server");
+        }
+
+        localStorage.setItem("accessToken", response.token.access);
+        localStorage.setItem("refreshToken", response.token.refresh);
+        setIsLoggedIn(true);
+
+        setEmail("");
+        setPassword("");
+        navigate("/", { replace: true });
+      } catch (error) {
+        setApiError(error.message || "Login failed. Please check your credentials.");
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [email, password, validateForm, navigate, setIsLoggedIn]
+  );
 
   useEffect(() => {
     return () => {
@@ -77,48 +69,91 @@ const LoginForm = () => {
     };
   }, []);
 
+  const formInputs = [
+    {
+      label: "Email Address",
+      name: "email",
+      type: "email",
+      icon: <Mail aria-hidden="true" />,
+      value: email,
+      onChange: (e) => setEmail(e.target.value),
+      error: errors.email,
+    },
+    {
+      label: "Password",
+      name: "password",
+      type: "password",
+      icon: <Lock aria-hidden="true" />,
+      value: password,
+      onChange: (e) => setPassword(e.target.value),
+      error: errors.password,
+    },
+  ];
+
   return (
     <div className={FormStyles.formWrapper}>
-      <form className={FormStyles.container} onSubmit={handleLogin}>
-        <h4 className="dark">Login</h4>
+      <form
+        className={FormStyles.container}
+        onSubmit={handleLogin}
+        aria-labelledby="login-title"
+        noValidate
+      >
+        <h4 id="login-title" className="dark">
+          Login
+        </h4>
 
         {apiError && (
-          <div className={FormStyles.errorMessage}>
+          <div className={FormStyles.errorMessage} role="alert">
             {apiError}
           </div>
         )}
 
-        {formInputs.map((inputElement) => (
-          <div className={FormStyles.inputGroup} key={inputElement.name}>
-            <label className="dark l2" htmlFor={inputElement.name}>
-              {inputElement.label}
+        {formInputs.map((input) => (
+          <div className={FormStyles.inputGroup} key={input.name}>
+            <label className="dark l2" htmlFor={input.name}>
+              {input.label}
             </label>
             <div className={FormStyles.inputWrapper}>
-              <span className={FormStyles.inputIcon}>{inputElement.icon}</span>
+              <span className={FormStyles.inputIcon}>{input.icon}</span>
               <input
-                className={`b2 ${errors[inputElement.name] ? FormStyles.inputError : ""}`}
-                type={inputElement.type}
-                name={inputElement.name}
-                id={inputElement.name}
-                value={inputElement.value}
-                onChange={inputElement.onchange}
+                className={`b2 ${input.error ? FormStyles.inputError : ""}`}
+                type={input.type}
+                name={input.name}
+                id={input.name}
+                value={input.value}
+                onChange={input.onChange}
                 disabled={isLoading}
+                aria-invalid={!!input.error}
+                aria-describedby={input.error ? `${input.name}-error` : undefined}
               />
             </div>
-            {errors[inputElement.name] && (
-              <span className={FormStyles.errorText}>{errors[inputElement.name]}</span>
+            {input.error && (
+              <span
+                id={`${input.name}-error`}
+                className={FormStyles.errorText}
+                role="alert"
+              >
+                {input.error}
+              </span>
             )}
           </div>
         ))}
 
-        <Link to="/forget-password" className="clr-black b4">
-          Forget Password?
+        <Link
+          to="/forget-password"
+          className="clr-black b4"
+          aria-label="Recover Password"
+        >
+          Forgot Password?
         </Link>
 
         <button
-          className={`primary-btn large-btn full-width text-large ${isLoading ? FormStyles.loading : ""}`}
+          className={`primary-btn large-btn full-width text-large ${
+            isLoading ? FormStyles.loading : ""
+          }`}
           type="submit"
           disabled={isLoading}
+          aria-busy={isLoading}
         >
           {isLoading ? "Logging in..." : "Login"}
         </button>
@@ -127,4 +162,6 @@ const LoginForm = () => {
   );
 };
 
-export default LoginForm;
+LoginForm.propTypes = {};
+
+export default memo(LoginForm);

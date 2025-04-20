@@ -1,26 +1,37 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import FooterStyles from "assets/css/FooterStyles.module.css";
 import Logo from "assets/images/logo.svg";
 import { Link } from "react-router-dom";
 import { Facebook, Instagram, Twitter, Youtube } from "lucide-react";
-import NewsLetterSearchBar from "components/NewsLetterSearchBar";
+import NewsLetterInput from "components/NewsLetterInput";
+import { getCategories } from "utils/api/ecommerce";
 
 const Footer = () => {
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const menu = [
-    { label: "About", link: "about" },
     { label: "Contact", link: "contact" },
-    { label: "Terms & Condition", link: "terms-condition" },
-    { label: "Privacy Policy", link: "Privacy Policy" },
-    { label: "Refund Policy", link: "Refund Policy" },
+    { label: "Terms & Condition", link: "terms-of-services" },
+    { label: "Privacy Policy", link: "privacy-policy" },
+    { label: "Refund Policy", link: "refund-policy" },
   ];
 
-  const categories = [
-    { label: "About", link: "about" },
-    { label: "Contact", link: "contact" },
-    { label: "Terms & Condition", link: "terms-condition" },
-    { label: "Privacy Policy", link: "Privacy Policy" },
-    { label: "Refund Policy", link: "Refund Policy" },
-  ];
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const data = await getCategories();
+        setCategories(data.results || data);
+        setLoading(false);
+      } catch (err) {
+        setError(err.message);
+        setLoading(false);
+      }
+    };
+    fetchCategories();
+  }, []);
+
   return (
     <footer className="centered-layout-wrapper">
       <div className={`centered-layout ${FooterStyles.contentWrapper} filled-layout-padding`}>
@@ -52,41 +63,43 @@ const Footer = () => {
         <div className={FooterStyles.childWrapper}>
           <h5 className="light">Links</h5>
           <div className="column-content space-1vw">
-            {menu.map((menuElement, index) => {
-              return (
-                <Link
-                  key={`footerMenu_${index}`}
-                  to={menuElement.link}
-                  className="b2 link-dark"
-                >
-                  {menuElement.label}
-                </Link>
-              );
-            })}
+            {menu.map((menuElement, index) => (
+              <Link
+                key={`footerMenu_${index}`}
+                to={menuElement.link}
+                className="b2 link-dark"
+              >
+                {menuElement.label}
+              </Link>
+            ))}
           </div>
         </div>
 
         <div className={FooterStyles.childWrapper}>
           <h5 className="light">Categories</h5>
           <div className="column-content space-1vw">
-            {categories.map((categoriesElement, index) => {
-              return (
-                <Link
-                  key={`footerCategories_${index}`}
-                  to={categoriesElement.link}
-                  className="b2 link-dark"
-                >
-                  {categoriesElement.label}
-                </Link>
-              );
-            })}
+            {loading && (
+              <p className="b2 clr-white">Loading categories...</p>
+            )}
+            {error && (
+              <p className="b2 clr-danger">{error}</p>
+            )}
+            {!loading && !error && categories.map((category, index) => (
+              <Link
+                key={`footerCategories_${index}`}
+                to={`/category/${category.slug}`}
+                className="b2 link-dark"
+              >
+                {category.name || category.title}
+              </Link>
+            ))}
           </div>
         </div>
 
         <div className={FooterStyles.childWrapper}>
           <h5 className="light">Subscribe Our Newsletter</h5>
-          <NewsLetterSearchBar />
-        </div> 
+          <NewsLetterInput />
+        </div>
       </div>
     </footer>
   );

@@ -135,9 +135,11 @@
   --clr-success: #28a745;
   --clr-success-light: #61bd4f;
   --clr-success-dark: #1e7e34;
+  --clr-success-bg-light: #d4edda;
   --clr-danger: #dc3545;
   --clr-danger-light: #e4606d;
   --clr-danger-dark: #bd2130;
+  --clr-danger-bg-light: #f8d7da;
   --clr-warning: #ffc107;
   --clr-warning-light: #ffd33d;
   --clr-warning-dark: #d39e00;
@@ -784,6 +786,14 @@ label{
 
 /* ========================================================================== */
 /* Properties & Variables as Classes */
+.clr-success-light{
+  color: var(--clr-success-light);
+}
+
+.clr-danger-light{
+  color: var(--clr-danger-light);
+}
+
 .bg-clr-accent{
   background-color: var(--clr-accent);
 }

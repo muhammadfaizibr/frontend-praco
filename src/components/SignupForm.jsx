@@ -1,19 +1,22 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, memo, useContext } from "react";
+import PropTypes from "prop-types";
 import FormStyles from "assets/css/FormStyles.module.css";
 import { Link, useNavigate } from "react-router-dom";
 import { Building2, Lock, Mail, User } from "lucide-react";
 import { signup, authenticateEmail, clearRequestCache } from "utils/api/account";
+import { AuthContext } from "utils/AuthContext";
 
 const SignupForm = () => {
-  const [emailValue, setEmailValue] = useState("");
-  const [firstNameValue, setFirstNameValue] = useState("");
-  const [lastNameValue, setLastNameValue] = useState("");
-  const [companyNameValue, setCompanyNameValue] = useState("");
-  const [passwordValue, setPasswordValue] = useState("");
-  const [otpValue, setOtpValue] = useState("");
+  const { setIsLoggedIn } = useContext(AuthContext);
+  const [email, setEmail] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [password, setPassword] = useState("");
+  const [otp, setOtp] = useState("");
   const [generatedOtp, setGeneratedOtp] = useState(null);
-  const [interestedInMarketingCommunications, setInterestedInMarketingCommunications] = useState(false);
-  const [dontHaveCompanyName, setDontHaveCompanyName] = useState(false);
+  const [interestedInMarketing, setInterestedInMarketing] = useState(false);
+  const [noCompanyName, setNoCompanyName] = useState(false);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState("");
@@ -21,114 +24,45 @@ const SignupForm = () => {
   const [showOtpInput, setShowOtpInput] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const navigate = useNavigate();
-
   const abortController = new AbortController();
 
-  const generateOtp = () => {
-    return Math.floor(1000 + Math.random() * 9000).toString(); // 4-digit OTP
-  };
+  const generateOtp = useCallback(() => {
+    return Math.floor(1000 + Math.random() * 9000).toString();
+  }, []);
 
-  const formInputs = [
-    {
-      label: "Email Address",
-      name: "email",
-      type: "email",
-      icon: <Mail />,
-      value: emailValue,
-      onchange: (e) => {
-        setEmailValue(e.target.value);
-        setIsEmailVerified(false);
-        setShowOtpInput(false);
-        setOtpValue("");
-        setGeneratedOtp(null);
-      },
-    },
-    ...(showOtpInput
-      ? [
-          {
-            label: "Enter OTP",
-            name: "otp",
-            type: "text",
-            icon: <Lock />,
-            value: otpValue,
-            onchange: (e) => setOtpValue(e.target.value),
-          },
-        ]
-      : []),
-    {
-      label: "First Name",
-      name: "first-name",
-      type: "text",
-      icon: <User />,
-      value: firstNameValue,
-      onchange: (e) => setFirstNameValue(e.target.value),
-    },
-    {
-      label: "Last Name",
-      name: "last-name",
-      type: "text",
-      icon: <User />,
-      value: lastNameValue,
-      onchange: (e) => setLastNameValue(e.target.value),
-    },
-    ...(dontHaveCompanyName
-      ? []
-      : [
-          {
-            label: "Company Name",
-            name: "company-name",
-            type: "text",
-            icon: <Building2 />,
-            value: companyNameValue,
-            onchange: (e) => setCompanyNameValue(e.target.value),
-          },
-        ]),
-    {
-      label: "Password",
-      name: "password",
-      type: "password",
-      icon: <Lock />,
-      value: passwordValue,
-      onchange: (e) => setPasswordValue(e.target.value),
-    },
-  ];
-
-  const validateForm = () => {
+  const validateForm = useCallback(() => {
     const newErrors = {};
-    if (!emailValue) newErrors.email = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(emailValue))
-      newErrors.email = "Invalid email format";
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) newErrors.email = "Email is required";
+    else if (!/\S+@\S+\.\S+/.test(trimmedEmail)) newErrors.email = "Invalid email format";
     if (!isEmailVerified) newErrors.email = "Email verification required";
-    if (!firstNameValue) newErrors["first-name"] = "First name is required";
-    if (!lastNameValue) newErrors["last-name"] = "Last name is required";
-    if (!dontHaveCompanyName && !companyNameValue)
-      newErrors["company-name"] = "Company name is required";
-    if (!passwordValue) newErrors.password = "Password is required";
-    else if (passwordValue.length < 6)
-      newErrors.password = "Password must be at least 6 characters";
+    if (!firstName.trim()) newErrors["first-name"] = "First name is required";
+    if (!lastName.trim()) newErrors["last-name"] = "Last name is required";
+    if (!noCompanyName && !companyName.trim()) newErrors["company-name"] = "Company name is required";
+    if (!password) newErrors.password = "Password is required";
+    else if (password.length < 6) newErrors.password = "Password must be at least 6 characters";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
+  }, [email, firstName, lastName, companyName, password, isEmailVerified, noCompanyName]);
 
-  const validateEmail = () => {
+  const validateEmail = useCallback(() => {
     const newErrors = {};
-    if (!emailValue) newErrors.email = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(emailValue))
-      newErrors.email = "Invalid email format";
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) newErrors.email = "Email is required";
+    else if (!/\S+@\S+\.\S+/.test(trimmedEmail)) newErrors.email = "Invalid email format";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
+  }, [email]);
 
-  const validateOtp = () => {
+  const validateOtp = useCallback(() => {
     const newErrors = {};
-    if (!otpValue) newErrors.otp = "OTP is required";
-    else if (!/^\d{4}$/.test(otpValue))
-      newErrors.otp = "OTP must be a 4-digit number";
+    if (!otp) newErrors.otp = "OTP is required";
+    else if (!/^\d{4}$/.test(otp)) newErrors.otp = "OTP must be a 4-digit number";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
+  }, [otp]);
 
-  const handleVerifyEmail = async () => {
+  const handleVerifyEmail = useCallback(async () => {
     setApiError("");
     if (!validateEmail()) return;
 
@@ -137,11 +71,11 @@ const SignupForm = () => {
     setIsVerifying(true);
     try {
       const response = await authenticateEmail(
-        { email: emailValue, code: newOtp },
+        { email: email.trim(), code: newOtp },
         { signal: abortController.signal }
       );
       if (response.exists) {
-        setApiError("Account already exists with this email address.");
+        setApiError("An account already exists with this email.");
       } else if (response.success) {
         setShowOtpInput(true);
       } else {
@@ -152,14 +86,13 @@ const SignupForm = () => {
     } finally {
       setIsVerifying(false);
     }
-  };
+  }, [email, validateEmail, generateOtp]);
 
-  const handleVerifyOtp = async () => {
+  const handleVerifyOtp = useCallback(async () => {
     setApiError("");
     if (!validateOtp()) return;
 
-    // Client-side OTP check
-    if (otpValue !== generatedOtp) {
+    if (otp !== generatedOtp) {
       setApiError("Invalid OTP. Please try again.");
       return;
     }
@@ -167,15 +100,15 @@ const SignupForm = () => {
     setIsVerifying(true);
     try {
       const response = await authenticateEmail(
-        { email: emailValue, code: otpValue },
+        { email: email.trim(), code: otp },
         { signal: abortController.signal }
       );
       if (response.exists) {
-        setApiError("Account already exists with this email address.");
+        setApiError("An account already exists with this email.");
       } else if (response.success) {
         setIsEmailVerified(true);
         setShowOtpInput(false);
-        setOtpValue("");
+        setOtp("");
         setGeneratedOtp(null);
         setErrors((prev) => ({ ...prev, email: "", otp: "" }));
       } else {
@@ -186,65 +119,80 @@ const SignupForm = () => {
     } finally {
       setIsVerifying(false);
     }
-  };
+  }, [email, otp, generatedOtp, validateOtp]);
 
-  const handleSignup = async (e) => {
-    e.preventDefault();
-    setApiError("");
-    setErrors({});
-
-    if (!validateForm()) return;
-
-    setIsLoading(true);
-    try {
-      const payload = {
-        email: emailValue,
-        first_name: firstNameValue,
-        last_name: lastNameValue,
-        password: passwordValue,
-        interested_in_marketing_communications: interestedInMarketingCommunications,
-      };
-      if (!dontHaveCompanyName) {
-        payload.company_name = companyNameValue;
-      }
-
-      const response = await signup(payload, {
-        signal: abortController.signal,
-      });
-
-      localStorage.setItem("authToken", response.token);
-
-      setEmailValue("");
-      setFirstNameValue("");
-      setLastNameValue("");
-      setCompanyNameValue("");
-      setPasswordValue("");
-      setInterestedInMarketingCommunications(false);
-      setDontHaveCompanyName(false);
-      setIsEmailVerified(false);
-      setShowOtpInput(false);
-      setOtpValue("");
-      setGeneratedOtp(null);
+  const handleSignup = useCallback(
+    async (e) => {
+      e.preventDefault();
+      setApiError("");
       setErrors({});
 
-      navigate("/dashboard");
-    } catch (error) {
-      if (error.fieldErrors) {
-        setErrors((prev) => ({
-          ...prev,
-          ...error.fieldErrors,
-          email: error.fieldErrors.email || prev.email,
-          "first-name": error.fieldErrors.first_name || prev["first-name"],
-          "last-name": error.fieldErrors.last_name || prev["last-name"],
-          "company-name": error.fieldErrors.company_name || prev["company-name"],
-          password: error.fieldErrors.password || prev.password,
-        }));
+      if (!validateForm()) return;
+
+      setIsLoading(true);
+      try {
+        const payload = {
+          email: email.trim(),
+          first_name: firstName.trim(),
+          last_name: lastName.trim(),
+          password: password.trim(),
+          interested_in_marketing_communications: interestedInMarketing,
+        };
+        if (!noCompanyName) {
+          payload.company_name = companyName.trim();
+        }
+
+        const response = await signup(payload, { signal: abortController.signal });
+
+        if (!response?.token?.access || !response?.token?.refresh) {
+          throw new Error("Invalid token response from server");
+        }
+
+        localStorage.setItem("accessToken", response.token.access);
+        localStorage.setItem("refreshToken", response.token.refresh);
+        setIsLoggedIn(true);
+
+        setEmail("");
+        setFirstName("");
+        setLastName("");
+        setCompanyName("");
+        setPassword("");
+        setInterestedInMarketing(false);
+        setNoCompanyName(false);
+        setIsEmailVerified(false);
+        setShowOtpInput(false);
+        setOtp("");
+        setGeneratedOtp(null);
+
+        navigate("/", { replace: true });
+      } catch (error) {
+        if (error.fieldErrors) {
+          const newErrors = {};
+          Object.entries(error.fieldErrors).forEach(([key, value]) => {
+            newErrors[key.replace("_", "-")] = Array.isArray(value) ? value.join(" ") : value;
+          });
+          setErrors(newErrors);
+        } else {
+          setApiError(error.message || "Signup failed. Please try again.");
+        }
+      } finally {
+        setIsLoading(false);
       }
-      setApiError(error.message || "Signup failed. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    },
+    [
+      email,
+      firstName,
+      lastName,
+      companyName,
+      password,
+      interestedInMarketing,
+      noCompanyName,
+      isEmailVerified,
+      validateForm,
+      navigate,
+      setIsLoggedIn,
+    ]
+  );
 
   useEffect(() => {
     return () => {
@@ -253,52 +201,133 @@ const SignupForm = () => {
     };
   }, []);
 
+  const formInputs = [
+    {
+      label: "Email Address",
+      name: "email",
+      type: "email",
+      icon: <Mail aria-hidden="true" />,
+      value: email,
+      onChange: (e) => {
+        setEmail(e.target.value);
+        setIsEmailVerified(false);
+        setShowOtpInput(false);
+        setOtp("");
+        setGeneratedOtp(null);
+      },
+      error: errors.email,
+      disabled: isLoading || isVerifying || isEmailVerified,
+    },
+    ...(showOtpInput
+      ? [
+          {
+            label: "Enter OTP",
+            name: "otp",
+            type: "text",
+            icon: <Lock aria-hidden="true" />,
+            value: otp,
+            onChange: (e) => setOtp(e.target.value),
+            error: errors.otp,
+            disabled: isLoading || isVerifying,
+          },
+        ]
+      : []),
+    {
+      label: "First Name",
+      name: "first-name",
+      type: "text",
+      icon: <User aria-hidden="true" />,
+      value: firstName,
+      onChange: (e) => setFirstName(e.target.value),
+      error: errors["first-name"],
+      disabled: isLoading,
+    },
+    {
+      label: "Last Name",
+      name: "last-name",
+      type: "text",
+      icon: <User aria-hidden="true" />,
+      value: lastName,
+      onChange: (e) => setLastName(e.target.value),
+      error: errors["last-name"],
+      disabled: isLoading,
+    },
+    ...(noCompanyName
+      ? []
+      : [
+          {
+            label: "Company Name",
+            name: "company-name",
+            type: "text",
+            icon: <Building2 aria-hidden="true" />,
+            value: companyName,
+            onChange: (e) => setCompanyName(e.target.value),
+            error: errors["company-name"],
+            disabled: isLoading,
+          },
+        ]),
+    {
+      label: "Password",
+      name: "password",
+      type: "password",
+      icon: <Lock aria-hidden="true" />,
+      value: password,
+      onChange: (e) => setPassword(e.target.value),
+      error: errors.password,
+      disabled: isLoading,
+    },
+  ];
+
   return (
     <div className={FormStyles.formWrapper}>
-      <form className={FormStyles.container} onSubmit={handleSignup}>
-        <h4 className="dark">Signup</h4>
+      <form
+        className={FormStyles.container}
+        onSubmit={handleSignup}
+        aria-labelledby="signup-title"
+        noValidate
+      >
+        <h4 id="signup-title" className="dark">
+          Signup
+        </h4>
 
         {apiError && (
-          <div className={FormStyles.errorMessage}>{apiError}</div>
+          <div className={FormStyles.errorMessage} role="alert">
+            {apiError}
+          </div>
         )}
 
-        {formInputs.map((inputElement) => (
-          <div className={FormStyles.inputGroup} key={inputElement.name}>
-            <label className="dark l2" htmlFor={inputElement.name}>
-              {inputElement.label}
+        {formInputs.map((input) => (
+          <div className={FormStyles.inputGroup} key={input.name}>
+            <label className="dark l2" htmlFor={input.name}>
+              {input.label}
             </label>
             <div className={FormStyles.inputWrapper}>
-              <span className={FormStyles.inputIcon}>{inputElement.icon}</span>
+              <span className={FormStyles.inputIcon}>{input.icon}</span>
               <input
-                className={`b2 ${
-                  errors[inputElement.name] ? FormStyles.inputError : ""
-                }`}
-                type={inputElement.name === "otp" ? "text" : inputElement.type}
-                name={inputElement.name}
-                id={inputElement.name}
-                value={inputElement.value}
-                onChange={inputElement.onchange}
-                disabled={
-                  isLoading ||
-                  isVerifying ||
-                  (inputElement.name === "email" && isEmailVerified)
-                }
+                className={`b2 ${input.error ? FormStyles.inputError : ""}`}
+                type={input.type}
+                name={input.name}
+                id={input.name}
+                value={input.value}
+                onChange={input.onChange}
+                disabled={input.disabled}
+                aria-invalid={!!input.error}
+                aria-describedby={input.error ? `${input.name}-error` : undefined}
               />
-              {inputElement.name === "email" &&
-                !isEmailVerified &&
-                !showOtpInput && (
-                  <button
-                    type="button"
-                    className={`secondary-btn medium-btn ${
-                      isVerifying ? FormStyles.loading : ""
-                    }`}
-                    onClick={handleVerifyEmail}
-                    disabled={isVerifying || isLoading}
-                  >
-                    {isVerifying ? "Processing..." : "Verify Mail"}
-                  </button>
-                )}
-              {inputElement.name === "otp" && (
+              {input.name === "email" && !isEmailVerified && !showOtpInput && (
+                <button
+                  type="button"
+                  className={`secondary-btn medium-btn ${
+                    isVerifying ? FormStyles.loading : ""
+                  }`}
+                  onClick={handleVerifyEmail}
+                  disabled={isVerifying || isLoading}
+                  aria-label="Verify Email Address"
+                >
+                  {isVerifying ? "Processing..." : "Verify Email"}
+                </button>
+              )}
+              {input.name === "otp" && (
                 <button
                   type="button"
                   className={`secondary-btn medium-btn ${
@@ -306,28 +335,34 @@ const SignupForm = () => {
                   }`}
                   onClick={handleVerifyOtp}
                   disabled={isVerifying || isLoading}
+                  aria-label="Verify OTP"
                 >
                   {isVerifying ? "Verifying..." : "Verify OTP"}
                 </button>
               )}
             </div>
-            {errors[inputElement.name] && (
-              <span className={FormStyles.errorText}>
-                {errors[inputElement.name]}
+            {input.error && (
+              <span
+                id={`${input.name}-error`}
+                className={FormStyles.errorText}
+                role="alert"
+              >
+                {input.error}
               </span>
             )}
-            {inputElement.name === "company-name" && (
+            {input.name === "company-name" && (
               <div className={FormStyles.checkBoxInput}>
                 <input
                   type="checkbox"
-                  name="dont-have-company-name"
-                  id="dont-have-company-name"
-                  checked={dontHaveCompanyName}
-                  onChange={(e) => setDontHaveCompanyName(e.target.checked)}
+                  name="no-company-name"
+                  id="no-company-name"
+                  checked={noCompanyName}
+                  onChange={(e) => setNoCompanyName(e.target.checked)}
                   disabled={isLoading}
+                  aria-label="No company name"
                 />
-                <label className="c3" htmlFor="dont-have-company-name">
-                  I don't have a company name
+                <label className="c3" htmlFor="no-company-name">
+                  I don’t have a company name
                 </label>
               </div>
             )}
@@ -339,14 +374,15 @@ const SignupForm = () => {
             <div className={FormStyles.checkBoxInput}>
               <input
                 type="checkbox"
-                name="dont-have-company-name"
-                id="dont-have-company-name"
-                checked={dontHaveCompanyName}
-                onChange={(e) => setDontHaveCompanyName(e.target.checked)}
+                name="no-company-name"
+                id="no-company-name"
+                checked={noCompanyName}
+                onChange={(e) => setNoCompanyName(e.target.checked)}
                 disabled={isLoading}
+                aria-label="No company name"
               />
-              <label className="c3" htmlFor="dont-have-company-name">
-                I don't have a company name
+              <label className="c3" htmlFor="no-company-name">
+                I don’t have a company name
               </label>
             </div>
           </div>
@@ -357,18 +393,21 @@ const SignupForm = () => {
             type="checkbox"
             name="marketing-communications"
             id="marketing-communications"
-            checked={interestedInMarketingCommunications}
-            onChange={(e) =>
-              setInterestedInMarketingCommunications(e.target.checked)
-            }
+            checked={interestedInMarketing}
+            onChange={(e) => setInterestedInMarketing(e.target.checked)}
             disabled={isLoading}
+            aria-label="Opt-in to marketing communications"
           />
           <label className="c3" htmlFor="marketing-communications">
-            I would like to receive marketing communications.
+            I would like to receive marketing communications
           </label>
         </div>
 
-        <Link to="/login" className="clr-black b4">
+        <Link
+          to="/login"
+          className="clr-black b4"
+          aria-label="Login to existing account"
+        >
           Already have an account?
         </Link>
 
@@ -378,6 +417,7 @@ const SignupForm = () => {
           }`}
           type="submit"
           disabled={isLoading || !isEmailVerified}
+          aria-busy={isLoading}
         >
           {isLoading ? "Signing up..." : "Sign Up"}
         </button>
@@ -386,4 +426,6 @@ const SignupForm = () => {
   );
 };
 
-export default SignupForm;
+SignupForm.propTypes = {};
+
+export default memo(SignupForm);

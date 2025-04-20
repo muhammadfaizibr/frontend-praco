@@ -10,7 +10,7 @@ const ProductsTable = ({ variantsWithData }) => {
   const [itemPackPrices, setItemPackPrices] = useState({});
   const [selectedTiers, setSelectedTiers] = useState({});
   const [variantDisplayPriceType, setVariantDisplayPriceType] = useState({});
-  const [showStickyBar, setShowStickyBar] = useState(false); // New state for sticky bar visibility
+  const [showStickyBar, setShowStickyBar] = useState(false);
 
   useEffect(() => {
     const initialUnits = {};
@@ -33,7 +33,6 @@ const ProductsTable = ({ variantsWithData }) => {
   }, [variantsWithData]);
 
   useEffect(() => {
-    // Check if any item has units > 0 to show/hide the sticky bar
     const hasUnits = Object.values(itemUnits).some((units) => units > 0);
     setShowStickyBar(hasUnits);
   }, [itemUnits]);
@@ -108,12 +107,23 @@ const ProductsTable = ({ variantsWithData }) => {
     } else if (tier.tier_type === "pallet") {
       const unitsPerPallet = variant.units_per_pallet || 1;
       const numberOfPallets = Math.ceil(units / unitsPerPallet);
-      totalPrice = price * unitsPerPallet * numberOfPallets;
+      totalPrice = price * units; // Simplified: total price is per-unit price * total units
       totalPackPrice = packPrice * numberOfPacks;
     }
 
-    setItemPrices((prev) => ({ ...prev, [itemId]: totalPrice }));
-    setItemPackPrices((prev) => ({ ...prev, [itemId]: totalPackPrice }));
+    console.log(`Calculating for item ${itemId}: price=${price}, units=${units}, tier_type=${tier.tier_type}`);
+    console.log(`totalPrice=${totalPrice}, totalPackPrice=${totalPackPrice}`);
+
+    setItemPrices((prev) => {
+      const newPrices = { ...prev, [itemId]: totalPrice };
+      console.log('Updated itemPrices:', newPrices);
+      return newPrices;
+    });
+    setItemPackPrices((prev) => {
+      const newPackPrices = { ...prev, [itemId]: totalPackPrice };
+      console.log('Updated itemPackPrices:', newPackPrices);
+      return newPackPrices;
+    });
     return totalPrice;
   };
 
@@ -244,7 +254,7 @@ const ProductsTable = ({ variantsWithData }) => {
       if (units > 0) {
         const unitsPerPack = variant.units_per_pack || 1;
         const numberOfPacks = Math.ceil(units / unitsPerPack);
-        const subtotal = currentDisplayPriceType === "unit" ? itemPrices[item.id] || 0 : itemPackPrices[item.id] || 0;
+        const subtotal = itemPrices[item.id] || 0;
         totalPrice += subtotal;
         selectedItems.push({
           id: item.id,
@@ -253,9 +263,12 @@ const ProductsTable = ({ variantsWithData }) => {
           units: units,
           subtotal: subtotal,
         });
+        console.log(`Item ${item.id}: units=${units}, packs=${numberOfPacks}, subtotal=${subtotal}`);
       }
     });
   });
+  console.log('Selected Items:', selectedItems);
+  console.log('Total Price:', totalPrice);
 
   return (
     <div className={TableStyles.tableContentWrapper}>
@@ -391,7 +404,7 @@ const ProductsTable = ({ variantsWithData }) => {
                                   onError={(e) => (e.target.src = '/fallback-image.jpg')}
                                 />
                               ) : field.field_type === 'price' && itemData.value_number != null ? (
-                                `€${Number(itemData.value_number).toFixed(2)}`
+                                `£${Number(itemData.value_number).toFixed(2)}`
                               ) : field.field_type === 'number' && itemData.value_number != null ? (
                                 itemData.value_number
                               ) : itemData.value_text ? (
@@ -412,11 +425,11 @@ const ProductsTable = ({ variantsWithData }) => {
                         const price = Number(pricingData.price);
                         let displayPrice;
                         if (currentDisplayPriceType === "unit") {
-                          displayPrice = `€${price.toFixed(2)}`;
+                          displayPrice = `£${price.toFixed(2)}`;
                         } else {
                           const unitsPerPack = variant.units_per_pack || 1;
                           const packPrice = price * unitsPerPack;
-                          displayPrice = `€${packPrice.toFixed(2)}`;
+                          displayPrice = `£${packPrice.toFixed(2)}`;
                         }
 
                         return (
@@ -453,10 +466,10 @@ const ProductsTable = ({ variantsWithData }) => {
                       <td className="c3">
                         {currentDisplayPriceType === "unit"
                           ? itemPrices[item.id]
-                            ? `€${itemPrices[item.id].toFixed(2)}`
+                            ? `£${itemPrices[item.id].toFixed(2)}`
                             : "-"
                           : itemPackPrices[item.id]
-                          ? `€${itemPackPrices[item.id].toFixed(2)}`
+                          ? `£${itemPackPrices[item.id].toFixed(2)}`
                           : "-"}
                       </td>
                     </tr>

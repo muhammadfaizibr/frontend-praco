@@ -1,28 +1,38 @@
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import Home from 'pages/Home';
-import Login from 'pages/Login';
-import Signup from 'pages/Signup';
-import ForgetPassword from 'pages/ForgetPassword';
-import ChangePassword from 'pages/ChangePassword';
-import VerifyEmail from 'pages/VerifyEmail';
-import VerifyOtp from 'pages/VerifyOTP';
-import Contact from 'pages/Contact';
-import Categories from 'pages/Categories';
-import Checkout from 'pages/Checkout';
-import TrackOrder from 'pages/TrackOrder';
-import OrderHistory from 'pages/OrderHistory';
-import Search from 'pages/Search';
-import Cart from 'pages/Cart';
-import SearchAdvance from 'pages/SearchAdvance';
-import ProductDetails from 'pages/ProductDetails';
+import React from "react";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import Home from "pages/Home";
+import Login from "pages/Login";
+import Signup from "pages/Signup";
+import ForgetPassword from "pages/ForgetPassword";
+import ChangePassword from "pages/ChangePassword";
+import VerifyEmail from "pages/VerifyEmail";
+import VerifyOtp from "pages/VerifyOTP";
+import Contact from "pages/Contact";
+import Categories from "pages/Categories";
+import Checkout from "pages/Checkout";
+import TrackOrder from "pages/TrackOrder";
+import OrderHistory from "pages/OrderHistory";
+import Search from "pages/Search";
+import Cart from "pages/Cart";
+import SearchAdvance from "pages/SearchAdvance";
+import ProductDetails from "pages/ProductDetails";
+import RefundPolicy from "pages/RefundPolicy";
+import PrivacyPolicy from "pages/PrivacyPolicy";
+import TermsAndConditions from "pages/TermsAndConditions";
 
 // Protected Route: Requires user to be logged in
 const ProtectedRoute = ({ children }) => {
-  const isAuthenticated = !!localStorage.getItem('authToken');
+  const isAuthenticated = !!localStorage.getItem("accessToken");
   const location = useLocation();
 
   if (!isAuthenticated) {
-    return <Navigate to={`/login?from=${encodeURIComponent(location.pathname)}`} replace />;
+    return (
+      <Navigate
+        to={`/login?from=${encodeURIComponent(location.pathname)}`}
+        replace
+        state={{ from: location.pathname }}
+      />
+    );
   }
 
   return children;
@@ -30,7 +40,7 @@ const ProtectedRoute = ({ children }) => {
 
 // Guest Route: Requires user to be not logged in
 const GuestRoute = ({ children }) => {
-  const isAuthenticated = !!localStorage.getItem('authToken');
+  const isAuthenticated = !!localStorage.getItem("accessToken");
 
   if (isAuthenticated) {
     return <Navigate to="/" replace />;
@@ -52,6 +62,9 @@ export function AppRoutes() {
       <Route path="/details/:category/:product" element={<ProductDetails />} />
       <Route path="/search-advance" element={<SearchAdvance />} />
       <Route path="/product-details" element={<ProductDetails />} />
+      <Route path="/refund-policy" element={<RefundPolicy />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+      <Route path="/terms-of-services" element={<TermsAndConditions />} />
 
       {/* Guest Routes (not logged in) */}
       <Route
@@ -75,22 +88,6 @@ export function AppRoutes() {
         element={
           <GuestRoute>
             <ForgetPassword />
-          </GuestRoute>
-        }
-      />
-      <Route
-        path="/verify-email"
-        element={
-          <GuestRoute>
-            <VerifyEmail />
-          </GuestRoute>
-        }
-      />
-      <Route
-        path="/verify-otp"
-        element={
-          <GuestRoute>
-            <VerifyOtp />
           </GuestRoute>
         }
       />
@@ -120,9 +117,6 @@ export function AppRoutes() {
           </ProtectedRoute>
         }
       />
-
     </Routes>
-
-    
   );
 }

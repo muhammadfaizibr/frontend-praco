@@ -63,3 +63,23 @@ export const submitContactQuery = async (payload, { signal } = {}) => {
     throw error;
   }
 };
+
+export const subscribeNewsletter = async (payload, { signal } = {}) => {
+  try {
+    const source = CancelToken.source();
+
+    if (signal) {
+      signal.addEventListener("abort", () => {
+        source.cancel("Request cancelled by user");
+      });
+    }
+
+    const promise = apiClient
+      .post("newsletter/", payload, { cancelToken: source.token })
+      .then((response) => response.data);
+
+    return await promise;
+  } catch (error) {
+    throw error;
+  }
+};

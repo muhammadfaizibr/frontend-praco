@@ -150,11 +150,12 @@ const ContactForm = () => {
           <div className={FormStyles.inputWrapper}>
             <span
               className={FormStyles.inputIcon}
-              style={{ height: "auto", paddingTop: "clamp(1.2rem, 1.2vw, 1.2rem)" }}
+              style={{ height: "auto", paddingTop: "var(--padding-xs)" }}
             >
               <PenLine />
             </span>
-            <textarea
+            <textarea 
+              style={{width: '100%', paddingLeft: '40px'}}
               className={`b2 ${errors.message ? FormStyles.inputError : ""}`}
               name="message"
               id="message"

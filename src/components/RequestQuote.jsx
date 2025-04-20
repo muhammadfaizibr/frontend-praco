@@ -2,6 +2,7 @@ import React from "react";
 import HeadingBar from "components/HeadingBar";
 import RequestQuoteStyles from "assets/css/RequestQuoteStyles.module.css";
 import { AtSign, Headset, Phone, Quote } from "lucide-react";
+import { Link } from "react-router-dom";
 // import { Link } from "react-router-dom";
 
 const RequestQuote = () => {
@@ -27,13 +28,13 @@ const RequestQuote = () => {
         </div>
 
         <div className={RequestQuoteStyles.actionBtnWrapper}>
-          <button className="primary-btn large-btn text-large hover-primary text-uppercase">
+          <a href="tel:01162607078" aria-label="Call 0116 260 7078" className="primary-btn large-btn text-large hover-primary text-uppercase">
             Make A Call
-          </button>
+          </a>
 
-          <button className="primary-outlined-btn large-btn text-large hover-primary text-uppercase">
+          <Link to='/contact' className="primary-outlined-btn large-btn text-large hover-primary text-uppercase">
             Contact Us
-          </button>
+          </Link>
         </div>
       </div>
 
