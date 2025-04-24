@@ -4,8 +4,11 @@ import FormStyles from "assets/css/FormStyles.module.css";
 import { Link, useNavigate } from "react-router-dom";
 import { Lock } from "lucide-react";
 import { updatePassword, clearRequestCache } from "utils/api/account";
+import { useDispatch } from "react-redux";
+import { logout } from "utils/store";
 
 const ChangePasswordForm = () => {
+  const dispatch = useDispatch();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -71,8 +74,7 @@ const ChangePasswordForm = () => {
         }, 2000);
       } catch (error) {
         if (error.status === 401) {
-          localStorage.removeItem("accessToken");
-          localStorage.removeItem("refreshToken");
+          dispatch(logout());
           navigate("/login", { replace: true, state: { from: "change-password" } });
           setApiError("Session expired. Please log in again.");
         } else if (error.fieldErrors) {
@@ -81,7 +83,6 @@ const ChangePasswordForm = () => {
             newErrors[key.replace("_", "-")] = Array.isArray(value) ? value.join(" ") : value;
           });
           setErrors(newErrors);
-          // Handle non_field_errors
           if (error.message && error.message !== "An unexpected error occurred") {
             setApiError(error.message);
           }
@@ -92,7 +93,7 @@ const ChangePasswordForm = () => {
         setIsLoading(false);
       }
     },
-    [currentPassword, newPassword, confirmPassword, validateForm, navigate]
+    [currentPassword, newPassword, confirmPassword, validateForm, navigate, dispatch]
   );
 
   useEffect(() => {

@@ -85,25 +85,24 @@ nav {
     border-radius: var(--radius-xxs);
     padding: var(--padding-xs);
     z-index: 1000;
-    min-width: 150px;
-}
-
-.logoutButton {
-    display: flex;
-    align-items: center;
+    min-width: 250px;
     gap: var(--gap-xs);
-    padding: var(--padding-xs);
-    background: none;
-    border: none;
-    color: var(--clr-text);
-    cursor: pointer;
-    width: 100%;
-    text-align: left;
-    font-size: 1.4rem;
+    display: flex;
+    flex-direction: column;
 }
 
-.logoutButton:hover {
+.accountPopup button{
+    justify-content: flex-start;
+
+}
+
+.logoutButton:hover{
+    color: var(--clr-danger) !important;
+}
+
+.accountPopup button:hover, .accountPopup a:hover, .accountPopup button:hover > a, .accountPopup a:hover > button  {
     background: var(--clr-gray-light);
+    color: var(--clr-primary);
 }
 
 /* ========================================================================== */

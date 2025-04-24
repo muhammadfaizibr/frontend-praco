@@ -1,13 +1,14 @@
-import React, { useState, useEffect, useCallback, memo, useContext } from "react";
+import React, { useState, useEffect, useCallback, memo } from "react";
 import PropTypes from "prop-types";
 import FormStyles from "assets/css/FormStyles.module.css";
 import { Link, useNavigate } from "react-router-dom";
 import { Building2, Lock, Mail, User } from "lucide-react";
 import { signup, authenticateEmail, clearRequestCache } from "utils/api/account";
-import { AuthContext } from "utils/AuthContext";
+import { useDispatch } from "react-redux";
+import { login } from "utils/store";
 
 const SignupForm = () => {
-  const { setIsLoggedIn } = useContext(AuthContext);
+  const dispatch = useDispatch();
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -150,7 +151,7 @@ const SignupForm = () => {
 
         localStorage.setItem("accessToken", response.token.access);
         localStorage.setItem("refreshToken", response.token.refresh);
-        setIsLoggedIn(true);
+        dispatch(login());
 
         setEmail("");
         setFirstName("");
@@ -190,7 +191,7 @@ const SignupForm = () => {
       isEmailVerified,
       validateForm,
       navigate,
-      setIsLoggedIn,
+      dispatch,
     ]
   );
 

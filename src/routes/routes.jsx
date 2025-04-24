@@ -12,13 +12,14 @@ import Categories from "pages/Categories";
 import Checkout from "pages/Checkout";
 import TrackOrder from "pages/TrackOrder";
 import OrderHistory from "pages/OrderHistory";
-import Search from "pages/Search";
+// import Search from "pages/Search";
 import Cart from "pages/Cart";
 import SearchAdvance from "pages/SearchAdvance";
 import ProductDetails from "pages/ProductDetails";
 import RefundPolicy from "pages/RefundPolicy";
 import PrivacyPolicy from "pages/PrivacyPolicy";
 import TermsAndConditions from "pages/TermsAndConditions";
+import Search from "pages/Search";
 
 // Protected Route: Requires user to be logged in
 const ProtectedRoute = ({ children }) => {
@@ -57,6 +58,7 @@ export function AppRoutes() {
       <Route path="/contact" element={<Contact />} />
       <Route path="/category/:slug" element={<Categories />} />
       <Route path="/order-history" element={<OrderHistory />} />
+      {/* <Route path="/search" element={<Search />} /> */}
       <Route path="/search" element={<Search />} />
       <Route path="/cart" element={<Cart />} />
       <Route path="/details/:category/:product" element={<ProductDetails />} />

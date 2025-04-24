@@ -28,11 +28,6 @@ const Cart = () => {
           <CartTable />
         </div>
       </div>
-      <div className="centered-layout-wrapper layout-spacing full-width-flex-col layout-vertical-padding bg-clr-accent">
-        <div className="centered-layout page-layout full-width-flex-col gap-m">
-          <Products title="You may also like" products={products} />
-        </div>
-      </div>
     </div>
   );
 };

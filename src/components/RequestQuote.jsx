@@ -28,7 +28,7 @@ const RequestQuote = () => {
         </div>
 
         <div className={RequestQuoteStyles.actionBtnWrapper}>
-          <a href="tel:01162607078" aria-label="Call 0116 260 7078" className="primary-btn large-btn text-large hover-primary text-uppercase">
+          <a href="tel:01162607078" aria-label="Call 0116 365 3008" className="primary-btn large-btn text-large hover-primary text-uppercase">
             Make A Call
           </a>
 

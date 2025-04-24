@@ -47,9 +47,7 @@ const Categories = () => {
               let variantCount = 0;
               try {
                 const variantResponse = await getProductVariants(product.id);
-                if (!variantResponse.errors) {
-                  variantCount = variantResponse.count || 0;
-                }
+                variantCount = Array.isArray(variantResponse) ? variantResponse.length : 0;
               } catch (err) {
                 console.error(`Failed to fetch variants for product ${product.id}:`, err);
               }

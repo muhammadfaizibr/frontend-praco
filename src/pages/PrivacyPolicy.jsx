@@ -290,7 +290,7 @@ const PrivacyPolicy = () => {
           or by mail using the details provided below:
         </p>
         <p className="b2 clr-text">
-          Repark Ltd, Unit 2, Brook Street, Leicester, LE4 8DA, United Kingdom
+          Repark Ltd, 15 Parker Drive, Leicester, LE4 0JP
         </p>
         <p className="b2 clr-text">
           Last updated: {/* [DATE] */} Not specified

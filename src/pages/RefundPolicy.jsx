@@ -14,7 +14,7 @@ const RefundPolicy = () => {
         </p>
         <p className="b2 clr-text">
           To start a return, you can contact us at{" "}
-          <a href="mailto:info@repark.co.uk" className="b2 clr-primary">info@repark.co.uk</a>. Please note that returns will need to be sent to the following address: Unit 2 Brook St, Thurmaston, Leicester LE4 8DA
+          <a href="mailto:info@repark.co.uk" className="b2 clr-primary">info@repark.co.uk</a>. Please note that returns will need to be sent to the following address: 15 Parker Drive, Leicester, LE4 0JP
         </p>
         <p className="b2 clr-text">
           If your return is accepted, we’ll send you a return shipping label, as well as instructions on how and where to send your package. Items sent back to us without first requesting a return will not be accepted.

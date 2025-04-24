@@ -1,9 +1,17 @@
 import React, { useState, useEffect } from "react";
 import TableStyles from "assets/css/TableStyles.module.css";
-import { Minus, Plus } from "lucide-react";
-import { calculatePrice } from "utils/api/ecommerce";
+import { Minus, Plus, Package, Archive } from "lucide-react";
+import { getUserExclusivePrice } from "utils/api/ecommerce";
+import { useSelector, useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import Notification from "components/Notification";
+import ImagePreview from "components/ImagePreview";
+import { addToCart } from "utils/cartSlice";
 
 const ProductsTable = ({ variantsWithData }) => {
+  const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [itemUnits, setItemUnits] = useState({});
   const [variantPriceType, setVariantPriceType] = useState({});
   const [itemPrices, setItemPrices] = useState({});
@@ -11,6 +19,10 @@ const ProductsTable = ({ variantsWithData }) => {
   const [selectedTiers, setSelectedTiers] = useState({});
   const [variantDisplayPriceType, setVariantDisplayPriceType] = useState({});
   const [showStickyBar, setShowStickyBar] = useState(false);
+  const [exclusiveDiscounts, setExclusiveDiscounts] = useState({});
+  const [notification, setNotification] = useState({ message: "", type: "", visible: false });
+  const [selectedImages, setSelectedImages] = useState(null);
+  const [imageLoadFailed, setImageLoadFailed] = useState({});
 
   useEffect(() => {
     const initialUnits = {};
@@ -37,10 +49,47 @@ const ProductsTable = ({ variantsWithData }) => {
     setShowStickyBar(hasUnits);
   }, [itemUnits]);
 
+  useEffect(() => {
+    if (!isLoggedIn || !variantsWithData.length) return;
+
+    const abortController = new AbortController();
+    const fetchExclusivePrices = async () => {
+      const discounts = {};
+      for (const variant of variantsWithData) {
+        for (const item of variant.items) {
+          try {
+            const exclusivePrices = await getUserExclusivePrice(item.id, abortController.signal);
+            if (exclusivePrices.length > 0) {
+              const discountPercentage = Number(exclusivePrices[0].discount_percentage);
+              discounts[item.id] = discountPercentage;
+            }
+          } catch (error) {
+            console.warn(`Failed to fetch exclusive price for item ${item.id}:`, error.message);
+          }
+        }
+      }
+      setExclusiveDiscounts(discounts);
+    };
+
+    fetchExclusivePrices();
+
+    return () => abortController.abort();
+  }, [isLoggedIn, variantsWithData]);
+
+  const showNotification = (message, type) => {
+    setNotification({ message, type, visible: true });
+    setTimeout(() => {
+      setNotification((prev) => ({ ...prev, visible: false }));
+    }, 3000);
+  };
+
   const findApplicableTier = (variant, units, priceType) => {
     const pricingTiers = variant.pricing_tiers || [];
     const filteredTiers = pricingTiers.filter((tier) => tier.tier_type === priceType);
-    if (!filteredTiers.length) return null;
+    if (!filteredTiers.length) {
+      console.warn(`No pricing tiers found for price type ${priceType}`);
+      return null;
+    }
 
     let quantity = 0;
     if (priceType === "pack") {
@@ -52,20 +101,30 @@ const ProductsTable = ({ variantsWithData }) => {
     }
 
     filteredTiers.sort((a, b) => a.range_start - b.range_start);
-    let applicableTier = filteredTiers[0];
+    let applicableTier = null;
+
     for (const tier of filteredTiers) {
       if (tier.no_end_range) {
         if (quantity >= tier.range_start) {
           applicableTier = tier;
           break;
         }
-      } else if (quantity >= tier.range_start && quantity <= tier.range_end) {
+      } else if (quantity >= tier.range_start && (tier.range_end === null || quantity <= tier.range_end)) {
         applicableTier = tier;
         break;
-      } else if (quantity > tier.range_end && tier.range_end >= applicableTier.range_end) {
-        applicableTier = tier;
       }
     }
+
+    if (!applicableTier) {
+      applicableTier = filteredTiers
+        .filter((tier) => tier.range_start <= quantity)
+        .sort((a, b) => b.range_start - a.range_start)[0];
+      if (!applicableTier) {
+        applicableTier = filteredTiers[0];
+        console.warn(`No tier matches quantity ${quantity} for price type ${priceType}, falling back to tier ID ${applicableTier?.id}`);
+      }
+    }
+
     return applicableTier;
   };
 
@@ -74,62 +133,43 @@ const ProductsTable = ({ variantsWithData }) => {
     const packTiers = pricingTiers.filter((tier) => tier.tier_type === "pack");
     if (!packTiers.length) return Infinity;
 
-    packTiers.sort((a, b) => b.range_start - b.range_start);
+    packTiers.sort((a, b) => b.range_start - a.range_start);
     const highestPackTier = packTiers[0];
     const unitsPerPack = variant.units_per_pack || 1;
     return highestPackTier.range_start * unitsPerPack;
   };
 
-  const calculateTotalPrice = (itemId, variantId, units, tier) => {
+  const applyDiscount = (price, itemId) => {
+    const discountPercentage = exclusiveDiscounts[itemId] || 0;
+    return price * (1 - discountPercentage / 100);
+  };
+
+  const calculateTotalPrice = (itemId, variantId, units, tier, price) => {
     const variant = variantsWithData.find((v) => v.id === variantId);
-    if (!variant || !tier || units <= 0) {
+    if (!variant || !tier || units <= 0 || !isFinite(price)) {
       setItemPrices((prev) => ({ ...prev, [itemId]: 0 }));
       setItemPackPrices((prev) => ({ ...prev, [itemId]: 0 }));
       return 0;
     }
 
-    const pricingData = variant.items
-      .find((i) => i.id === itemId)
-      .pricing_tier_data.find((ptd) => ptd.pricing_tier.id === tier.id);
-    if (!pricingData) return 0;
-
-    const price = Number(pricingData.price);
-    let totalPrice = 0;
-    let totalPackPrice = 0;
-
     const unitsPerPack = variant.units_per_pack || 1;
     const numberOfPacks = Math.ceil(units / unitsPerPack);
+    // Use the discounted price directly; do not reapply discount
     const packPrice = price * unitsPerPack;
+    const totalPrice = price * units;
+    const totalPackPrice = packPrice * numberOfPacks;
 
-    if (tier.tier_type === "pack") {
-      totalPrice = price * units;
-      totalPackPrice = packPrice * numberOfPacks;
-    } else if (tier.tier_type === "pallet") {
-      const unitsPerPallet = variant.units_per_pallet || 1;
-      const numberOfPallets = Math.ceil(units / unitsPerPallet);
-      totalPrice = price * units; // Simplified: total price is per-unit price * total units
-      totalPackPrice = packPrice * numberOfPacks;
-    }
-
-    console.log(`Calculating for item ${itemId}: price=${price}, units=${units}, tier_type=${tier.tier_type}`);
-    console.log(`totalPrice=${totalPrice}, totalPackPrice=${totalPackPrice}`);
-
-    setItemPrices((prev) => {
-      const newPrices = { ...prev, [itemId]: totalPrice };
-      console.log('Updated itemPrices:', newPrices);
-      return newPrices;
-    });
-    setItemPackPrices((prev) => {
-      const newPackPrices = { ...prev, [itemId]: totalPackPrice };
-      console.log('Updated itemPackPrices:', newPackPrices);
-      return newPackPrices;
-    });
+    setItemPrices((prev) => ({ ...prev, [itemId]: totalPrice }));
+    setItemPackPrices((prev) => ({ ...prev, [itemId]: totalPackPrice }));
     return totalPrice;
   };
 
   const handleUnitChange = (itemId, variantId, change) => {
     const variant = variantsWithData.find((v) => v.id === variantId);
-    if (!variant) return;
+    if (!variant) {
+      console.warn(`Variant ID ${variantId} not found`);
+      return;
+    }
 
     let currentPriceType = variantPriceType[variantId] || "pack";
     const unitsPerPack = variant.units_per_pack || 1;
@@ -145,7 +185,6 @@ const ProductsTable = ({ variantsWithData }) => {
 
     const highestPackThreshold = getHighestPackTierThreshold(variant);
     const minPalletUnits = unitsPerPallet || Infinity;
-    const numberOfPallets = unitsPerPallet ? currentUnits / unitsPerPallet : 0;
 
     if (currentPriceType === "pallet" && supportsPallets) {
       if (change < 0) {
@@ -164,16 +203,12 @@ const ProductsTable = ({ variantsWithData }) => {
     }
 
     const newNumberOfPallets = unitsPerPallet ? newUnits / unitsPerPallet : 0;
-    if (currentPriceType === "pack" && supportsPallets) {
-      if (newUnits > highestPackThreshold && newNumberOfPallets >= 1) {
-        currentPriceType = "pallet";
-        setVariantPriceType((prev) => ({ ...prev, [variantId]: "pallet" }));
-      }
-    } else if (currentPriceType === "pallet" && supportsPallets) {
-      if (newUnits < minPalletUnits && newUnits <= highestPackThreshold) {
-        currentPriceType = "pack";
-        setVariantPriceType((prev) => ({ ...prev, [variantId]: "pack" }));
-      }
+    if (currentPriceType === "pack" && supportsPallets && newUnits > highestPackThreshold && newNumberOfPallets >= 1) {
+      currentPriceType = "pallet";
+      setVariantPriceType((prev) => ({ ...prev, [variantId]: "pallet" }));
+    } else if (currentPriceType === "pallet" && supportsPallets && newUnits < minPalletUnits && newUnits <= highestPackThreshold) {
+      currentPriceType = "pack";
+      setVariantPriceType((prev) => ({ ...prev, [variantId]: "pack" }));
     }
 
     setItemUnits((prev) => ({ ...prev, [itemId]: newUnits }));
@@ -182,37 +217,55 @@ const ProductsTable = ({ variantsWithData }) => {
       setSelectedTiers((prev) => ({ ...prev, [itemId]: null }));
       setItemPrices((prev) => ({ ...prev, [itemId]: 0 }));
       setItemPackPrices((prev) => ({ ...prev, [itemId]: 0 }));
+      setShowStickyBar(Object.values({ ...itemUnits, [itemId]: 0 }).some((units) => units > 0));
       return;
     }
 
     const applicableTier = findApplicableTier(variant, newUnits, currentPriceType);
+    let price = 0;
+
     if (applicableTier) {
-      setSelectedTiers((prev) => ({ ...prev, [itemId]: applicableTier.id }));
-      calculateTotalPrice(itemId, variantId, newUnits, applicableTier);
+      const pricingData = applicableTier.pricing_data?.find((pd) => pd.item === itemId);
+      if (pricingData && isFinite(parseFloat(pricingData.price))) {
+        // Apply user-specific discount once here
+        price = applyDiscount(parseFloat(pricingData.price), itemId);
+        setSelectedTiers((prev) => ({ ...prev, [itemId]: applicableTier.id }));
+      } else {
+        // Try fallback tier
+        const fallbackTier = variant.pricing_tiers?.find((tier) => tier.tier_type === currentPriceType);
+        if (fallbackTier) {
+          const fallbackPricingData = fallbackTier.pricing_data?.find((pd) => pd.item === itemId);
+          if (fallbackPricingData && isFinite(parseFloat(fallbackPricingData.price))) {
+            // Apply user-specific discount once here
+            price = applyDiscount(parseFloat(fallbackPricingData.price), itemId);
+            setSelectedTiers((prev) => ({ ...prev, [itemId]: fallbackTier.id }));
+          } else {
+            console.warn(`No valid pricing data found for fallback tier ${fallbackTier.id} for item ${itemId}`);
+            price = 0;
+          }
+        } else {
+          console.warn(`No pricing tiers available for price type ${currentPriceType} for item ${itemId}`);
+          price = 0;
+        }
+      }
+    } else {
+      console.warn(`No applicable tier found for ${newUnits} units and price type ${currentPriceType}`);
+      price = 0;
+    }
+
+    if (applicableTier && price > 0) {
+      setShowStickyBar(true);
+      calculateTotalPrice(itemId, variantId, newUnits, applicableTier, price);
+    } else {
+      console.warn(`Price calculation failed for item ${itemId}: price=${price}, applicableTier=`, applicableTier);
+      setItemPrices((prev) => ({ ...prev, [itemId]: 0 }));
+      setItemPackPrices((prev) => ({ ...prev, [itemId]: 0 }));
+      setShowStickyBar(Object.values({ ...itemUnits, [itemId]: newUnits }).some((units) => units > 0));
     }
   };
 
   const handlePriceTypeChange = (variantId, pricePer) => {
-    const variant = variantsWithData.find((v) => v.id === variantId);
-    if (!variant) return;
-
-    const supportsPallets = variant.show_units_per !== "pack" && variant.units_per_pallet && variant.units_per_pallet > 0;
-    if (pricePer === "pallet" && !supportsPallets) {
-      return;
-    }
-
     setVariantPriceType((prev) => ({ ...prev, [variantId]: pricePer }));
-
-    variant.items.forEach((item) => {
-      const units = itemUnits[item.id] || 0;
-      if (units > 0) {
-        const applicableTier = findApplicableTier(variant, units, pricePer);
-        if (applicableTier) {
-          setSelectedTiers((prev) => ({ ...prev, [item.id]: applicableTier.id }));
-          calculateTotalPrice(item.id, variantId, units, applicableTier);
-        }
-      }
-    });
   };
 
   const handlePriceClick = (itemId, variantId, price, tier) => {
@@ -232,19 +285,45 @@ const ProductsTable = ({ variantsWithData }) => {
 
     const unitsPer = currentPriceType === "pack" ? (variant.units_per_pack || 1) : (variant.units_per_pallet || 1);
     const newUnits = tier.range_start * unitsPer;
+
     setItemUnits((prev) => ({ ...prev, [itemId]: newUnits }));
     setSelectedTiers((prev) => ({ ...prev, [itemId]: tier.id }));
-    calculateTotalPrice(itemId, variantId, newUnits, tier);
+    setShowStickyBar(true);
+
+    // Apply user-specific discount once here
+    const discountedPrice = applyDiscount(price, itemId);
+    calculateTotalPrice(itemId, variantId, newUnits, tier, discountedPrice);
   };
 
-  const toggleDisplayPriceType = (variantId) => {
+  const toggleDisplayPriceType = (variantId, priceType) => {
     setVariantDisplayPriceType((prev) => ({
       ...prev,
-      [variantId]: prev[variantId] === "unit" ? "pack" : "unit",
+      [variantId]: priceType,
     }));
   };
 
-  // Calculate total and gather items for the sticky bar
+  const openImagePreview = (images) => {
+    setSelectedImages(images);
+  };
+
+  const closeImagePreview = () => {
+    setSelectedImages(null);
+  };
+
+  const handleImageError = (itemId) => {
+    setImageLoadFailed((prev) => ({ ...prev, [itemId]: true }));
+  };
+
+  const handleAddToCart = () => {
+    if (selectedItems.length === 0) {
+      showNotification("No items selected to add to cart.", "error");
+      return;
+    }
+    dispatch(addToCart(selectedItems));
+    showNotification("Items added to cart successfully!", "success");
+    navigate("/cart");
+  };
+
   const selectedItems = [];
   let totalPrice = 0;
   variantsWithData.forEach((variant) => {
@@ -255,6 +334,8 @@ const ProductsTable = ({ variantsWithData }) => {
         const unitsPerPack = variant.units_per_pack || 1;
         const numberOfPacks = Math.ceil(units / unitsPerPack);
         const subtotal = itemPrices[item.id] || 0;
+        const packSubtotal = itemPackPrices[item.id] || 0;
+        const primaryImage = item.images?.[0]?.image || "/fallback-image.jpg";
         totalPrice += subtotal;
         selectedItems.push({
           id: item.id,
@@ -262,17 +343,19 @@ const ProductsTable = ({ variantsWithData }) => {
           packs: numberOfPacks,
           units: units,
           subtotal: subtotal,
+          packSubtotal: packSubtotal,
+          displayPriceType: currentDisplayPriceType,
+          variantId: variant.id,
+          image: primaryImage,
         });
-        console.log(`Item ${item.id}: units=${units}, packs=${numberOfPacks}, subtotal=${subtotal}`);
       }
     });
   });
-  console.log('Selected Items:', selectedItems);
-  console.log('Total Price:', totalPrice);
 
   return (
     <div className={TableStyles.tableContentWrapper}>
-      {variantsWithData.length === 0 && <div>No product variants available.</div>}
+      <Notification message={notification.message} type={notification.type} visible={notification.visible} />
+      {variantsWithData.length === 0 && <div className="b3 clr-text">No product variants available.</div>}
       {variantsWithData.map((variant) => {
         const pricingTiers = variant.pricing_tiers || [];
         pricingTiers.sort((a, b) => {
@@ -284,272 +367,241 @@ const ProductsTable = ({ variantsWithData }) => {
 
         const currentPriceType = variantPriceType[variant.id] || "pack";
         const currentDisplayPriceType = variantDisplayPriceType[variant.id] || "unit";
-        const unitsToShow =
-          currentPriceType === "pack" ? variant.units_per_pack : variant.units_per_pallet;
+        const unitsToShow = currentPriceType === "pack" ? variant.units_per_pack : variant.units_per_pallet;
 
         return (
-          <div key={variant.id} className={TableStyles.tableContainer}>
-            <h4>{variant.name}</h4>
+          <div key={variant.id}>
+            <h3 className="clr-text">{variant.name}</h3>
             {variant.tableFields.length > 0 && variant.items.every((item) => !item.data_entries || item.data_entries.length === 0) && (
-              <div className="warning" style={{ color: 'red', marginBottom: '10px' }}>
-                No ItemData entries found for this variant's items. Please add ItemData in the admin panel.
-              </div>
+              <div className={`${TableStyles.warning} b3 clr-danger`}>No ItemData entries found for this variant's items. Please add ItemData in the admin panel.</div>
             )}
-            <table className={TableStyles.table}>
-              <thead>
-                <tr>
-                  <th className="l3 clr-accent-dark-blue">SKU</th>
-                  {/* <th className="l3 clr-accent-dark-blue">Physical Product</th>
-                  <th className="l3 clr-accent-dark-blue">Weight</th>
-                  <th className="l3 clr-accent-dark-blue">Weight Unit</th>
-                  <th className="l3 clr-accent-dark-blue">Track Inventory</th>
-                  <th className="l3 clr-accent-dark-blue">Stock</th>
-                  <th className="l3 clr-accent-dark-blue">Title</th>
-                  <th className="l3 clr-accent-dark-blue">Status</th> */}
-                  {variant.tableFields.map((field) => (
-                    <th key={field.id} className="l3 clr-accent-dark-blue">{field.name}</th>
-                  ))}
-                  {pricingTiers.map((tier) => (
-                    <th key={tier.id} className="l3 clr-accent-dark-blue">
-                      {tier.tier_type === 'pack' ? 'Packs' : 'Pallets'} {tier.range_start}
-                      {tier.no_end_range ? '+' : `-${tier.range_end}`}
-                    </th>
-                  ))}
-                  <th className="l3 clr-accent-dark-blue">
-                    <div className={TableStyles.thWithButtons}>
-                      Units per
-                      <span className={TableStyles.thButtonsWrapper}>
-                        {variant.show_units_per !== "pallet" && (
-                          <button
-                            className={`${TableStyles.thButton} text-medium ${
-                              currentPriceType === "pack" ? "active" : ""
-                            }`}
-                            onClick={() => handlePriceTypeChange(variant.id, "pack")}
-                          >
-                            Packs
-                          </button>
-                        )}
-                        {variant.show_units_per !== "pack" && variant.units_per_pallet && variant.units_per_pallet > 0 && (
-                          <button
-                            className={`${TableStyles.thButton} text-medium ${
-                              currentPriceType === "pallet" ? "active" : ""
-                            }`}
-                            onClick={() => handlePriceTypeChange(variant.id, "pallet")}
-                          >
-                            Pallets
-                          </button>
-                        )}
-                      </span>
-                    </div>
-                  </th>
-                  <th className="l3 clr-accent-dark-blue">Enter No. of Units</th>
-                  <th className="l3 clr-accent-dark-blue">
-                    <div className={TableStyles.thWithButtons}>
-                      Total Price
-                      <span className={TableStyles.thButtonsWrapper}>
-                        <button
-                          className={`${TableStyles.thButton} text-medium ${
-                            currentDisplayPriceType === "unit" ? "active" : ""
-                          }`}
-                          onClick={() => toggleDisplayPriceType(variant.id)}
-                        >
-                          Per Unit
-                        </button>
-                        <button
-                          className={`${TableStyles.thButton} text-medium ${
-                            currentDisplayPriceType === "pack" ? "active" : ""
-                          }`}
-                          onClick={() => toggleDisplayPriceType(variant.id)}
-                        >
-                          Per Pack
-                        </button>
-                      </span>
-                    </div>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {variant.items.map((item) => {
-                  console.log(`Item ${item.id} (SKU: ${item.sku}) data_entries:`, item.data_entries || []);
-                  return (
-                    <tr key={item.id}>
-                      <td className="c3">{item.sku}</td>
-                      {/* <td className="c3">{item.is_physical_product ? "Yes" : "No"}</td>
-                      <td className="c3">{item.weight || "-"}</td>
-                      <td className="c3">{item.weight_unit || "-"}</td>
-                      <td className="c3">{item.track_inventory ? "Yes" : "No"}</td>
-                      <td className="c3">{item.stock || "-"}</td>
-                      <td className="c3">{item.title || "-"}</td>
-                      <td className="c3">{item.status}</td> */}
-                      {variant.tableFields.map((field) => {
-                        const itemData = (item.data_entries || []).find(
-                          (data) => {
-                            const match = Number(data.field.id) === Number(field.id);
-                            console.log(
-                              `Field ${field.id} (${field.name}, type: ${field.field_type}):`,
-                              { itemData: data, match, dataFieldId: data?.field.id, tableFieldId: field.id }
-                            );
-                            return match;
-                          }
-                        );
-                        return (
-                          <td key={field.id} className="c3">
-                            {itemData ? (
-                              field.field_type === 'image' && itemData.value_image ? (
-                                <img
-                                  src={itemData.value_image}
-                                  alt={field.name}
-                                  className={TableStyles.colImageContainer}
-                                  style={{ maxWidth: '50px', maxHeight: '50px' }}
-                                  onError={(e) => (e.target.src = '/fallback-image.jpg')}
-                                />
-                              ) : field.field_type === 'price' && itemData.value_number != null ? (
-                                `£${Number(itemData.value_number).toFixed(2)}`
-                              ) : field.field_type === 'number' && itemData.value_number != null ? (
-                                itemData.value_number
-                              ) : itemData.value_text ? (
-                                itemData.value_text.replace(/\r\n/g, ' ')
-                              ) : (
-                                "-"
-                              )
-                            ) : "-"}
-                          </td>
-                        );
-                      })}
-                      {pricingTiers.map((tier) => {
-                        const pricingData = (item.pricing_tier_data || []).find(
-                          (ptd) => ptd.pricing_tier.id === tier.id
-                        ) || tier.pricing_data.find((pd) => pd.item === item.id);
-                        if (!pricingData) return <td key={tier.id} className="c3">-</td>;
-
-                        const price = Number(pricingData.price);
-                        let displayPrice;
-                        if (currentDisplayPriceType === "unit") {
-                          displayPrice = `£${price.toFixed(2)}`;
-                        } else {
-                          const unitsPerPack = variant.units_per_pack || 1;
-                          const packPrice = price * unitsPerPack;
-                          displayPrice = `£${packPrice.toFixed(2)}`;
-                        }
-
-                        return (
-                          <td key={tier.id} className="c3">
+            <div className={TableStyles.tableContainer}>
+              <div className={TableStyles.tableWrapper}>
+                <table className={TableStyles.table}>
+                  <thead>
+                    <tr>
+                      <th className={`${TableStyles.defaultHeader} l3 clr-text`}>Image</th>
+                      <th className={`${TableStyles.defaultHeader} l3 clr-text`}>SKU</th>
+                      {variant.tableFields.map((field) => (
+                        <th key={field.id} className={`${TableStyles.defaultHeader} l3 clr-text`}>{field.name}</th>
+                      ))}
+                      {pricingTiers.map((tier) => (
+                        <th key={tier.id} className={`${TableStyles.pricingTierHeader} l3 clr-text`}>
+                          {tier.tier_type === "pack" ? "Packs" : "Pallets"} {tier.range_start}
+                          {tier.no_end_range ? "+" : `-${tier.range_end}`}
+                        </th>
+                      ))}
+                      <th className={`${TableStyles.unitsPerHeader} l3 clr-text`}>
+                        <div className={TableStyles.thWithButtons}>
+                          Units per
+                          <span className={TableStyles.thButtonsWrapper}>
                             <button
-                              className={TableStyles.priceButton}
-                              onClick={() => handlePriceClick(item.id, variant.id, price, tier)}
-                              aria-current={selectedTiers[item.id] === tier.id ? "true" : "false"}
-                              aria-label={`Select price ${displayPrice} for ${tier.tier_type} tier ${tier.range_start}${tier.no_end_range ? '+' : `-${tier.range_end}`}`}
+                              className={`${TableStyles.thButton} b3 clr-text ${currentPriceType === "pack" ? TableStyles.active : ""}`}
+                              onClick={() => handlePriceTypeChange(variant.id, "pack")}
                             >
-                              {displayPrice}
+                              <Package className="icon-xms" /> Pack
                             </button>
-                          </td>
-                        );
-                      })}
-                      <td className="c3">{unitsToShow || "-"}</td>
-                      <td className="c3">
-                        <span className={TableStyles.cartUnitsColWrapper}>
-                          <button
-                            className={TableStyles.cartButton}
-                            onClick={() => handleUnitChange(item.id, variant.id, -1)}
-                          >
-                            <Minus className="icon-xms" />
-                          </button>
-                          <span>{itemUnits[item.id] || 0}</span>
-                          <button
-                            className={TableStyles.cartButton}
-                            onClick={() => handleUnitChange(item.id, variant.id, 1)}
-                          >
-                            <Plus className="icon-xms" />
-                          </button>
-                        </span>
-                      </td>
-                      <td className="c3">
-                        {currentDisplayPriceType === "unit"
-                          ? itemPrices[item.id]
-                            ? `£${itemPrices[item.id].toFixed(2)}`
-                            : "-"
-                          : itemPackPrices[item.id]
-                          ? `£${itemPackPrices[item.id].toFixed(2)}`
-                          : "-"}
-                      </td>
+                            {variant.show_units_per !== "pack" && variant.units_per_pallet && (
+                              <button
+                                className={`${TableStyles.thButton} b3 clr-text ${currentPriceType === "pallet" ? TableStyles.active : ""}`}
+                                onClick={() => handlePriceTypeChange(variant.id, "pallet")}
+                              >
+                                <Archive className="icon-xms" /> Pallet
+                              </button>
+                            )}
+                          </span>
+                        </div>
+                      </th>
+                      <th className={`${TableStyles.unitsInputHeader} l3 clr-text`}>Enter No. of Units</th>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                  </thead>
+                  <tbody>
+                    {variant.items.map((item) => {
+                      const images = item.images?.map((img) => img.image) || [];
+                      const primaryImage = images.length > 0 ? images[0] : "/fallback-image.jpg";
+                      const hasImageFailed = imageLoadFailed[item.id];
+
+                      return (
+                        <tr key={item.id} className={itemUnits[item.id] > 0 ? TableStyles.selectedRow : ""}>
+                          <td className="b3 clr-text">
+                            {hasImageFailed ? (
+                              <span className="b3 clr-gray">Image Not Available</span>
+                            ) : (
+                              <img
+                                src={primaryImage}
+                                alt={`${item.sku} primary image`}
+                                className={TableStyles.colImageContainer}
+                                onClick={() => images.length > 0 && openImagePreview(images)}
+                                style={{ cursor: images.length > 0 ? "pointer" : "default" }}
+                                onError={() => handleImageError(item.id)}
+                              />
+                            )}
+                          </td>
+                          <td className="b3 clr-text">{item.sku}</td>
+                          {variant.tableFields.map((field) => {
+                            const itemData = (item.data_entries || []).find(
+                              (data) => Number(data.field.id) === Number(field.id)
+                            );
+                            return (
+                              <td key={field.id} className="b3 clr-text">
+                                {itemData ? (
+                                  field.field_type === "image" && itemData.value_image ? (
+                                    hasImageFailed ? (
+                                      <span className="b3 clr-gray">Image Not Available</span>
+                                    ) : (
+                                      <img
+                                        src={itemData.value_image}
+                                        alt={field.name}
+                                        className={TableStyles.colImageContainer}
+                                        onError={() => handleImageError(item.id)}
+                                      />
+                                    )
+                                  ) : field.field_type === "price" && itemData.value_number != null ? (
+                                    `£${Number(itemData.value_number).toFixed(2)}`
+                                  ) : field.field_type === "number" && itemData.value_number != null ? (
+                                    itemData.value_number
+                                  ) : itemData.value_text ? (
+                                    itemData.value_text.replace(/\r\n/g, " ")
+                                  ) : (
+                                    "-"
+                                  )
+                                ) : "-"}
+                              </td>
+                            );
+                          })}
+                          {pricingTiers.map((tier) => {
+                            const pricingData = tier.pricing_data?.find((pd) => pd.item === item.id);
+                            if (!pricingData) return <td key={tier.id} className="b3 clr-gray">-</td>;
+
+                            // Use original price; discount is applied in handlePriceClick
+                            let price = parseFloat(pricingData.price);
+                            let displayPrice;
+                            const hasDiscount = exclusiveDiscounts[item.id] > 0;
+                            const exclusivePrice = hasDiscount ? applyDiscount(price, item.id) : null;
+
+                            if (currentDisplayPriceType === "unit") {
+                              if (hasDiscount) {
+                                displayPrice = (
+                                  <>
+                                    <span className={TableStyles.originalPrice}>£{price.toFixed(2)}</span>
+                                    <span className={TableStyles.exclusivePrice}>£{exclusivePrice.toFixed(2)}</span>
+                                  </>
+                                );
+                              } else {
+                                displayPrice = `£${price.toFixed(2)}`;
+                              }
+                            } else {
+                              const unitsPerPack = variant.units_per_pack || 1;
+                              const packPrice = price * unitsPerPack;
+                              const exclusivePackPrice = hasDiscount ? exclusivePrice * unitsPerPack : null;
+                              if (hasDiscount) {
+                                displayPrice = (
+                                  <>
+                                    <span className={TableStyles.originalPrice}>£{packPrice.toFixed(2)}</span>
+                                    <span className={TableStyles.exclusivePrice}>£{exclusivePackPrice.toFixed(2)}</span>
+                                  </>
+                                );
+                              } else {
+                                displayPrice = `£${packPrice.toFixed(2)}`;
+                              }
+                            }
+
+                            return (
+                              <td key={tier.id} className="b3 clr-text">
+                                <button
+                                  className={`${TableStyles.priceButton} ${selectedTiers[item.id] === tier.id ? TableStyles.selectedTier : ""}`}
+                                  onClick={() => handlePriceClick(item.id, variant.id, price, tier)}
+                                  aria-current={selectedTiers[item.id] === tier.id ? "true" : "false"}
+                                  aria-label={`Select price ${hasDiscount ? `£${exclusivePrice.toFixed(2)} (was £${price.toFixed(2)})` : `£${price.toFixed(2)}`} for ${tier.tier_type} tier ${tier.range_start}${tier.no_end_range ? "+" : `-${tier.range_end}`}`}
+                                >
+                                  {displayPrice}
+                                </button>
+                              </td>
+                            );
+                          })}
+                          <td className="b3 clr-text">{unitsToShow || "-"}</td>
+                          <td className="b3 clr-text">
+                            <span className={TableStyles.cartUnitsColWrapper}>
+                              <button
+                                className={TableStyles.cartButton}
+                                onClick={() => handleUnitChange(item.id, variant.id, -1)}
+                              >
+                                <Minus className="icon-xms" />
+                              </button>
+                              <span>{itemUnits[item.id] || 0}</span>
+                              <button
+                                className={TableStyles.cartButton}
+                                onClick={() => handleUnitChange(item.id, variant.id, 1)}
+                              >
+                                <Plus className="icon-xms" />
+                              </button>
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         );
       })}
 
-      {/* Sticky Bottom Bar */}
+      {selectedImages && <ImagePreview images={selectedImages} onClose={closeImagePreview} />}
       {showStickyBar && (
-        <div
-          style={{
-            position: 'fixed',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            backgroundColor: '#fff',
-            borderTop: '1px solid #ccc',
-            boxShadow: '0 -2px 5px rgba(0,0,0,0.1)',
-            padding: '10px 20px',
-            zIndex: 1000,
-          }}
-        >
-          <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '10px' }}>
-            <thead>
-              <tr>
-                <th style={{ textAlign: 'left', padding: '8px', fontWeight: 'bold' }}>Description</th>
-                <th style={{ textAlign: 'center', padding: '8px', fontWeight: 'bold' }}>1 item(s)</th>
-                <th style={{ textAlign: 'center', padding: '8px', fontWeight: 'bold' }}>Packs</th>
-                <th style={{ textAlign: 'center', padding: '8px', fontWeight: 'bold' }}>Units</th>
-                <th style={{ textAlign: 'right', padding: '8px', fontWeight: 'bold' }}>Subtotal</th>
-              </tr>
-            </thead>
-            <tbody>
-              {selectedItems.map((item) => (
-                <tr key={item.id}>
-                  <td style={{ textAlign: 'left', padding: '8px' }}>{item.description}</td>
-                  <td style={{ textAlign: 'center', padding: '8px' }}>{1}</td>
-                  <td style={{ textAlign: 'center', padding: '8px' }}>{item.packs}</td>
-                  <td style={{ textAlign: 'center', padding: '8px' }}>{item.units}</td>
-                  <td style={{ textAlign: 'right', padding: '8px' }}>
-                    £{item.subtotal.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <button
-                style={{
-                  backgroundColor: '#f5a623',
-                  color: '#fff',
-                  padding: '10px 20px',
-                  border: 'none',
-                  borderRadius: '4px',
-                  marginRight: '10px',
-                  cursor: 'pointer',
-                }}
-              >
-                Add & continue
-              </button>
-              <button
-                style={{
-                  backgroundColor: '#28a745',
-                  color: '#fff',
-                  padding: '10px 20px',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                }}
-              >
-                Checkout now 🛒
-              </button>
-            </div>
-            <div style={{ fontWeight: 'bold' }}>
-              TOTAL £{totalPrice.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+        <div className={TableStyles.stickyBar}>
+          <div className="column-content">
+            <div className="centered-layout-wrapper layout-spacing full-width-flex-col">
+              <div className="centered-layout page-layout full-width-flex-col gap-m">
+                <table className={TableStyles.summaryTable}>
+                  <thead>
+                    <tr>
+                      <th className="b3 clr-text">Description</th>
+                      <th className="b3 clr-text">Item(s)</th>
+                      <th className="b3 clr-text">Packs</th>
+                      <th className="b3 clr-text">Units</th>
+                      <th className="b3 clr-text">Price ({selectedItems[0]?.displayPriceType || "unit"})</th>
+                      <th className="b3 clr-text">Subtotal</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {selectedItems.map((item) => (
+                      <tr key={item.id}>
+                        <td className="b3 clr-text">{item.description}</td>
+                        <td className="b3 clr-text">{1}</td>
+                        <td className="b3 clr-text">{item.packs}</td>
+                        <td className="b3 clr-text">{item.units}</td>
+                        <td className="b3 clr-text">
+                          £{(
+                            item.displayPriceType === "unit"
+                              ? (item.subtotal / item.units)
+                              : (item.packSubtotal / item.packs)
+                          ).toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || "0.00"}
+                        </td>
+                        <td className="b3 clr-text">
+                          £{(
+                            item.displayPriceType === "unit" ? item.subtotal : item.packSubtotal
+                          ).toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <div className={TableStyles.stickyBarActions}>
+                  <div>
+                    <button
+                      className={`${TableStyles.actionButton} b3 clr-text`}
+                      onClick={handleAddToCart}
+                    >
+                      Add & continue
+                    </button>
+                  </div>
+                  <div className="b3 clr-text">
+                    TOTAL £{totalPrice.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

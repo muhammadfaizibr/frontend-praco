@@ -1,13 +1,14 @@
-import React, { useState, useEffect, useCallback, memo, useContext } from "react";
+import React, { useState, useEffect, useCallback, memo } from "react";
 import PropTypes from "prop-types";
 import FormStyles from "assets/css/FormStyles.module.css";
 import { Link, useNavigate } from "react-router-dom";
 import { Lock, Mail } from "lucide-react";
-import { login, clearRequestCache } from "utils/api/account";
-import { AuthContext } from "utils/AuthContext";
+import { login as loginApi, clearRequestCache } from "utils/api/account";
+import { useDispatch } from "react-redux";
+import { login } from "utils/store";
 
 const LoginForm = () => {
-  const { setIsLoggedIn } = useContext(AuthContext);
+  const dispatch = useDispatch();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
@@ -37,7 +38,7 @@ const LoginForm = () => {
 
       setIsLoading(true);
       try {
-        const response = await login(
+        const response = await loginApi(
           { email: email.trim(), password: password.trim() },
           { signal: abortController.signal }
         );
@@ -48,7 +49,7 @@ const LoginForm = () => {
 
         localStorage.setItem("accessToken", response.token.access);
         localStorage.setItem("refreshToken", response.token.refresh);
-        setIsLoggedIn(true);
+        dispatch(login());
 
         setEmail("");
         setPassword("");
@@ -59,7 +60,7 @@ const LoginForm = () => {
         setIsLoading(false);
       }
     },
-    [email, password, validateForm, navigate, setIsLoggedIn]
+    [email, password, validateForm, navigate, dispatch]
   );
 
   useEffect(() => {

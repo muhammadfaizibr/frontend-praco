@@ -14,12 +14,12 @@ const ContactInfo = () => {
         {
             icon: <Phone/>,
             label: "Phone Number",
-            value: "+(44) 0116 260 7078"
+            value: "+(44) 0116 365 3008"
         },
         {
             icon: <MapPin/>,
             label: "Office Address",
-            value: "Unit 2, Brook St. Thurmaston, Leicester, LE4 8DA"
+            value: "15 Parker Drive, Leicester, LE4 0JP"
         },
     ]
   return (

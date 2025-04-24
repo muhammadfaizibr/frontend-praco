@@ -1,163 +1,96 @@
-.container {
-  display: flex;
-  flex-direction: column;
-  gap: var(--gap-m);
-}
-
 .tableContentWrapper {
   display: flex;
   flex-direction: column;
   width: 100%;
   box-sizing: border-box;
+  position: relative;
+  gap: var(--gap-xs);
 }
 
 .tableContainer {
   width: 100%;
   box-sizing: border-box;
-  overflow-x: hidden; /* Prevent horizontal scroll */
+  margin-bottom: var(--gap-m);
+  overflow-x: auto;
+}
+
+.tableWrapper {
+  position: relative;
 }
 
 .table {
   width: 100%;
   border-collapse: collapse;
-  background-color: var(--white);
+  background-color: var(--clr-white);
   border: 1px solid var(--clr-border);
-  font-family: Arial, sans-serif;
-  display: table;
-  table-layout: auto;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  font-family: "Inter", sans-serif;
 }
 
 .table th,
 .table td {
-  display: table-cell;
-  align-items: center;
-  justify-content: center;
   padding: var(--gap-xs);
   text-align: center;
-  border-right: 1px solid var(--clr-border);
+  border: 1px solid var(--clr-border);
   min-width: 100px;
   max-width: 200px;
-  white-space: normal; /* Allow text to wrap */
-  word-wrap: break-word; /* Break long words if necessary */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
 }
 
-.table .nestedTh {
-  padding: 0 !important;
-  border-right: 0 !important;
-  width: 100%;
-}
-
-.table .nestedTh th,
-.table .nestedTh td {
-  width: 100%;
-}
-
-.table .nestedTh th {
-  border-top: 1px solid var(--clr-border);
-  border-right: 1px solid var(--clr-border);
-}
-
-.table .tdWrapperForNestedContent {
+.table td > * {
   display: flex;
-  flex-direction: row;
-  align-items: stretch;
   justify-content: center;
-  padding: 0;
+  align-items: center;
+  margin: 0 auto;
 }
 
-.table .nestedTd {
-  display: flex;
-  align-items: stretch;
-  width: 100%;
-  padding: 0;
-}
-
-.table .nestedTd td {
-  width: 100%;
-  padding: 0;
-}
-
-.table tr {
-  display: table-row;
-  height: auto; /* Allow rows to expand with wrapped text */
-}
-
-thead tr {
-  border-bottom: 1px solid var(--clr-border);
-  background-color: var(--clr-secondary-light);
+.table th {
   font-weight: 600;
+  color: var(--clr-text);
+  text-transform: uppercase;
+  font-size: 1.2rem;
 }
 
-.table tr td {
+/* Header background colors */
+.defaultHeader {
+  background-color: var(--clr-gray-light);
+}
+
+.pricingTierHeader {
+  background-color: #e3f2fd;
+}
+
+.unitsPerHeader {
+  background-color: #e6f4ea;
+}
+
+.unitsInputHeader {
+  background-color: #fffde7;
+}
+
+.pricesHeader {
+  background-color: #f3e5f5;
+}
+
+.table td {
+  color: var(--clr-gray);
+  font-weight: 400;
+  font-size: 1.4rem;
+}
+
+.table tr:hover td {
   color: var(--clr-black);
   font-weight: 600;
-}
-
-.table tr:nth-child(even) {
   background-color: var(--clr-gray-light);
 }
 
-.table tr:hover {
-  background-color: var(--clr-secondary-light);
-}
-
-.colLongWidth {
-  min-width: 200px;
-  max-width: 300px;
-  flex-grow: 1;
-}
-
-.colImageWrapper {
-  display: flex;
-  width: 100%;
-  justify-content: center;
-}
-
-.colImageContainer {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: clamp(4rem, 8vw, 6rem);
-  width: clamp(4rem, 8vw, 6rem);
-  border: 1px solid var(--clr-border);
-  position: relative;
-  align-self: center;
-}
-
-.colImageWrapper img {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 100%;
-  object-fit: cover;
-}
-
-.cartUnitsColWrapper {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  gap: var(--gap-xs);
-  flex-wrap: nowrap;
-}
-
-.cartButton {
-  padding: var(--gap-xxs);
-  border: 1px solid var(--clr-border);
-  background-color: var(--clr-white);
-  border-radius: var(--radius-xxs);
-  color: var(--clr-gray-darkest);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: fit-content;
-  cursor: pointer;
-  min-width: 30px;
-}
-
-.cartButton:hover {
-  background-color: var(--clr-gray-light);
+.table tr.selectedRow td {
+  color: var(--clr-black);
+  font-weight: 600;
+  background-color: var(--clr-success-bg-light);
 }
 
 .thWithButtons {
@@ -167,27 +100,25 @@ thead tr {
   gap: var(--gap-xxs);
 }
 
-.thWithButtonsRow {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  gap: var(--gap-xs);
-}
-
 .thButtonsWrapper {
   display: flex;
   flex-direction: row;
-  gap: var(--gap-xs);
+  gap: var(--gap-xxs);
   flex-wrap: wrap;
+  justify-content: center;
 }
 
 .thButton {
   padding: var(--gap-xxs) var(--gap-xs);
   background-color: var(--clr-white);
   border: 1px solid var(--clr-border);
+  border-radius: var(--radius-xs);
   cursor: pointer;
-  white-space: normal; /* Allow wrapping in buttons */
+  color: var(--clr-text);
+  display: flex;
+  align-items: center;
+  gap: var(--gap-xxs);
+  font-size: 1.1rem;
 }
 
 .thButton:hover {
@@ -200,117 +131,429 @@ thead tr {
   border-color: var(--clr-primary);
 }
 
-.orderSummary {
-  padding: 0 0 0 var(--padding-xs);
-  background-color: var(--clr-white);
+.cartUnitsColWrapper {
   display: flex;
-  align-items: flex-end;
-  justify-content: flex-end;
-  width: 100%;
-  border-top: 0;
-  background-color: var(--clr-white);
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: var(--gap-xs);
 }
 
-.orderSummaryInfo {
-  display: flex;
-  flex-direction: column;
-}
-
-.orderSummaryRow {
-  display: flex;
+.cartButton {
+  padding: var(--gap-xxs);
   border: 1px solid var(--clr-border);
-  border-top: 0;
-}
-
-.orderDataWrapper {
-  display: flex;
-  border-right: 1px solid var(--clr-border);
-}
-
-.orderDataWrapper:nth-last-child(1),
-.table .nestedTh th:nth-last-child(1),
-.table th:nth-last-child(1),
-.table td:nth-last-child(1) {
-  border-right: none;
-}
-
-.orderSummaryData {
-  min-width: clamp(100px, 10vw, 120px);
-  padding: var(--padding-xs);
-  font-weight: 600;
-  color: var(--clr-black);
-}
-
-.priceButton {
-  padding: var(--gap-xs);
-  border: none;
-  background-color: transparent;
-  cursor: pointer;
-  width: 100%;
-  height: 100%;
-  font-size: inherit;
-  font-weight: 600;
-  color: var(--clr-black);
+  background-color: var(--clr-white);
+  border-radius: var(--radius-xs);
+  color: var(--clr-text);
   display: flex;
   align-items: center;
   justify-content: center;
-  white-space: normal; /* Allow wrapping in price buttons */
+  cursor: pointer;
+  min-width: 28px;
+}
+
+.cartButton:hover {
+  background-color: var(--clr-gray-light);
+}
+
+.priceTiersWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-xs);
+  padding: var(--gap-xxs);
+}
+
+.priceButtonsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap-xxs);
+  justify-content: center;
+}
+
+.priceButton {
+  padding: var(--gap-xxs) var(--gap-xs);
+  border: none;
+  background-color: var(--clr-white);
+  cursor: pointer;
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: var(--clr-text);
+  border-radius: var(--radius-xs);
 }
 
 .priceButton:hover {
   background-color: var(--clr-gray-light);
 }
 
-.table td:has(.priceButton) {
-  padding: 0;
+.priceButton.selectedTier {
+  background-color: var(--clr-success-light);
+  color: var(--clr-white);
 }
 
-.table td:has(.priceButton[aria-current="true"]) .priceButton {
-  background-color: #ffeb3b;
+.priceToggleRow {
+  display: flex;
+  justify-content: center;
+  gap: var(--gap-xxs);
+}
+
+.priceToggleButton {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-xxs);
+  padding: var(--gap-xxs) var(--gap-xs);
+  background-color: var(--clr-white);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  color: var(--clr-text);
+  font-size: 1.2rem;
+}
+
+.priceToggleButton:hover {
+  background-color: var(--clr-gray-light);
+}
+
+.priceToggleButton.active {
+  background-color: var(--clr-success);
+  color: var(--clr-white);
+  border-color: var(--clr-success);
+}
+
+.colImageContainer {
+  height: 50px;
+  width: 50px;
+  object-fit: cover;
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-xs);
+}
+
+.priceViewWrapper {
+  display: flex;
+  width: 100%;
+  margin-bottom: var(--gap-xs);
+}
+
+.priceViewButton {
+  flex: 1;
+  padding: var(--gap-xs);
+  background-color: var(--clr-white);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  color: var(--clr-text);
+  font-weight: 500;
+  text-align: center;
+  font-size: 1.4rem;
+}
+
+.priceViewButtonActive {
+  background-color: var(--clr-primary);
+  color: var(--clr-white);
+  border-color: var(--clr-primary);
+}
+
+.exclusivePriceButton {
+  padding: var(--gap-xxs) var(--gap-xs);
+  border: none;
+  background-color: var(--clr-info);
+  color: var(--clr-white);
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  font-size: 1.2rem;
+}
+
+.exclusivePriceButton:hover {
+  background-color: var(--clr-info-dark);
+}
+
+.warning {
+  color: var(--clr-danger);
+  margin-bottom: var(--gap-xs);
+}
+
+.stickyBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #f9f9f9; /* Slightly darker background for contrast */
+  border-top: 2px solid #d1d5db; /* More defined border */
+  box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.15); /* More pronounced shadow */
+  padding: var(--gap-m);
+  z-index: 1000;
+  border-radius: 8px 8px 0 0; /* Rounded top corners */
+}
+
+.summaryTable {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-bottom: var(--gap-s);
+  background-color: var(--clr-white);
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.summaryTable th,
+.summaryTable td {
+  padding: var(--gap-s);
+  border-bottom: 1px solid #e5e7eb;
+  text-align: center;
+  vertical-align: middle;
+  font-size: 1.3rem;
+}
+
+.summaryTable th {
+  background-color: #f1f5f9; /* Light slate background for header */
+  color: var(--clr-text);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.summaryTable td {
+  color: var(--clr-text);
+  font-weight: 500;
+}
+
+.summaryTable td > * {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto;
+}
+
+.summaryTable tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.stickyBarActions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--gap-m);
+  flex-wrap: wrap;
+}
+
+.buttonRow {
+  display: flex;
+  flex-direction: row;
+  gap: var(--gap-s);
+  flex-wrap: nowrap;
+}
+
+.actionButton {
+  padding: var(--gap-s) var(--gap-m);
+  border: none;
+  border-radius: var(--radius-s);
+  cursor: pointer;
+  background-color: #3b82f6; /* Blue for "Add & continue" */
+  color: var(--clr-white);
+  font-size: 1.5rem;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.actionButton:hover {
+  background-color: #2563eb; /* Darker blue on hover */
+}
+
+.checkoutButton {
+  background-color: #10b981; /* Green for "Checkout now" */
+}
+
+.checkoutButton:hover {
+  background-color: #059669; /* Darker green on hover */
+}
+
+.totalPrice {
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--clr-text);
+  background-color: #f3e5f5; /* Light purple background for total */
+  padding: var(--gap-xs) var(--gap-m);
+  border-radius: var(--radius-s);
+}
+
+/* Styles for ImagePreview component */
+.imagePreviewOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.imagePreviewContainer {
+  position: relative;
+  background: var(--clr-white);
+  padding: var(--gap-m);
+  border-radius: var(--radius-s);
+  max-width: 90%;
+  max-height: 90%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.closePreviewButton {
+  position: absolute;
+  top: var(--gap-xs);
+  right: var(--gap-xs);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.mainImageWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  max-height: 60vh;
+}
+
+.mainImage {
+  max-width: 100%;
+  max-height: 60vh;
+  object-fit: contain;
+}
+
+.thumbnailWrapper {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--gap-s);
+  margin-top: var(--gap-m);
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.thumbnailContainer {
+  cursor: pointer;
+  padding: var(--gap-xs);
+  border: 2px solid transparent;
+  border-radius: var(--radius-xs);
+}
+
+.thumbnailSelected {
+  border-color: var(--clr-primary);
+}
+
+.thumbnailImage {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: var(--radius-xs);
+}
+
+.icon-xms {
+  width: 14px;
+  height: 14px;
+  stroke-width: var(--icon-stroke-m);
 }
 
 /* Responsive adjustments */
 @media (max-width: 1024px) {
   .table th,
   .table td {
-    min-width: 80px;
-    max-width: 150px;
-    padding: calc(var(--gap-xs) / 2);
-    font-size: 0.9rem;
+    min-width: 90px;
+    max-width: 180px;
+    padding: var(--gap-xxs);
+    font-size: 1.2rem;
   }
 
   .colImageContainer {
-    height: clamp(3rem, 6vw, 4rem);
-    width: clamp(3rem, 6vw, 4rem);
+    height: 40px;
+    width: 40px;
   }
 
   .cartButton {
-    min-width: 25px;
-    padding: calc(var(--gap-xxs) / 2);
+    min-width: 24px;
+  }
+
+  .priceButton,
+  .priceToggleButton {
+    font-size: 1rem;
+    padding: var(--gap-xxs);
+  }
+
+  .priceViewButton {
+    font-size: 1.2rem;
+  }
+
+  .thButton {
+    font-size: 1rem;
+  }
+
+  .thumbnailImage {
+    width: 70px;
+    height: 70px;
+  }
+
+  .summaryTable th,
+  .summaryTable td {
+    font-size: 1.2rem;
+    padding: var(--gap-xs);
+  }
+
+  .actionButton {
+    font-size: 1.4rem;
+    padding: var(--gap-xs) var(--gap-s);
+  }
+
+  .totalPrice {
+    font-size: 1.5rem;
   }
 }
 
 @media (max-width: 768px) {
   .table th,
   .table td {
-    min-width: 60px;
-    max-width: 120px;
-    font-size: 0.8rem;
+    min-width: 70px;
+    max-width: 140px;
+    font-size: 1.1rem;
   }
 
-  .colLongWidth {
-    min-width: 150px;
-    max-width: 200px;
+  .priceButton,
+  .priceToggleButton,
+  .exclusivePriceButton {
+    font-size: 1rem;
+    padding: var(--gap-xxs);
+  }
+
+  .stickyBar {
+    padding: var(--gap-s);
+  }
+
+  .priceViewButton {
+    font-size: 1.1rem;
   }
 
   .thButton {
-    padding: calc(var(--gap-xxs) / 2) calc(var(--gap-xs) / 2);
-    font-size: 0.8rem;
+    font-size: 0.9rem;
   }
 
-  .priceButton {
-    font-size: 0.8rem;
-    padding: calc(var(--gap-xs) / 2);
+  .thumbnailImage {
+    width: 60px;
+    height: 60px;
+  }
+
+  .summaryTable th,
+  .summaryTable td {
+    font-size: 1.1rem;
+  }
+
+  .actionButton {
+    font-size: 1.3rem;
+  }
+
+  .totalPrice {
+    font-size: 1.4rem;
   }
 }
 
@@ -319,31 +562,76 @@ thead tr {
   .table td {
     min-width: 50px;
     max-width: 100px;
-    font-size: 0.7rem;
-  }
-
-  .orderSummary {
-    width: 100%;
-    justify-content: stretch;
-    padding: 0;
-  }
-
-  .orderSummary,
-  .orderSummaryInfo,
-  .orderDataWrapper {
-    width: 100%;
-  }
-
-  .orderSummaryData {
-    min-width: 50%;
+    font-size: 1rem;
   }
 
   .colImageContainer {
-    height: clamp(2rem, 4vw, 3rem);
-    width: clamp(2rem, 4vw, 3rem);
+    height: 30px;
+    width: 30px;
   }
 
   .cartButton {
     min-width: 20px;
   }
+
+  .stickyBarActions {
+    flex-direction: column;
+    gap: var(--gap-s);
+  }
+
+  .buttonRow {
+    flex-direction: row;
+    gap: var(--gap-xs);
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .actionButton {
+    flex: 1;
+    font-size: 1.2rem;
+    padding: var(--gap-xs) var(--gap-s);
+  }
+
+  .priceButton,
+  .priceToggleButton {
+    font-size: 0.9rem;
+  }
+
+  .priceViewButton {
+    font-size: 1rem;
+  }
+
+  .thButton {
+    font-size: 0.8rem;
+  }
+
+  .thumbnailImage {
+    width: 50px;
+    height: 50px;
+  }
+
+  .summaryTable th,
+  .summaryTable td {
+    font-size: 1rem;
+    padding: var(--gap-xxs);
+  }
+
+  .totalPrice {
+    font-size: 1.3rem;
+    padding: var(--gap-xs);
+  }
+}
+
+/* New styles for original and exclusive prices */
+.originalPrice {
+  text-decoration: line-through;
+  color: #888888; /* Muted gray for de-emphasis */
+  margin-right: 8px;
+  font-size: 0.9em; /* Slightly smaller for hierarchy */
+}
+
+.exclusivePrice {
+  font-weight: bold;
+  color: #0066cc; /* Bright blue for emphasis */
+  font-size: 1em; /* Standard size to stand out */
 }

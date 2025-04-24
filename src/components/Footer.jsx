@@ -42,7 +42,7 @@ const Footer = () => {
 
           <div className="column-content space-1vw">
             <p className="b2 clr-white">Email: info@praco.co.uk</p>
-            <p className="b2 clr-white">Call: 0116 260 7078</p>
+            <p className="b2 clr-white">Call: 0116 365 3008</p>
           </div>
           <div className="row-content space-1vw">
             <a href="praco-social" className={`square-btn ${FooterStyles.socialIcon}`}>

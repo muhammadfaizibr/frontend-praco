@@ -9,9 +9,57 @@ const apiClient = axios.create({
   },
 });
 
+// Add request interceptor to include accessToken
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Response interceptor for error handling
 apiClient.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
+    const originalRequest = error.config;
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      error.response?.data?.code === "token_not_valid"
+    ) {
+      originalRequest._retry = true;
+      try {
+        const refreshToken = localStorage.getItem("refreshToken");
+        if (!refreshToken) {
+          throw new Error("No refresh token available");
+        }
+        const response = await axios.post(
+          "http://127.0.0.1:8000/api/account/token/refresh/",
+          { refresh: refreshToken },
+          { timeout: 5000 }
+        );
+        const { access } = response.data;
+        if (!access) {
+          throw new Error("Invalid refresh token response");
+        }
+        localStorage.setItem("accessToken", access);
+        originalRequest.headers.Authorization = `Bearer ${access}`;
+        return apiClient(originalRequest);
+      } catch (refreshError) {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        return Promise.reject({
+          message: "Session expired. Please log in again.",
+          fieldErrors: {},
+          status: 401,
+        });
+      }
+    }
+
     let errorMessage = "An unexpected error occurred";
     let fieldErrors = {};
 
@@ -40,6 +88,24 @@ apiClient.interceptors.response.use(
     return Promise.reject({ message: errorMessage, fieldErrors, status: error.response?.status });
   }
 );
+
+export const searchItems = async (params, signal) => {
+  try {
+    const response = await apiClient.get("items/", { params, signal });
+    return response.data || [];
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const searchProducts = async (query, signal) => {
+  try {
+    const response = await apiClient.get(`products/?search=${encodeURIComponent(query)}`, { signal });
+    return response.data.results || [];
+  } catch (error) {
+    throw error;
+  }
+};
 
 export const getCategories = async () => {
   try {
@@ -139,6 +205,18 @@ export const calculatePrice = async (productVariantId, units, pricePer = 'pack')
       params: { units, price_per: pricePer }
     });
     return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getUserExclusivePrice = async (itemId, signal) => {
+  try {
+    const response = await apiClient.get("user-exclusive-prices/", {
+      params: { item: itemId },
+      signal,
+    });
+    return response.data.results || [];
   } catch (error) {
     throw error;
   }
