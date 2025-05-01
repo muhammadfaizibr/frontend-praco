@@ -38,7 +38,7 @@ apiClient.interceptors.response.use(
           throw new Error("No refresh token available");
         }
         const response = await axios.post(
-          "http://127.0.0.1:8000/api/account/token/refresh/",
+          `${BASE_URL}/api/account/token/refresh/`,
           { refresh: refreshToken },
           { timeout: 5000 }
         );
@@ -217,6 +217,110 @@ export const getUserExclusivePrice = async (itemId, signal) => {
       signal,
     });
     return response.data.results || [];
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getOrCreateCart = async () => {
+  try {
+    // Check for access token
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      throw new Error("No access token found. Please log in.");
+    }
+
+    // Retrieve the user's cart
+    const response = await apiClient.get("carts/");
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.message || error?.fieldErrors?.detail || "Failed to retrieve or create cart";
+    throw new Error(errorMessage);
+  }
+};
+
+export const addCartItem = async (cartItems) => {
+  try {
+    // Check for access token
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      throw new Error("No access token found. Please log in.");
+    }
+
+    // Handle both single item and bulk creation
+    const payload = Array.isArray(cartItems) ? cartItems : [cartItems];
+    const response = await apiClient.post("cart-items/", payload);
+    return Array.isArray(cartItems) ? response.data : response.data[0];
+  } catch (error) {
+    const errorMessage = error.message || error?.fieldErrors?.detail || "Failed to add items to cart";
+    throw new Error(errorMessage);
+  }
+};
+
+export const getCartItems = async (cartId) => {
+  try {
+    let allItems = [];
+    let url = `cart-items/?cart=${cartId}`;
+    while (url) {
+      const response = await apiClient.get(url);
+      const data = response.data;
+      allItems = allItems.concat(data.results || []);
+      url = data.next;
+    }
+    return allItems;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const createOrder = async (orderData) => {
+  try {
+    const response = await apiClient.post("orders/", orderData);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const addOrderItem = async (orderId, itemData) => {
+  try {
+    const response = await apiClient.post("order-items/", {
+      order: orderId,
+      ...itemData
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getOrders = async () => {
+  try {
+    let allOrders = [];
+    let url = "orders/";
+    while (url) {
+      const response = await apiClient.get(url);
+      const data = response.data;
+      allOrders = allOrders.concat(data.results || []);
+      url = data.next;
+    }
+    return allOrders;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getOrderItems = async (orderId) => {
+  try {
+    let allItems = [];
+    let url = `order-items/?order=${orderId}`;
+    while (url) {
+      const response = await apiClient.get(url);
+      const data = response.data;
+      allItems = allItems.concat(data.results || []);
+      url = data.next;
+    }
+    return allItems;
   } catch (error) {
     throw error;
   }

@@ -1,16 +1,14 @@
 import React, { useState, useEffect, useCallback, memo } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import TableStyles from "assets/css/TableStyles.module.css";
 import { Package, Archive, Plus, Minus } from "lucide-react";
-import { getUserExclusivePrice } from "utils/api/ecommerce";
+import { getUserExclusivePrice, getOrCreateCart, addCartItem } from "utils/api/ecommerce";
 import Notification from "components/Notification";
 import ImagePreview from "components/ImagePreview";
-import { addToCart } from "utils/cartSlice";
 
 const ProductsTable = ({ variantsWithData }) => {
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
-  const dispatch = useDispatch();
   const navigate = useNavigate();
   const [itemUnits, setItemUnits] = useState({});
   const [variantPriceType, setVariantPriceType] = useState({});
@@ -72,8 +70,13 @@ const ProductsTable = ({ variantsWithData }) => {
           for (const item of variant.items) {
             if (!item?.id) continue;
             const exclusivePrices = await getUserExclusivePrice(item.id, abortController.signal);
-            if (exclusivePrices?.length > 0) {
-              discounts[item.id] = Number(exclusivePrices[0].discount_percentage);
+            if (Array.isArray(exclusivePrices) && exclusivePrices.length > 0) {
+              discounts[item.id] = {
+                id: exclusivePrices[0].id,
+                discount_percentage: Number(exclusivePrices[0].discount_percentage) || 0
+              };
+            } else {
+              discounts[item.id] = { id: null, discount_percentage: 0 };
             }
           }
         }
@@ -117,7 +120,7 @@ const ProductsTable = ({ variantsWithData }) => {
 
   // Apply discount to price
   const applyDiscount = useCallback((price, itemId) => {
-    const discountPercentage = exclusiveDiscounts[itemId] || 0;
+    const discountPercentage = exclusiveDiscounts[itemId]?.discount_percentage || 0;
     return price * (1 - discountPercentage / 100);
   }, [exclusiveDiscounts]);
 
@@ -414,16 +417,107 @@ const ProductsTable = ({ variantsWithData }) => {
   }, [itemUnits, itemPrices, itemPackPrices, variantDisplayPriceType, variantsWithData]);
 
   // Add items to cart
-  const handleAddToCart = useCallback(() => {
-    const { items } = computeSelectedItems();
-    if (!items.length) {
-      showNotification("No items selected to add to cart.", "error");
+  const handleAddToCart = useCallback(async () => {
+    if (!isLoggedIn) {
+      showNotification("Please log in to add items to cart.", "error");
+      navigate("/login");
       return;
     }
-    dispatch(addToCart(items));
-    showNotification("Items added to cart successfully!", "success");
-    navigate("/cart");
-  }, [dispatch, navigate, showNotification, computeSelectedItems]);
+
+    const { items } = computeSelectedItems();
+    if (!items.length) {
+      showNotification("No items selected to add to cart.", "warning");
+      return;
+    }
+
+    try {
+      // Get or create cart
+      const cart = await getOrCreateCart();
+      if (!cart?.id) {
+        showNotification("Failed to retrieve or create cart.", "error");
+        return;
+      }
+
+      // Prepare cart items for bulk creation
+      const cartItems = [];
+      for (const item of items) {
+        const variant = variantsWithData.find((v) => v.id === item.variantId);
+        if (!variant) continue;
+
+        const tierId = selectedTiers[item.id];
+        if (!tierId) {
+          showNotification(`No pricing tier selected for item ${item.description}.`, "error");
+          return;
+        }
+
+        const tier = variant.pricing_tiers?.find((t) => t.id === tierId);
+        if (!tier) {
+          showNotification(`Invalid pricing tier for item ${item.description}.`, "error");
+          return;
+        }
+
+        const pricingData = tier.pricing_data?.find((pd) => pd.item === item.id);
+        if (!pricingData) {
+          showNotification(`No pricing data found for item ${item.description}.`, "error");
+          return;
+        }
+
+        const unitsPer = tier.tier_type === "pack" ? variant.units_per_pack || 1 : variant.units_per_pallet || 1;
+        const quantity = Math.ceil(item.units / unitsPer);
+
+        cartItems.push({
+          cart: cart.id,
+          item: item.id,
+          pricing_tier: tier.id,
+          quantity,
+          unit_type: tier.tier_type,
+          unit_price: parseFloat(pricingData.price),
+          user_exclusive_price: exclusiveDiscounts[item.id]?.id || null,
+        });
+      }
+
+      if (!cartItems.length) {
+        showNotification("No valid items to add to cart.", "warning");
+        return;
+      }
+
+      // Send bulk cart items to backend
+      await addCartItem(cartItems);
+      showNotification(`Added ${cartItems.length} item(s) to cart successfully!`, "success");
+
+      // Reset state
+      setItemUnits((prev) => {
+        const resetUnits = { ...prev };
+        Object.keys(resetUnits).forEach((key) => (resetUnits[key] = 0));
+        return resetUnits;
+      });
+      setSelectedTiers({});
+      setItemPrices({});
+      setItemPackPrices({});
+      setShowStickyBar(false);
+
+      // Navigate to cart
+      navigate("/cart");
+    } catch (error) {
+      console.error("Add to cart error:", error);
+      const errorMessage =
+        error.response?.data?.detail ||
+        (error.response?.data && typeof error.response.data === "object"
+          ? Object.values(error.response.data).flat().join(" ")
+          : error.message || "Failed to add items to cart. Please try again.");
+      showNotification(errorMessage, "error");
+    }
+  }, [
+    isLoggedIn,
+    navigate,
+    showNotification,
+    computeSelectedItems,
+    selectedTiers,
+    variantsWithData,
+    getOrCreateCart,
+    addCartItem,
+    exclusiveDiscounts,
+  ]);
 
   return (
     <div className={TableStyles.tableContentWrapper}>
@@ -554,7 +648,7 @@ const ProductsTable = ({ variantsWithData }) => {
                             if (!pricingData) return <td key={tier.id} className="b3 clr-gray">-</td>;
 
                             const price = parseFloat(pricingData.price);
-                            const hasDiscount = exclusiveDiscounts[item.id] > 0;
+                            const hasDiscount = exclusiveDiscounts[item.id]?.discount_percentage > 0;
                             const exclusivePrice = hasDiscount ? applyDiscount(price, item.id) : null;
                             const unitsPerPack = variant.units_per_pack || 1;
                             const packPrice = price * unitsPerPack;
@@ -670,7 +764,7 @@ const ProductsTable = ({ variantsWithData }) => {
                 <button className="primary-btn" onClick={handleAddToCart} aria-label="Add selected items to cart">
                   Add to Cart
                 </button>
-                <button className="secondary-btn" onClick={handleAddToCart} aria-label="Add selected items to cart">
+                <button className="secondary-btn" onClick={() => navigate("/checkout")} aria-label="Proceed to checkout">
                   Checkout
                 </button>
               </div>
