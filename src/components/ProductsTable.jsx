@@ -286,11 +286,11 @@ const ProductsTable = ({ variantsWithData }) => {
       const supportsPallets = palletQuantity > 0 && variant.show_units_per !== "pack";
       const currentUnits = itemUnits[itemId] || 0;
 
-      // Increment by packQuantity if pallets are not supported
+      // Increment by packQuantity if pallets are not supported or if quantity is 0
       let increment = packQuantity;
-      if (supportsPallets) {
-        // Increment by palletQuantity only if currentUnits is a multiple of palletQuantity (or zero)
-        increment = currentUnits === 0 || (currentUnits >= palletQuantity && currentUnits % palletQuantity === 0)
+      if (supportsPallets && currentUnits > 0) {
+        // Increment by palletQuantity only if currentUnits is a multiple of palletQuantity
+        increment = currentUnits >= palletQuantity && currentUnits % palletQuantity === 0
           ? palletQuantity
           : packQuantity;
       }
@@ -344,19 +344,21 @@ const ProductsTable = ({ variantsWithData }) => {
       const variant = variantsWithData.find((v) => v?.id === variantId);
       if (!variant) return;
 
-      const currentPriceType = tier.tier_type;
-      const unitsPer = currentPriceType === "pack" ? variant.units_per_pack || 1 : variant.units_per_pallet || 1;
+      const unitsPer = tier.tier_type === "pack" ? variant.units_per_pack || 1 : variant.units_per_pallet || 1;
       const newUnits = tier.range_start * unitsPer;
 
-      setVariantPriceType((prev) => ({ ...prev, [variantId]: currentPriceType }));
-      setItemUnits((prev) => ({ ...prev, [itemId]: newUnits }));
+      // Update selected tier and sticky bar
       setSelectedTiers((prev) => ({ ...prev, [itemId]: tier.id }));
       setShowStickyBar(true);
 
+      // Update quantity and trigger pricing tier reevaluation
+      handleUnitChange(itemId, variantId, newUnits.toString());
+
+      // Apply pricing for the selected item
       const discountedPrice = applyDiscount(price, itemId);
       calculateTotalPrice(itemId, variantId, newUnits, tier, discountedPrice);
     },
-    [calculateTotalPrice, applyDiscount, variantsWithData]
+    [calculateTotalPrice, applyDiscount, variantsWithData, handleUnitChange]
   );
 
   // Toggle display price type
