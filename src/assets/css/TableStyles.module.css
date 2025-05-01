@@ -149,6 +149,7 @@
   text-align: center;
   border-right: 1px solid var(--clr-border);
   min-width: 120px;
+  border-top: 1px solid var(--clr-border);
 }
 
 
@@ -168,8 +169,10 @@
 }
 
 .table th:nth-last-child(1),
-.table td:nth-last-child(1) {
-  border-right: none;
+.table td:nth-last-child(1),
+.summaryTable th:nth-last-child(1),
+.summaryTable td:nth-last-child(1) {
+  border-right: none !important;
 }
 
 .defaultHeader,
@@ -371,11 +374,13 @@ table thead tr{
   display: flex;
   flex-direction: column;
   gap: var(--padding-xxs);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  background-color: var(--clr-white);
 }
 
 .summaryTable {
   border-collapse: collapse;
-  font-size: var(--font-size-small);
+
 }
 
 .summaryTable th{
@@ -390,6 +395,7 @@ table thead tr{
   border-right: 1px solid var(--clr-border);
   color: var(--clr-black);
 }
+
 
 
 .stickyBarActions {

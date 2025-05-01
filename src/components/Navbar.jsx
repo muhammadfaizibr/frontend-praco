@@ -72,6 +72,7 @@ const Navbar = () => {
               <img src={Logo} alt="Praco Logo" width="120" height="40" />
             </NavLink>
           </div>
+          
           <div
             className={`${NavBarStyles.searchBarWrapper} ${
               searchMobile ? NavBarStyles.searchBarMobile : ""
@@ -80,6 +81,18 @@ const Navbar = () => {
             <SearchBarHeader />
           </div>
           <div className={NavBarStyles.actionButtons}>
+          <button
+              className={`${NavBarStyles.actionButtonStyle} ${NavBarStyles.searchMobileToggleBtn} accent-palette`}
+              type="button"
+              aria-label={searchMobile ? "Close Search" : "Open Search"}
+              onClick={toggleSearchMobile}
+            >
+              {searchMobile ? (
+                <X className="icon-md icon-blue-accent-dark" aria-hidden="true" />
+              ) : (
+                <Search className="icon-md icon-blue-accent-dark" aria-hidden="true" />
+              )}
+            </button>
             <button
               className={`${NavBarStyles.actionButtonStyle} ${
                 toggleUnitConversionPopup ? "primary-btn" : "accent-palette"
@@ -102,6 +115,7 @@ const Navbar = () => {
             >
               <ShoppingBag className="icon-md icon-blue-accent-dark" aria-hidden="true" />
             </button>
+            
             {isLoggedIn ? (
               <div className={NavBarStyles.accountWrapper}>
                 <button
@@ -145,18 +159,7 @@ const Navbar = () => {
                 </button>
               </NavLink>
             )}
-            <button
-              className={`${NavBarStyles.actionButtonStyle} ${NavBarStyles.searchMobileToggleBtn} accent-palette`}
-              type="button"
-              aria-label={searchMobile ? "Close Search" : "Open Search"}
-              onClick={toggleSearchMobile}
-            >
-              {searchMobile ? (
-                <X className="icon-md icon-blue-accent-dark" aria-hidden="true" />
-              ) : (
-                <Search className="icon-md icon-blue-accent-dark" aria-hidden="true" />
-              )}
-            </button>
+
             <a href="tel:01162607078" aria-label="Call 0116 365 3008">
               <button
                 className={`${NavBarStyles.callBtn} primary-btn b2`}

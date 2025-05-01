@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import FooterStyles from "assets/css/FooterStyles.module.css";
-import Logo from "assets/images/logo.svg";
+import DarkLogo from "assets/images/logo-dark.svg";
 import { Link } from "react-router-dom";
 import { Facebook, Instagram, Twitter, Youtube } from "lucide-react";
 import NewsLetterInput from "components/NewsLetterInput";
@@ -37,7 +37,7 @@ const Footer = () => {
       <div className={`centered-layout ${FooterStyles.contentWrapper} filled-layout-padding`}>
         <div className={FooterStyles.childWrapper}>
           <div className={FooterStyles.logo}>
-            <img src={Logo} alt="Praco Logo" />
+            <img src={DarkLogo} alt="Praco Logo" />
           </div>
 
           <div className="column-content space-1vw">

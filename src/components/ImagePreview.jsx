@@ -2,29 +2,45 @@ import React, { useState } from "react";
 import ImagePreviewStyles from "assets/css/ImagePreviewStyles.module.css";
 import { X } from "lucide-react";
 
-const ImagePreview = ({ images, onClose }) => {
+const ImagePreview = ({ images, onClose, variantName, productName }) => {
   const [selectedImage, setSelectedImage] = useState(images[0]);
   const [imageLoadFailed, setImageLoadFailed] = useState({});
+
+  console.log(
+    `ImagePreview props: variantName=${variantName}, productName=${productName}`
+  ); // Debugging
+  console.log("Applied styles:", ImagePreviewStyles); // Debugging
 
   const handleThumbnailClick = (image) => {
     setSelectedImage(image);
   };
 
   const handleImageError = (imageUrl) => {
+    console.log(`Image failed to load: ${imageUrl}`); // Debugging
     setImageLoadFailed((prev) => ({ ...prev, [imageUrl]: true }));
   };
 
   return (
-    <div className={ImagePreviewStyles.imagePreviewOverlay}>
-      <div className={ImagePreviewStyles.imagePreviewContainer}>
-        <button
-          className={ImagePreviewStyles.closePreviewButton}
-          onClick={onClose}
-          aria-label="Close image preview"
-        >
-          <X className="icon-xms" />
-        </button>
-        <div className={ImagePreviewStyles.mainImageWrapper}>
+    <div className={ImagePreviewStyles.overlay}>
+      <div className={ImagePreviewStyles.container}>
+        <div className={ImagePreviewStyles.imagePreviewStylesHeader}>
+
+          <h5
+            className={`${ImagePreviewStyles.header} clr-text`}
+            aria-label={`Product: ${variantName || "Unknown"} - ${
+              productName || "Unknown"
+            }`}
+          >
+            {variantName || "Unknown"} - {productName || "Unknown"}
+          </h5>
+          <button
+            className={ImagePreviewStyles.closeButton}
+            onClick={onClose}
+            aria-label="Close image preview">
+            <X className="icon-m" />
+          </button>
+        </div>
+        <div className={ImagePreviewStyles.mainImageContainer}>
           {imageLoadFailed[selectedImage] ? (
             <span className="b3 clr-gray">Image Not Available</span>
           ) : (
@@ -36,12 +52,24 @@ const ImagePreview = ({ images, onClose }) => {
             />
           )}
         </div>
-        <div className={ImagePreviewStyles.thumbnailWrapper}>
+        <div className={ImagePreviewStyles.thumbnailContainer}>
           {images.map((image, index) => (
             <div
               key={index}
-              className={`${ImagePreviewStyles.thumbnailContainer} ${selectedImage === image ? ImagePreviewStyles.thumbnailSelected : ""}`}
+              className={`${ImagePreviewStyles.thumbnail} ${
+                selectedImage === image
+                  ? ImagePreviewStyles.thumbnailSelected
+                  : ""
+              }`}
               onClick={() => handleThumbnailClick(image)}
+              onKeyPress={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  handleThumbnailClick(image);
+                }
+              }}
+              tabIndex={0}
+              role="button"
+              aria-label={`Select thumbnail ${index + 1}`}
             >
               {imageLoadFailed[image] ? (
                 <span className="b3 clr-gray">Image Not Available</span>

@@ -23,6 +23,12 @@ const UnitConversionPopup = () => {
 
   const handleChange = (unit, event) => {
     const inputValue = event.target.value;
+    
+    // Prevent negative values
+    if (inputValue < 0) {
+      return;
+    }
+
     setValues((prev) => ({ ...prev, [unit]: inputValue }));
     setActiveUnit(unit);
 
@@ -76,6 +82,7 @@ const UnitConversionPopup = () => {
                 placeholder="0"
                 className={UnitConversionPopupStyles.numberInput}
                 step="any"
+                min="0" // Prevent negative input in the UI
                 ref={(el) => (inputRefs.current[value] = el)}
               />
               <button

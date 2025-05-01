@@ -1,43 +1,109 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#000000" />
+
+    <!-- Core SEO Meta Tags -->
+    <title>Praco Supplies | UK’s Largest Packaging Supplies Company</title>
     <meta
       name="description"
-      content="Web site created using create-react-app"
+      content="Praco Supplies offers high-quality packaging solutions in the UK, including pallet wrap, mailing bags, tapes, and food packaging. Fast delivery, 25,000+ happy customers. Shop now!"
     />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-    <!--
-      manifest.json provides metadata used when your web app is installed on a
-      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
-    -->
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <!--
-      Notice the use of %PUBLIC_URL% in the tags above.
-      It will be replaced with the URL of the `public` folder during the build.
-      Only files inside the `public` folder can be referenced from the HTML.
+    <meta
+      name="keywords"
+      content="packaging supplies, pallet wrap, mailing bags, tapes, food packaging, UK packaging, Praco Supplies"
+    />
+    <meta name="robots" content="index, follow" />
 
-      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
-      work correctly both with client-side routing and a non-root public URL.
-      Learn how to configure a non-root public URL by running `npm run build`.
-    -->
-    <title>React App</title>
+    <!-- Open Graph Meta Tags for Social Media -->
+    <meta
+      property="og:title"
+      content="Praco Supplies | UK’s Largest Packaging Supplies Company"
+    />
+    <meta
+      property="og:description"
+      content="Discover top-quality packaging supplies at Praco Supplies, from pallet wrap to food packaging. Fast delivery and excellent customer service for over 25,000 customers. Shop now!"
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://praco.co.uk/" />
+    <meta
+      property="og:image"
+      content="https://praco.co.uk/images/packaging-og-image.jpg"
+    />
+    <meta property="og:site_name" content="Praco Supplies" />
+
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="Praco Supplies | UK’s Largest Packaging Supplies Company"
+    />
+    <meta
+      name="twitter:description"
+      content="Praco Supplies provides premium packaging solutions with fast delivery across the UK. Explore pallet wrap, tapes, mailing bags, and more!"
+    />
+    <meta
+      name="twitter:image"
+      content="https://praco.co.uk/images/packaging-og-image.jpg"
+    />
+
+    <!-- Favicon and Icons -->
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/logo192.png" />
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://praco.co.uk/" />
+
+    <!-- Preload Critical Assets for Performance -->
+    <link
+      rel="preload"
+      href="/fonts/your-font.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link rel="preload" href="/css/main.css" as="style" />
+
+    <!-- Structured Data (JSON-LD) for Organization -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Praco Supplies",
+        "description": "Praco Supplies is the UK’s largest packaging supplies company, offering pallet wrap, mailing bags, tapes, food packaging, and more with fast delivery and top-notch customer service.",
+        "url": "https://praco.co.uk/",
+        "telephone": "+44-1234-567890",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "123 Packaging Road",
+          "addressLocality": "London",
+          "postalCode": "SW1A 1AA",
+          "addressCountry": "UK"
+        },
+        "image": "https://praco.co.uk/images/logo.jpg",
+        "openingHours": "Mo-Fr 08:00-17:00",
+        "sameAs": [
+          "https://www.facebook.com/pracosupplies",
+          "https://www.instagram.com/pracosupplies"
+        ],
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "telephone": "+44-1234-567890",
+          "contactType": "Customer Service",
+          "email": "support@praco.co.uk",
+          "availableLanguage": "English"
+        }
+      }
+    </script>
   </head>
   <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <noscript
+      >JavaScript is required to fully experience this website. Please enable
+      JavaScript or use a compatible browser.</noscript
+    >
     <div id="root"></div>
-    <!--
-      This HTML file is a template.
-      If you open it directly in the browser, you will see an empty page.
-
-      You can add webfonts, meta tags, or analytics to this file.
-      The build step will place the bundled scripts into the <body> tag.
-
-      To begin the development, run `npm start` or `yarn start`.
-      To create a production bundle, use `npm run build` or `yarn build`.
-    -->
   </body>
 </html>

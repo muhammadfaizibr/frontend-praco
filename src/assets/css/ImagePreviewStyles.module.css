@@ -1,97 +1,112 @@
-/* Overlay for the image preview */
-.imagePreviewOverlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.6); /* Light black overlay */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
+/* Overlay for the popup */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8); /* Darker for contrast */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  opacity: 0;
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.imagePreviewStylesHeader{
+  display: flex;
+  border-bottom: 1px solid var(--clr-border);
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--padding-m);
+}
+
+/* Fade-in animation for overlay */
+@keyframes fadeIn {
+  to {
+    opacity: 1;
   }
-  
-  /* Container for the image preview */
-  .imagePreviewContainer {
-    position: relative;
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    max-width: 90%;
-    max-height: 90%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  /* Close button for the preview */
-  .closePreviewButton {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: none;
-    border: none;
-    cursor: pointer;
-  }
-  
-  /* Wrapper for the main image */
-  .mainImageWrapper {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    max-height: 60vh;
-  }
-  
-  /* Main image styling */
-  .mainImage {
-    max-width: 100%;
-    max-height: 60vh;
-    object-fit: contain;
-  }
-  
-  /* Wrapper for thumbnails */
-  .thumbnailWrapper {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 20px;
-    max-width: 100%;
-    overflow-x: auto;
-  }
-  
-  /* Container for each thumbnail */
-  .thumbnailContainer {
-    cursor: pointer;
-    padding: 5px;
-    border: 2px solid transparent;
-    border-radius: 4px;
-  }
-  
-  /* Selected thumbnail styling */
-  .thumbnailSelected {
-    border-color: #007bff;
-  }
-  
-  /* Thumbnail image styling */
-  .thumbnailImage {
-    width: 80px;
-    height: 80px;
-    object-fit: cover;
-    border-radius: 4px;
-  }
-  
-  /* Ensure icons are properly aligned in buttons */
-  .thButton,
-  .cartButton {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
-  
-  /* Style for the icon-xms class */
-  .icon-xms {
-    width: 16px;
-    height: 16px;
-  }
+}
+
+/* Popup container */
+.container {
+  position: relative;
+  background: var(--clr-white); /* Clean white background */
+  max-width: 80%; /* Tighter layout */
+  max-height: 80%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Subtle shadow */
+  gap: var(--gap-s);
+}
+
+/* Close button */
+.closeButton {
+  background: var(--clr-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+  border: 1px solid var(--clr-border);
+  padding: var(--padding-xxs);
+}
+
+/* Wrapper for main image */
+.mainImageContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  max-height: 60vh;
+  width: 100%;
+  padding: var(--padding-m);
+}
+
+/* Main image styling */
+.mainImage {
+  max-width: 800px; 
+  max-height: 600px;
+}
+
+/* Wrapper for thumbnails */
+.thumbnailContainer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  max-width: 100%;
+  margin-bottom: var(--padding-l);
+
+}
+
+/* Individual thumbnail */
+.thumbnail {
+  cursor: pointer;
+  padding: 4px;
+  border: 2px solid transparent;
+  transition: transform 0.2s, border-color 0.2s;
+}
+
+.thumbnail:hover,
+.thumbnail:focus {
+  transform: scale(1.05); /* Slight zoom on hover */
+  border-color: var(--clr-primary);
+  outline: none;
+}
+
+/* Selected thumbnail */
+.thumbnailSelected {
+  border-color: var(--clr-primary);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Thumbnail image */
+.thumbnailImage {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+}
+

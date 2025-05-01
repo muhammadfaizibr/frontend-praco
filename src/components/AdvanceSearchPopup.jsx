@@ -86,7 +86,7 @@ const AdvanceSearchPopup = () => {
       <HeadingBar
         displayType={"column"}
         headline={"Advance Search"}
-        headlineSize={"h6"}
+        headlineSize={"h4"}
         headlineSizeType={"tag"}
       />
 

@@ -54,7 +54,7 @@ const MenuCategories = () => {
           <NavLink
             to={`/category/${category.slug}`}
             className={({ isActive }) =>
-              `b1 text-uppercase clr-black ${isActive ? "active" : ""}`
+              `b1 clr-black ${isActive ? "active" : ""}`
             }
 
           >

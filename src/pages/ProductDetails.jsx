@@ -26,6 +26,8 @@ const ProductDetails = () => {
   const [error, setError] = useState(null);
   const [imageErrors, setImageErrors] = useState({});
   const [selectedImage, setSelectedImage] = useState(null);
+  const [activeVariantId, setActiveVariantId] = useState(null);
+  const [suppressObserver, setSuppressObserver] = useState(false);
 
   useEffect(() => {
     const fetchProductData = async () => {
@@ -61,6 +63,97 @@ const ProductDetails = () => {
     fetchProductData();
   }, [category, product]);
 
+  useEffect(() => {
+    if (variantsWithData.length === 0) return;
+
+    let timeoutId;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (suppressObserver) return; // Skip updates if suppressed
+
+        // Collect all intersecting entries
+        const intersectingEntries = entries
+          .filter((entry) => entry.isIntersecting)
+          .map((entry) => ({
+            variantId: parseInt(entry.target.id.replace("variant-", ""), 10),
+            top: entry.boundingClientRect.top,
+          }));
+
+        // Debugging: Log intersecting entries
+        console.log("Intersecting variants:", intersectingEntries);
+
+        if (intersectingEntries.length > 0) {
+          // Select the topmost entry (smallest top value)
+          const topmostEntry = intersectingEntries.reduce((min, entry) =>
+            entry.top < min.top ? entry : min
+          );
+
+          clearTimeout(timeoutId);
+          timeoutId = setTimeout(() => {
+            setActiveVariantId(topmostEntry.variantId);
+            console.log(`Active variant updated to: ${topmostEntry.variantId}`);
+          }, 150);
+        } else if (!activeVariantId && variantsWithData.length > 0) {
+          // Fallback to first variant if none intersecting
+          setActiveVariantId(variantsWithData[0].id);
+          console.log(`Fallback active variant: ${variantsWithData[0].id}`);
+        }
+
+        // Debugging: Log all entries
+        console.log("All entries:", entries.map((e) => ({
+          id: e.target.id,
+          isIntersecting: e.isIntersecting,
+          top: e.boundingClientRect.top,
+        })));
+      },
+      {
+        root: null,
+        rootMargin: "0px",
+        threshold: 0.1, // Trigger when 10% of section is visible
+      }
+    );
+
+    variantsWithData.forEach((variant) => {
+      const element = document.getElementById(`variant-${variant.id}`);
+      if (element) {
+        observer.observe(element);
+        // Check element height
+        const height = element.getBoundingClientRect().height;
+        if (height === 0) {
+          console.warn(`Element #variant-${variant.id} has zero height`);
+        }
+      } else {
+        console.warn(`Element #variant-${variant.id} not found`);
+      }
+    });
+
+    // Reobserve on resize
+    const handleResize = () => {
+      variantsWithData.forEach((variant) => {
+        const element = document.getElementById(`variant-${variant.id}`);
+        if (element) {
+          observer.unobserve(element);
+          observer.observe(element);
+        }
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      clearTimeout(timeoutId);
+      variantsWithData.forEach((variant) => {
+        const element = document.getElementById(`variant-${variant.id}`);
+        if (element) {
+          observer.unobserve(element);
+        }
+      });
+      window.removeEventListener("resize", handleResize);
+      observer.disconnect();
+      console.log("IntersectionObserver cleaned up");
+    };
+  }, [variantsWithData, suppressObserver, activeVariantId]);
+
   const handleImageError = useCallback((imageId) => {
     setImageErrors((prev) => ({ ...prev, [imageId]: true }));
   }, []);
@@ -68,7 +161,23 @@ const ProductDetails = () => {
   const scrollToVariant = useCallback((variantId) => {
     const element = document.getElementById(`variant-${variantId}`);
     if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "start" });
+      // Adjust for sticky navbar (60px)
+      const offset = 60;
+      const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+      window.scrollTo({
+        top: elementPosition - offset,
+        behavior: "smooth",
+      });
+      // Set active variant and suppress observer briefly
+      setActiveVariantId(variantId);
+      setSuppressObserver(true);
+      setTimeout(() => {
+        setSuppressObserver(false);
+        console.log("Observer suppression lifted");
+      }, 1000);
+      console.log(`Scrolled to variant: ${variantId}`);
+    } else {
+      console.warn(`Element #variant-${variantId} not found for scrolling`);
     }
   }, []);
 
@@ -132,7 +241,7 @@ const ProductDetails = () => {
                 {variantsWithData.map((variant) => (
                   <button
                     key={variant.id}
-                    className={`b3 ${TableStyles.variantNavLink} ${variant.id === variantsWithData[0].id ? TableStyles.activeVariant : ""}`}
+                    className={`b3 ${TableStyles.variantNavLink} ${variant.id === activeVariantId ? TableStyles.activeVariant : ""}`}
                     onClick={() => scrollToVariant(variant.id)}
                     aria-label={`Navigate to ${variant.name}`}
                   >
