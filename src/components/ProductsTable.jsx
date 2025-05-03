@@ -462,16 +462,16 @@ const ProductsTable = ({ variantsWithData }) => {
           return;
         }
 
-        const unitsPer = tier.tier_type === "pack" ? variant.units_per_pack || 1 : variant.units_per_pallet || 1;
-        const quantity = Math.ceil(item.units / unitsPer);
+        const unitsPerPack = variant.units_per_pack || 1;
+        // Calculate quantity as number of packs
+        const quantity = Math.ceil(item.units / unitsPerPack);
 
         cartItems.push({
           cart: cart.id,
           item: item.id,
           pricing_tier: tier.id,
           quantity,
-          unit_type: tier.tier_type,
-          unit_price: parseFloat(pricingData.price),
+          unit_type: "pack", // Always "pack"
           user_exclusive_price: exclusiveDiscounts[item.id]?.id || null,
         });
       }

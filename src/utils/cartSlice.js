@@ -6,32 +6,28 @@ const cartSlice = createSlice({
     items: [],
   },
   reducers: {
-    addToCart(state, action) {
-      const newItems = action.payload;
-      newItems.forEach((newItem) => {
-        const existingItem = state.items.find((item) => item.id === newItem.id);
-        if (existingItem) {
-          existingItem.units += newItem.units;
-          existingItem.subtotal += newItem.subtotal;
-        } else {
-          state.items.push({ ...newItem });
-        }
-      });
-    },
-    updateCartItemUnits(state, action) {
+    updateCartItemUnits: (state, action) => {
       const { itemId, units } = action.payload;
-      const item = state.items.find((item) => item.id === itemId);
-      if (item && units >= 0) {
-        const pricePerUnit = item.subtotal / item.units;
-        item.units = units;
-        item.subtotal = pricePerUnit * units;
-        if (item.units === 0) {
-          state.items = state.items.filter((i) => i.id !== itemId);
+      const itemIndex = state.items.findIndex((item) => item.id === itemId);
+      if (itemIndex !== -1) {
+        state.items[itemIndex].units = units;
+        // Recalculate totals
+        state.items[itemIndex].subtotal = units * (state.items[itemIndex].subtotal / (state.items[itemIndex].units || 1));
+        state.items[itemIndex].packSubtotal = units * (state.items[itemIndex].packSubtotal / (state.items[itemIndex].units || 1));
+        if (units === 0) {
+          state.items.splice(itemIndex, 1); // Remove item if units are 0
         }
       }
+    },
+    setCartItems: (state, action) => {
+      console.log("Setting cart items in Redux:", action.payload); // Debug log
+      state.items = action.payload || [];
+    },
+    clearCart: (state) => {
+      state.items = [];
     },
   },
 });
 
-export const { addToCart, updateCartItemUnits } = cartSlice.actions;
+export const { updateCartItemUnits, setCartItems, clearCart } = cartSlice.actions;
 export default cartSlice.reducer;

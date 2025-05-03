@@ -259,15 +259,8 @@ export const addCartItem = async (cartItems) => {
 
 export const getCartItems = async (cartId) => {
   try {
-    let allItems = [];
-    let url = `cart-items/?cart=${cartId}`;
-    while (url) {
-      const response = await apiClient.get(url);
-      const data = response.data;
-      allItems = allItems.concat(data.results || []);
-      url = data.next;
-    }
-    return allItems;
+    const response = await apiClient.get(`cart-items/?cart=${cartId}`);
+    return response.data; // Return the full response object including results
   } catch (error) {
     throw error;
   }
