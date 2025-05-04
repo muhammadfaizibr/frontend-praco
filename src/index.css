@@ -298,7 +298,7 @@ h6 {
   font-size: clamp(1.8rem, 2.5vw, 2rem);
   line-height: 1.4;
 }
-.b2 {
+p, .b2 {
   font-weight: 400;
   font-size: 1.6rem;
   line-height: 1.5;

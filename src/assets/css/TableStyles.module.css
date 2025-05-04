@@ -55,6 +55,14 @@
   font-size: var(--font-size-small);
   color: var(--clr-gray);
   line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  gap: var(--padding-xxs);
+}
+
+.productDescription hr{
+  border: 0.75px solid var(--clr-border);
+  margin: var(--padding-xxs) 0;
 }
 
 .presentDescription h2 {

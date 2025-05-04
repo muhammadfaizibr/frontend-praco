@@ -227,7 +227,7 @@ const CartTable = () => {
     setUpdatingRows((prev) => ({ ...prev, [itemId]: true }));
 
     try {
-      // Fetch current cart item details to ensure pricing_tier is up-to-date
+      // Fetch current cart item details to ensure data is up-to-date
       const cartItemUrl = normalizeUrl(BASE_URL, `cart-items/${itemId}/`);
       const cartItemResponse = await axios.get(cartItemUrl, {
         headers: {
@@ -235,15 +235,8 @@ const CartTable = () => {
         },
       });
       const currentCartItem = cartItemResponse.data;
-      const pricingTierId = currentCartItem.pricing_tier?.id;
 
-      if (!pricingTierId) {
-        console.error(`No pricing tier found for cart item ${itemId}`);
-        setError("Unable to update item due to missing pricing tier. Please refresh the cart.");
-        return;
-      }
-
-      // Fetch item details to get units_per_pack and units_per_pallet
+      // Fetch item details to get units_per_pack, units_per_pallet, and product_variant
       const itemUrl = normalizeUrl(BASE_URL, `items/${backendItem.item.id}/`);
       const itemResponse = await axios.get(itemUrl, {
         headers: {
@@ -253,11 +246,85 @@ const CartTable = () => {
       const itemDetails = itemResponse.data;
       const unitsPerPack = itemDetails.product_variant?.units_per_pack || 1;
       const unitsPerPallet = itemDetails.product_variant?.units_per_pallet || 1;
+      const productVariantId = itemDetails.product_variant?.id;
+
+      if (!productVariantId) {
+        console.error(`No product variant found for item ${itemId}`);
+        setError("Unable to update item due to missing product variant. Please refresh the cart.");
+        return;
+      }
 
       // Round newPacks to the nearest whole number
       const roundedPacks = Math.max(0, Math.round(newPacks));
       const newUnits = item.displayPriceType === "pack" ? roundedPacks * unitsPerPack : roundedPacks * unitsPerPallet;
       console.log(`Calculated: roundedPacks=${roundedPacks}, newUnits=${newUnits}`);
+
+      let pricingTierId = currentCartItem.pricing_tier?.id;
+
+      if (roundedPacks > 0) {
+        // Fetch available pricing tiers for the product variant
+        const pricingTiersUrl = normalizeUrl(BASE_URL, `pricing-tiers/?product_variant=${productVariantId}`);
+        const pricingTiersResponse = await axios.get(pricingTiersUrl, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+        });
+        const pricingTiers = pricingTiersResponse.data.results || [];
+
+        if (!pricingTiers.length) {
+          console.error(`No pricing tiers found for product variant ${productVariantId}`);
+          setError("No pricing tiers available for this item. Please contact support.");
+          return;
+        }
+
+        // Select a pricing tier that matches the new quantity and unit type
+        const unitType = item.displayPriceType; // 'pack' or 'pallet'
+        let selectedTier = null;
+
+        for (const tier of pricingTiers) {
+          const isPackTier = tier.tier_type === "pack";
+          const isPalletTier = tier.tier_type === "pallet";
+          const matchesUnitType = (unitType === "pack" && (isPackTier || isPalletTier)) || (unitType === "pallet" && isPalletTier);
+
+          if (!matchesUnitType) continue;
+
+          const quantityToCheck = roundedPacks; // Use packs for both pack and pallet tiers
+          const withinRange =
+            quantityToCheck >= tier.range_start &&
+            (tier.no_end_range || quantityToCheck <= tier.range_end);
+
+          if (withinRange) {
+            selectedTier = tier;
+            break;
+          }
+        }
+
+        if (!selectedTier) {
+          console.warn(`No valid pricing tier found for quantity ${roundedPacks} and unit type ${unitType}`);
+          setError(`No pricing tier available for quantity ${roundedPacks}. Please adjust the quantity.`);
+          return;
+        }
+
+        pricingTierId = selectedTier.id;
+
+        // Fetch PricingTierData to validate prices
+        const pricingTierDataUrl = normalizeUrl(BASE_URL, `pricing-tier-data/?pricing_tier=${pricingTierId}&item=${backendItem.item.id}`);
+        const pricingTierDataResponse = await axios.get(pricingTierDataUrl, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+        });
+        const pricingTierData = pricingTierDataResponse.data.results?.[0];
+
+        if (!pricingTierData) {
+          console.error(`No pricing tier data found for pricing tier ${pricingTierId} and item ${backendItem.item.id}`);
+          setError("Pricing data unavailable for this item. Please contact support.");
+          return;
+        }
+
+        const expectedPerUnitPrice = parseFloat(pricingTierData.price) || 0;
+        const expectedPerPackPrice = expectedPerUnitPrice * unitsPerPack;
+      }
 
       if (roundedPacks === 0) {
         // Delete the cart item if quantity is 0
@@ -282,8 +349,8 @@ const CartTable = () => {
         // Update rawItems by removing the deleted item
         setRawItems((prev) => prev.filter((rawItem) => rawItem.id.toString() !== itemId));
       } else {
-        // Update the cart item quantity
-        console.log(`Patching cart item ${itemId} with quantity ${roundedPacks}`);
+        // Update the cart item quantity and pricing tier
+        console.log(`Patching cart item ${itemId} with quantity ${roundedPacks} and pricing tier ${pricingTierId}`);
         const patchUrl = normalizeUrl(BASE_URL, `cart-items/${itemId}/`);
         await axios.patch(
           patchUrl,
@@ -372,6 +439,7 @@ const CartTable = () => {
           packSubtotal,
           perUnitPrice: updatedPerUnitPrice,
           description: updatedDescription,
+          pricingTierId: updatedItem.pricing_tier?.id,
         }));
 
         // Update the entire cart in Redux while preserving item order
@@ -468,7 +536,7 @@ const CartTable = () => {
       setEditPacks((prev) => ({ ...prev, [itemId]: roundedPacks }));
     } catch (err) {
       console.error("Error updating pack quantity:", err.message);
-      setError("Failed to update pack quantity. Please try again.");
+      setError(err.response?.data?.__all__?.[0] || "Failed to update pack quantity. Please try again.");
     } finally {
       // Re-enable the input for this row after the update
       setUpdatingRows((prev) => ({ ...prev, [itemId]: false }));
@@ -527,13 +595,12 @@ const CartTable = () => {
   // Calculate order summary
   const calculateSummary = () => {
     const totalItems = cartItems.reduce((sum, item) => sum + item.units, 0);
-    const subtotal = cartItems.reduce((sum, item) => sum + item.subtotal, 0); // Use backend subtotal
-    const vat = subtotal * 0.2; // 20% VAT
+    const subtotal = cartItems.reduce((sum, item) => sum + item.discountedTotal, 0); // Use discounted total
     const weight = cartItems.reduce((sum, item) => sum + item.units * 0.2, 0); // 0.2kg per unit
-    return { totalItems, subtotal, vat, weight };
+    return { totalItems, subtotal, weight };
   };
 
-  const { totalItems, subtotal, vat, weight } = calculateSummary();
+  const { totalItems, subtotal, weight } = calculateSummary();
 
   if (loading) {
     return (
@@ -572,13 +639,13 @@ const CartTable = () => {
                   className={`${TableStyles.colLongWidth} l3 clr-accent-dark-blue`}
                   scope="col"
                 >
-                  Title
+                  Item  
                 </th>
                 <th className="l3 clr-accent-dark-blue" scope="col">
                   Packs
                 </th>
                 <th className="l3 clr-accent-dark-blue" scope="col">
-                  Price
+                  Pack Price
                 </th>
                 <th className="l3 clr-accent-dark-blue" scope="col">
                   Subtotal
@@ -698,40 +765,28 @@ const CartTable = () => {
           </table>
         </div>
         <div className={TableStyles.orderSummary}>
-          <div className={TableStyles.orderSummaryInfo}>
-            <div className={TableStyles.orderSummaryRow}>
-              <div className={TableStyles.orderDataWrapper}>
-                <div className={TableStyles.orderSummaryData}>Total Items</div>
-                <div className={TableStyles.orderSummaryData}>{totalItems}</div>
-              </div>
-              <div className={TableStyles.orderDataWrapper}>
-                <div className={TableStyles.orderSummaryData}>Sub Total</div>
-                <div className={TableStyles.orderSummaryData}>
+          <table className={TableStyles.summaryTable}>
+            <tbody>
+              <tr>
+                <th className={TableStyles.orderSummaryData}>Total Items</th>
+                <td className={TableStyles.orderSummaryData}>{totalItems}</td>
+              </tr>
+              <tr>
+                <th className={TableStyles.orderSummaryData}>Sub Total</th>
+                <td className={TableStyles.orderSummaryData}>
                   £
                   {subtotal.toLocaleString("en-GB", {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
                   })}
-                </div>
-              </div>
-            </div>
-            <div className={TableStyles.orderSummaryRow}>
-              <div className={TableStyles.orderDataWrapper}>
-                <div className={TableStyles.orderSummaryData}>Weight</div>
-                <div className={TableStyles.orderSummaryData}>{weight.toFixed(1)}kg</div>
-              </div>
-              <div className={TableStyles.orderDataWrapper}>
-                <div className={TableStyles.orderSummaryData}>VAT</div>
-                <div className={TableStyles.orderSummaryData}>
-                  £
-                  {vat.toLocaleString("en-GB", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
-                </div>
-              </div>
-            </div>
-          </div>
+                </td>
+              </tr>
+              <tr>
+                <th className={TableStyles.orderSummaryData}>Weight</th>
+                <td className={TableStyles.orderSummaryData}>{weight.toFixed(1)}kg</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 

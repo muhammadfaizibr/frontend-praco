@@ -8,7 +8,7 @@ const Slider = () => {
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
-  let intervalId;
+  const intervalIdRef = useRef(null); // Use ref to store intervalId
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -29,33 +29,57 @@ const Slider = () => {
     };
 
     fetchCategories();
-    startAutoplay();
 
-    return () => clearInterval(intervalId);
+    return () => {
+      if (intervalIdRef.current) {
+        clearInterval(intervalIdRef.current); // Clean up interval on unmount
+      }
+    };
   }, []);
 
+  // Start autoplay only when categories are loaded and slider is rendered
+  useEffect(() => {
+    if (!isLoading && !error && categories.length > 0) {
+      startAutoplay();
+    }
+    return () => {
+      if (intervalIdRef.current) {
+        clearInterval(intervalIdRef.current); // Clean up on categories change or unmount
+      }
+    };
+  }, [isLoading, error, categories]);
+
   const startAutoplay = () => {
-    intervalId = setInterval(() => {
-      nextSlide();
-    }, 5000);
+    if (sliderRef.current) {
+      intervalIdRef.current = setInterval(() => {
+        nextSlide();
+      }, 5000);
+    }
   };
 
   const stopAutoplay = () => {
-    clearInterval(intervalId);
+    if (intervalIdRef.current) {
+      clearInterval(intervalIdRef.current);
+      intervalIdRef.current = null;
+    }
   };
 
   const nextSlide = () => {
-    stopAutoplay();
-    const slides = sliderRef.current.children;
-    sliderRef.current.appendChild(slides[0]);
-    startAutoplay();
+    if (sliderRef.current) {
+      stopAutoplay();
+      const slides = sliderRef.current.children;
+      sliderRef.current.appendChild(slides[0]);
+      startAutoplay();
+    }
   };
 
   const prevSlide = () => {
-    stopAutoplay();
-    const slides = sliderRef.current.children;
-    sliderRef.current.insertBefore(slides[slides.length - 1], slides[0]);
-    startAutoplay();
+    if (sliderRef.current) {
+      stopAutoplay();
+      const slides = sliderRef.current.children;
+      sliderRef.current.insertBefore(slides[slides.length - 1], slides[0]);
+      startAutoplay();
+    }
   };
 
   return (

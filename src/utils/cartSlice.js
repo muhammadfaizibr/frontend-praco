@@ -4,30 +4,31 @@ const cartSlice = createSlice({
   name: 'cart',
   initialState: {
     items: [],
+    summary: {
+      totalItems: 0,
+      subtotal: 0,
+      total: 0,
+      weight: 0,
+      vatPercentage: 20,
+      discountPercentage: 0,
+    },
   },
   reducers: {
-    updateCartItemUnits: (state, action) => {
-      const { itemId, units } = action.payload;
-      const itemIndex = state.items.findIndex((item) => item.id === itemId);
-      if (itemIndex !== -1) {
-        state.items[itemIndex].units = units;
-        // Recalculate totals
-        state.items[itemIndex].subtotal = units * (state.items[itemIndex].subtotal / (state.items[itemIndex].units || 1));
-        state.items[itemIndex].packSubtotal = units * (state.items[itemIndex].packSubtotal / (state.items[itemIndex].units || 1));
-        if (units === 0) {
-          state.items.splice(itemIndex, 1); // Remove item if units are 0
-        }
+    setCartItems(state, action) {
+      state.items = action.payload;
+    },
+    updateCartItemUnits(state, action) {
+      const { itemId, ...updates } = action.payload;
+      const item = state.items.find((item) => item.id === itemId);
+      if (item) {
+        Object.assign(item, updates);
       }
     },
-    setCartItems: (state, action) => {
-      console.log("Setting cart items in Redux:", action.payload); // Debug log
-      state.items = action.payload || [];
-    },
-    clearCart: (state) => {
-      state.items = [];
+    setCartSummary(state, action) {
+      state.summary = { ...state.summary, ...action.payload };
     },
   },
 });
 
-export const { updateCartItemUnits, setCartItems, clearCart } = cartSlice.actions;
+export const { setCartItems, updateCartItemUnits, setCartSummary } = cartSlice.actions;
 export default cartSlice.reducer;
