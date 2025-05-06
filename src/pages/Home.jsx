@@ -14,11 +14,9 @@ const Home = () => {
       });
   return (
     <div className="centered-layout-wrapper full-width-flex-col layout-spacing layout-vertical-padding">
-      <div className="centered-layout page-layout full-width-flex-col layout-spacing">
         <HomeHero />
 
         {/* <Products title="Pallet Wraps" products={products}/> */}
-      </div>
         <AboutPraco />
 
         <div className="centered-layout page-layout">

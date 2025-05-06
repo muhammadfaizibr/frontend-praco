@@ -73,7 +73,7 @@ const ProductsTable = ({ variantsWithData }) => {
             if (Array.isArray(exclusivePrices) && exclusivePrices.length > 0) {
               discounts[item.id] = {
                 id: exclusivePrices[0].id,
-                discount_percentage: Number(exclusivePrices[0].discount_percentage) || 0
+                discount_percentage: Number(exclusivePrices[0].discount_percentage) || 0,
               };
             } else {
               discounts[item.id] = { id: null, discount_percentage: 0 };
@@ -153,16 +153,17 @@ const ProductsTable = ({ variantsWithData }) => {
       const packQuantity = variant.units_per_pack || 1;
       const palletQuantity = variant.units_per_pallet || 0;
       const supportsPallets = palletQuantity > 0 && variant.show_units_per !== "pack";
+      const hasPalletPricing = variant.pricing_tiers?.some((tier) => tier.tier_type === "pallet");
 
-      // Variant-level pricing tier
+      // Variant-level pricing tier: If totalUnits >= palletQuantity and pallet pricing is available, use pallet pricing
       let variantPriceType = "pack";
-      if (supportsPallets && totalUnits >= palletQuantity && totalUnits % palletQuantity === 0) {
+      if (supportsPallets && hasPalletPricing && totalUnits >= palletQuantity) {
         variantPriceType = "pallet";
       }
 
-      // Item-level pricing tier: Use variantPriceType if pallet, else check item quantity
+      // Item-level pricing tier: If units >= palletQuantity and pallet pricing is available, use pallet pricing
       let itemPriceType = variantPriceType === "pallet" && supportsPallets ? "pallet" : "pack";
-      if (itemPriceType === "pack" && supportsPallets && units >= palletQuantity && units % palletQuantity === 0) {
+      if (supportsPallets && hasPalletPricing && units >= palletQuantity) {
         itemPriceType = "pallet";
       }
 
@@ -171,25 +172,29 @@ const ProductsTable = ({ variantsWithData }) => {
     []
   );
 
-  // Handle unit changes and pricing tier switching
+  // Handle unit changes and pricing tier switching with stock validation
   const handleUnitChange = useCallback(
     (itemId, variantId, value) => {
       const variant = variantsWithData.find((v) => v?.id === variantId);
       if (!variant?.items) return;
 
+      const item = variant.items.find((i) => i.id === itemId);
+      if (!item) return;
+
       const packQuantity = variant.units_per_pack || 1;
       const palletQuantity = variant.units_per_pallet || 0;
       const supportsPallets = palletQuantity > 0 && variant.show_units_per !== "pack";
-      const newUnits = Math.max(0, parseInt(value, 10) || 0);
+      let newUnits = Math.max(0, parseInt(value, 10) || 0);
 
-      // Adjust units to nearest valid step based on pricing tier
-      let adjustedUnits = newUnits;
-      const { itemPriceType } = determinePricingTier(variant, itemId, newUnits, newUnits, variantPriceType[variantId]);
-      if (supportsPallets && itemPriceType === "pallet") {
-        adjustedUnits = Math.round(newUnits / palletQuantity) * palletQuantity;
-      } else {
-        adjustedUnits = Math.round(newUnits / packQuantity) * packQuantity;
+      // Stock validation
+      if (item.track_inventory && newUnits > item.stock) {
+        newUnits = item.stock;
+        showNotification(`Cannot exceed available stock of ${item.stock} units for ${item.title}.`, "warning");
       }
+
+      // Adjust units to nearest valid step based on pack quantity for custom input
+      let adjustedUnits = newUnits;
+      adjustedUnits = Math.round(newUnits / packQuantity) * packQuantity;
 
       // Update item units
       const updatedItemUnits = { ...itemUnits, [itemId]: adjustedUnits };
@@ -278,11 +283,14 @@ const ProductsTable = ({ variantsWithData }) => {
     ]
   );
 
-  // Handle increment based on item quantity
+  // Handle increment based on item quantity with stock validation
   const handleIncrement = useCallback(
     (itemId, variantId) => {
       const variant = variantsWithData.find((v) => v?.id === variantId);
       if (!variant?.items) return;
+
+      const item = variant.items.find((i) => i.id === itemId);
+      if (!item) return;
 
       const packQuantity = variant.units_per_pack || 1;
       const palletQuantity = variant.units_per_pallet || 0;
@@ -292,16 +300,20 @@ const ProductsTable = ({ variantsWithData }) => {
       // Increment by packQuantity if pallets are not supported or if quantity is 0
       let increment = packQuantity;
       if (supportsPallets && currentUnits > 0) {
-        // Increment by palletQuantity only if currentUnits is a multiple of palletQuantity
-        increment = currentUnits >= palletQuantity && currentUnits % palletQuantity === 0
-          ? palletQuantity
-          : packQuantity;
+        increment = currentUnits >= palletQuantity && currentUnits % palletQuantity === 0 ? palletQuantity : packQuantity;
       }
 
-      const newUnits = currentUnits + increment;
+      let newUnits = currentUnits + increment;
+
+      // Stock validation
+      if (item.track_inventory && newUnits > item.stock) {
+        newUnits = item.stock;
+        showNotification(`Cannot exceed available stock of ${item.stock} units for ${item.title}.`, "warning");
+      }
+
       handleUnitChange(itemId, variantId, newUnits.toString());
     },
-    [itemUnits, variantsWithData, handleUnitChange]
+    [itemUnits, variantsWithData, handleUnitChange, showNotification]
   );
 
   // Handle decrement based on item quantity
@@ -319,13 +331,10 @@ const ProductsTable = ({ variantsWithData }) => {
       let decrement = packQuantity;
       if (supportsPallets) {
         if (currentUnits === palletQuantity) {
-          // First decrement from pallet quantity decreases by pack quantity
           decrement = packQuantity;
         } else if (currentUnits >= palletQuantity && currentUnits % palletQuantity === 0) {
-          // Decrement by pallet quantity if at a multiple of pallet
           decrement = palletQuantity;
         } else {
-          // Otherwise, decrement by pack quantity
           decrement = packQuantity;
         }
       }
@@ -341,14 +350,23 @@ const ProductsTable = ({ variantsWithData }) => {
     setUnitsDisplayType((prev) => ({ ...prev, [variantId]: displayType }));
   }, []);
 
-  // Handle price tier selection
+  // Handle price tier selection with stock validation
   const handlePriceClick = useCallback(
     (itemId, variantId, price, tier) => {
       const variant = variantsWithData.find((v) => v?.id === variantId);
       if (!variant) return;
 
+      const item = variant.items.find((i) => i.id === itemId);
+      if (!item) return;
+
       const unitsPer = tier.tier_type === "pack" ? variant.units_per_pack || 1 : variant.units_per_pallet || 1;
-      const newUnits = tier.range_start * unitsPer;
+      let newUnits = tier.range_start * unitsPer;
+
+      // Stock validation
+      if (item.track_inventory && newUnits > item.stock) {
+        newUnits = item.stock;
+        showNotification(`Cannot exceed available stock of ${item.stock} units for ${item.title}.`, "warning");
+      }
 
       // Update selected tier and sticky bar
       setSelectedTiers((prev) => ({ ...prev, [itemId]: tier.id }));
@@ -361,7 +379,7 @@ const ProductsTable = ({ variantsWithData }) => {
       const discountedPrice = applyDiscount(price, itemId);
       calculateTotalPrice(itemId, variantId, newUnits, tier, discountedPrice);
     },
-    [calculateTotalPrice, applyDiscount, variantsWithData, handleUnitChange]
+    [calculateTotalPrice, applyDiscount, variantsWithData, handleUnitChange, showNotification]
   );
 
   // Toggle display price type
@@ -463,7 +481,6 @@ const ProductsTable = ({ variantsWithData }) => {
         }
 
         const unitsPerPack = variant.units_per_pack || 1;
-        // Calculate quantity as number of packs
         const quantity = Math.ceil(item.units / unitsPerPack);
 
         cartItems.push({
@@ -471,7 +488,7 @@ const ProductsTable = ({ variantsWithData }) => {
           item: item.id,
           pricing_tier: tier.id,
           quantity,
-          unit_type: "pack", // Always "pack"
+          unit_type: "pack",
           user_exclusive_price: exclusiveDiscounts[item.id]?.id || null,
         });
       }
@@ -546,23 +563,23 @@ const ProductsTable = ({ variantsWithData }) => {
                 <table className={TableStyles.table}>
                   <thead>
                     <tr>
-                      <th className={`${TableStyles.defaultHeader} l3 clr-text`}>Image</th>
-                      <th className={`${TableStyles.defaultHeader} l3 clr-text`}>SKU</th>
+                      <th className={`${TableStyles.defaultHeader} b3 clr-text`}>Image</th>
+                      <th className={`${TableStyles.defaultHeader} b3 clr-text`}>SKU</th>
                       {variant.tableFields?.map((field) => (
                         <th
                           key={field.id}
-                          className={`${TableStyles.defaultHeader} l3 clr-text ${field.long_field ? TableStyles.longField : ""}`}
+                          className={`${TableStyles.defaultHeader} b3 clr-text ${field.long_field ? TableStyles.longField : ""}`}
                         >
                           {field.name}
                         </th>
                       ))}
                       {pricingTiers.map((tier) => (
-                        <th key={tier.id} className={`${TableStyles.pricingTierHeader} l3 clr-text`}>
+                        <th key={tier.id} className={`${TableStyles.pricingTierHeader} b3 clr-text`}>
                           {tier.tier_type === "pack" ? "Packs" : "Pallets"} {tier.range_start}
                           {tier.no_end_range ? "+" : `-${tier.range_end}`}
                         </th>
                       ))}
-                      <th className={`${TableStyles.unitsPerHeader} l3 clr-text`}>
+                      <th className={`${TableStyles.unitsPerHeader} b3 clr-text`}>
                         <div className={TableStyles.thWithButtons}>
                           Units per
                           <span className={TableStyles.thButtonsWrapper}>
@@ -585,7 +602,7 @@ const ProductsTable = ({ variantsWithData }) => {
                           </span>
                         </div>
                       </th>
-                      <th className={`${TableStyles.unitsInputHeader} l3 clr-text`}>No. of Units</th>
+                      <th className={`${TableStyles.unitsInputHeader} b3 clr-text`}>No. of Units</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -672,7 +689,7 @@ const ProductsTable = ({ variantsWithData }) => {
                             return (
                               <td key={tier.id} className="b3 clr-text">
                                 <button
-                                  className={`${TableStyles.priceButton} ${selectedTiers[item.id] === tier.id ? TableStyles.selectedTier : ""}`}
+                                  className={`${TableStyles.priceButton} ${selectedTiers[item.id] === tier.id ? TableStyles.selectedTier : ""} b3`}
                                   onClick={() => handlePriceClick(item.id, variant.id, price, tier)}
                                   aria-current={selectedTiers[item.id] === tier.id}
                                   aria-label={`Select ${tier.tier_type} tier ${tier.range_start}${tier.no_end_range ? "+" : `-${tier.range_end}`} for £${hasDiscount ? exclusivePrice.toFixed(2) : price.toFixed(2)}`}

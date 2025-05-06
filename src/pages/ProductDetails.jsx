@@ -241,7 +241,7 @@ const ProductDetails = () => {
                 {variantsWithData.map((variant) => (
                   <button
                     key={variant.id}
-                    className={`b3 ${TableStyles.variantNavLink} ${variant.id === activeVariantId ? TableStyles.activeVariant : ""}`}
+                    className={`b1 ${TableStyles.variantNavLink} ${variant.id === activeVariantId ? TableStyles.activeVariant : ""}`}
                     onClick={() => scrollToVariant(variant.id)}
                     aria-label={`Navigate to ${variant.name}`}
                   >

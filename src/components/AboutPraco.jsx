@@ -61,7 +61,7 @@ const AboutPraco = () => {
               >
                 {featuresDisplayElement.icon}
                 <div className={AboutPracoStyles.featureDisplayTextDetails}>
-                  <h6 className="light">{featuresDisplayElement.label}</h6>
+                  <h4 className="light">{featuresDisplayElement.label}</h4>
                   <p className="b2 clr-white">{featuresDisplayElement.description}</p>
                 </div>
               </div>
