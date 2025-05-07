@@ -351,6 +351,13 @@
   outline: none;
 }
 
+.discountTag {
+  margin-left: 0.5rem;
+  color: var(--clr-primary);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
 .warning {
   margin-bottom: var(--gap-m);
 }
@@ -379,6 +386,20 @@
 
 .summaryTable {
   border-collapse: collapse;
+  border: 1px solid var(--clr-border);
+  margin-left: auto; /* Align to the right */
+  background-color: var(--clr-white);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* Subtle shadow for a polished look */
+  width: 500px;
+}
+
+.summaryTable th,
+.summaryTable td {
+  padding: var(--padding-xs) var(--padding-s);
+  text-align: left;
+  border-right: 1px solid var(--clr-border);
+  border-bottom: 1px solid var(--clr-border);
+  color: var(--clr-black);
 }
 
 .summaryTable th {
@@ -386,12 +407,21 @@
   background-color: var(--clr-gray-light);
 }
 
-.summaryTable th,
-.summaryTable td {
-  padding: var(--padding-s);
-  text-align: left;
-  border-right: 1px solid var(--clr-border);
-  color: var(--clr-black);
+.summaryTable td.numeric {
+  text-align: right;
+}
+
+.summaryTable tr.summaryRow {
+  transition: background-color 0.2s;
+}
+
+.summaryTable tr.summaryRow:hover {
+  background-color: var(--clr-primary-tint-light);
+}
+
+.summaryTable th:last-child,
+.summaryTable td:last-child {
+  border-right: none;
 }
 
 .stickyBarActions {
@@ -440,6 +470,7 @@
 }
 
 @media (max-width: 540px) {
+  
   .variantNavBar,
   .stickyBarContent {
     max-width: 100%;
@@ -456,5 +487,16 @@
   .thumbnailImage {
     width: 60px;
     height: 60px;
+  }
+
+  .summaryTable th,
+  .summaryTable td {
+    padding: var(--padding-xs);
+  }
+
+  .summaryTable {
+    margin-left: 0; /* Prevent overflow on small screens */
+    margin-right: auto; /* Center on small screens if needed */
+    width: 100%;
   }
 }

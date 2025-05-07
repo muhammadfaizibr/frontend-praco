@@ -141,8 +141,8 @@ const CartTable = () => {
               const productSlug = product.slug || "unknown";
               const categorySlug = category.slug || "unknown";
               const unitsPerPack = productVariant.units_per_pack || 1;
-              const itemImages = itemDetails.images || []; // Extract images from item.details.images
-              const firstImage = itemImages.length > 0 ? itemImages[0].image : ""; // Use the first image or empty string if none
+              const itemImages = itemDetails.images || [];
+              const firstImage = itemImages.length > 0 ? itemImages[0].image : "";
 
               const discountPercentage = discounts[item.id]?.discount_percentage || 0;
               const description = itemDetails.title || productVariant.name || `Item ${item.item.id}`;
@@ -156,7 +156,7 @@ const CartTable = () => {
                 total: parseFloat(item.total) || 0,
                 displayPriceType: item.unit_type,
                 variantId: productVariant.id?.toString() || "unknown",
-                image: firstImage, // Use the first item image
+                image: firstImage,
                 sku: itemDetails.sku || `SKU-${item.item.id}`,
                 productSlug,
                 categorySlug,
@@ -200,7 +200,6 @@ const CartTable = () => {
           console.warn("Invalid cart items detected. Filtering invalid entries.");
         }
 
-        // Validate stock on initial load
         const stockAdjustedItems = validatedItems.map((item) => {
           if (item.trackInventory && item.units > item.stock) {
             const maxPacks = Math.floor(item.stock / item.unitsPerPack);
@@ -268,7 +267,6 @@ const CartTable = () => {
       let roundedPacks = Math.max(0, Math.round(newPacks));
       const newUnits = roundedPacks * unitsPerPack;
 
-      // Stock validation
       if (item.trackInventory && newUnits > item.stock) {
         const maxPacks = Math.floor(item.stock / unitsPerPack);
         roundedPacks = maxPacks;
@@ -404,7 +402,7 @@ const CartTable = () => {
               `Insufficient stock for ${sku}. Available: ${availableUnits} units (Max ${availableUnits} units). Adjusted to ${maxPacks} packs.`,
               "warning"
             );
-            await handlePackChange(itemId, maxPacks); // Recursively adjust to available stock
+            await handlePackChange(itemId, maxPacks);
             return;
           } else {
             setError("Failed to update pack quantity. Please try again.");
@@ -492,8 +490,8 @@ const CartTable = () => {
 
   if (loading) {
     return (
-      <div className={TableStyles.container}>
-        <div className={TableStyles.tableContentWrapper}>
+      <div className={TableStyles.tableContentWrapper}>
+        <div className={TableStyles.tableContainer}>
           <p className="c3 text-center">Loading cart...</p>
         </div>
       </div>
@@ -501,7 +499,7 @@ const CartTable = () => {
   }
 
   return (
-    <div className={TableStyles.container}>
+    <div className={TableStyles.tableContentWrapper}>
       <Notification message={notification.message} type={notification.type} visible={notification.visible} />
       {error && (
         <AccentNotifier
@@ -510,176 +508,171 @@ const CartTable = () => {
           className="clr-danger"
         />
       )}
-      <div className={TableStyles.tableContentWrapper}>
-        <div className={TableStyles.tableContainer}>
-          <table className={TableStyles.table} role="grid">
-            <thead>
+      <div className={TableStyles.tableContainer}>
+        <table className={TableStyles.table} role="grid">
+          <thead>
+            <tr>
+              <th className={`${TableStyles.defaultHeader} b3 clr-text`}>Image</th>
+              <th className={`${TableStyles.defaultHeader} b3 clr-text`}>SKU</th>
+              <th className={`${TableStyles.defaultHeader} ${TableStyles.longField} b3 clr-text`}>Item</th>
+              <th className={`${TableStyles.defaultHeader} b3 clr-text`}>Packs</th>
+              <th className={`${TableStyles.defaultHeader} b3 clr-text`}>Units</th>
+              <th className={`${TableStyles.defaultHeader} b3 clr-text`}>Pack Price</th>
+              <th className={`${TableStyles.defaultHeader} b3 clr-text`}>Subtotal</th>
+              <th className={`${TableStyles.defaultHeader} b3 clr-text`}>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {cartItems.length === 0 ? (
               <tr>
-                <th className="l3 clr-accent-dark-blue" scope="col">Image</th>
-                <th className="l3 clr-accent-dark-blue" scope="col">SKU</th>
-                <th className={`${TableStyles.colLongWidth} l3 clr-accent-dark-blue`} scope="col">Item</th>
-                <th className="l3 clr-accent-dark-blue" scope="col">Packs</th>
-                <th className="l3 clr-accent-dark-blue" scope="col">Units</th>
-                <th className="l3 clr-accent-dark-blue" scope="col">Pack Price</th>
-                <th className="l3 clr-accent-dark-blue" scope="col">Subtotal</th>
-                <th className="l3 clr-accent-dark-blue" scope="col">Total</th>
+                <td colSpan={8} className="c3 text-center">
+                  Your cart is empty.
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {cartItems.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="c3 text-center">
-                    Your cart is empty.
-                  </td>
-                </tr>
-              ) : (
-                cartItems.map((cartElement) => {
-                  const sanitizedDescription = DOMPurify.sanitize(cartElement.description);
-                  const hasImageError = imageErrors[cartElement.id] || !cartElement.image;
-                  const currentPacks = editPacks[cartElement.id] !== undefined ? editPacks[cartElement.id] : cartElement.packs;
-                  const isUpdating = updatingRows[cartElement.id] || false;
-                  const discountTag = cartElement.discountPercentage > 0 ? ` (${cartElement.discountPercentage}%)` : "";
+            ) : (
+              cartItems.map((cartElement) => {
+                const sanitizedDescription = DOMPurify.sanitize(cartElement.description);
+                const hasImageError = imageErrors[cartElement.id] || !cartElement.image;
+                const currentPacks = editPacks[cartElement.id] !== undefined ? editPacks[cartElement.id] : cartElement.packs;
+                const isUpdating = updatingRows[cartElement.id] || false;
+                const discountTag = cartElement.discountPercentage > 0 ? ` (${cartElement.discountPercentage}%)` : "";
 
-                  return (
-                    <tr key={cartElement.id}>
-                      <td className="c3">
-                        <div className={TableStyles.colImageWrapper}>
-                          <div className={TableStyles.colImageContainer}>
-                            {hasImageError ? (
-                              <span className="c3">Image is not available</span>
-                            ) : (
-                              <img
-                                src={cartElement.image}
-                                alt={`Image of ${sanitizedDescription}`}
-                                loading="lazy"
-                                onError={() => handleImageError(cartElement.id)}
-                              />
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="c3">{cartElement.sku || "N/A"}</td>
-                      <td className={`${TableStyles.colLongWidth} c3`}>
-                        <Link
-                          to={`/details/${cartElement.categorySlug}/${cartElement.productSlug}`}
-                          style={{ textDecoration: "none", color: "inherit" }}
-                          aria-label={`View product ${sanitizedDescription}`}
-                        >
-                          <div dangerouslySetInnerHTML={{ __html: sanitizedDescription }} />
-                        </Link>
-                      </td>
-                      <td className="c3">
-                        <div className={TableStyles.unitInputGroup}>
-                          <button
-                            className={`${TableStyles.unitButton} ${TableStyles.unitButtonMinus}`}
-                            onClick={() => handlePackDecrement(cartElement.id)}
-                            aria-label={`Decrement packs for ${cartElement.sku || "item"}`}
-                            disabled={isUpdating}
-                          >
-                            <Minus className="icon-s" />
-                          </button>
-                          <input
-                            type="text"
-                            value={currentPacks || 0}
-                            onChange={(e) => handlePackInputChange(cartElement.id, e)}
-                            onBlur={() => handlePackInputBlur(cartElement.id)}
-                            onKeyPress={(e) => handlePackInputKeyPress(cartElement.id, e)}
-                            className={TableStyles.unitInput}
-                            aria-label={`Enter packs for ${cartElement.sku || "item"}`}
-                            disabled={isUpdating}
+                return (
+                  <tr key={cartElement.id} className={cartElement.units > 0 ? TableStyles.selectedRow : ""}>
+                    <td className={`${TableStyles.imageColTd} b3 clr-text`}>
+                      <div className={TableStyles.colImageContainer}>
+                        {hasImageError ? (
+                          <span className="b3 clr-gray">Image Not Available</span>
+                        ) : (
+                          <img
+                            src={cartElement.image}
+                            alt={`Image of ${sanitizedDescription}`}
+                            className={TableStyles.colImageContainer}
+                            onError={() => handleImageError(cartElement.id)}
+                            loading="lazy"
                           />
-                          <button
-                            className={`${TableStyles.unitButton} ${TableStyles.unitButtonPlus}`}
-                            onClick={() => handlePackIncrement(cartElement.id)}
-                            aria-label={`Increment packs for ${cartElement.sku || "item"}`}
-                            disabled={isUpdating}
-                          >
-                            <Plus className="icon-s" />
-                          </button>
-                        </div>
-                      </td>
-                      <td className="c3">{cartElement.units}</td>
-                      <td className="c3">
-                        £{cartElement.perPackPrice.toLocaleString("en-GB", {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
-                      </td>
-                      <td className="c3">
-                        £{cartElement.subtotal.toLocaleString("en-GB", {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
-                      </td>
-                      <td className="c3">
-                        £{cartElement.total.toLocaleString("en-GB", {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
-                        {discountTag && <span className={TableStyles.discountTag}>{discountTag}</span>}
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-        <div className={TableStyles.orderSummary}>
-          <table className={TableStyles.summaryTable}>
-            <tbody>
-              <tr>
-                <th className={TableStyles.orderSummaryData}>Total Items</th>
-                <td className={TableStyles.orderSummaryData}>{totalItems}</td>
-              </tr>
-              <tr>
-                <th className={TableStyles.orderSummaryData}>Total Packs</th>
-                <td className={TableStyles.orderSummaryData}>{totalPacks}</td>
-              </tr>
-              <tr>
-                <th className={TableStyles.orderSummaryData}>Subtotal</th>
-                <td className={TableStyles.orderSummaryData}>
-                  £{subtotal.toLocaleString("en-GB", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
-                </td>
-              </tr>
-              <tr>
-                <th className={TableStyles.orderSummaryData}>Discount ({discount}%)</th>
-                <td className={TableStyles.orderSummaryData}>
-                  £{discount_amount.toLocaleString("en-GB", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
-                </td>
-              </tr>
-              <tr>
-                <th className={TableStyles.orderSummaryData}>VAT ({vat}%)</th>
-                <td className={TableStyles.orderSummaryData}>
-                  £{vat_amount.toLocaleString("en-GB", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
-                </td>
-              </tr>
-              <tr>
-                <th className={TableStyles.orderSummaryData}>Total</th>
-                <td className={TableStyles.orderSummaryData}>
-                  £{total.toLocaleString("en-GB", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
-                </td>
-              </tr>
-              <tr>
-                <th className={TableStyles.orderSummaryData}>Weight</th>
-                <td className={TableStyles.orderSummaryData}>{weight.toFixed(1)}kg</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="b3 clr-text">{cartElement.sku || "N/A"}</td>
+                    <td className={`${TableStyles.longField} b3 clr-text`}>
+                      <Link
+                        to={`/details/${cartElement.categorySlug}/${cartElement.productSlug}`}
+                        style={{ textDecoration: "none", color: "inherit" }}
+                        aria-label={`View product ${sanitizedDescription}`}
+                      >
+                        <div dangerouslySetInnerHTML={{ __html: sanitizedDescription }} />
+                      </Link>
+                    </td>
+                    <td className="b3 clr-text">
+                      <div className={TableStyles.unitInputGroup}>
+                        <button
+                          className={`${TableStyles.unitButton} ${TableStyles.unitButtonMinus}`}
+                          onClick={() => handlePackDecrement(cartElement.id)}
+                          aria-label={`Decrement packs for ${cartElement.sku || "item"}`}
+                          disabled={isUpdating}
+                        >
+                          <Minus className="icon-s" />
+                        </button>
+                        <input
+                          type="text"
+                          value={currentPacks || 0}
+                          onChange={(e) => handlePackInputChange(cartElement.id, e)}
+                          onBlur={() => handlePackInputBlur(cartElement.id)}
+                          onKeyPress={(e) => handlePackInputKeyPress(cartElement.id, e)}
+                          className={TableStyles.unitInput}
+                          aria-label={`Enter packs for ${cartElement.sku || "item"}`}
+                          disabled={isUpdating}
+                        />
+                        <button
+                          className={`${TableStyles.unitButton} ${TableStyles.unitButtonPlus}`}
+                          onClick={() => handlePackIncrement(cartElement.id)}
+                          aria-label={`Increment packs for ${cartElement.sku || "item"}`}
+                          disabled={isUpdating}
+                        >
+                          <Plus className="icon-s" />
+                        </button>
+                      </div>
+                    </td>
+                    <td className="b3 clr-text">{cartElement.units}</td>
+                    <td className="b3 clr-text">
+                      £{cartElement.perPackPrice.toLocaleString("en-GB", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </td>
+                    <td className="b3 clr-text">
+                      £{cartElement.subtotal.toLocaleString("en-GB", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </td>
+                    <td className="b3 clr-text">
+                      £{cartElement.total.toLocaleString("en-GB", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                      {discountTag && <span className={TableStyles.discountTag}>{discountTag}</span>}
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
       </div>
+      <table className={TableStyles.summaryTable}>
+        <tbody>
+          <tr>
+            <th className="b3 clr-text">Total Items</th>
+            <td className="b3 clr-text">{totalItems}</td>
+          </tr>
+          <tr>
+            <th className="b3 clr-text">Total Packs</th>
+            <td className="b3 clr-text">{totalPacks}</td>
+          </tr>
+          <tr>
+            <th className="b3 clr-text">Subtotal</th>
+            <td className="b3 clr-text">
+              £{subtotal.toLocaleString("en-GB", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </td>
+          </tr>
+          <tr>
+            <th className="b3 clr-text">Discount ({discount}%)</th>
+            <td className="b3 clr-text">
+              £{discount_amount.toLocaleString("en-GB", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </td>
+          </tr>
+          <tr>
+            <th className="b3 clr-text">VAT ({vat}%)</th>
+            <td className="b3 clr-text">
+              £{vat_amount.toLocaleString("en-GB", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </td>
+          </tr>
+          <tr>
+            <th className="b3 clr-text">Total</th>
+            <td className="b3 clr-text">
+              £{total.toLocaleString("en-GB", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </td>
+          </tr>
+          <tr>
+            <th className="b3 clr-text">Weight</th>
+            <td className="b3 clr-text">{weight.toFixed(1)}kg</td>
+          </tr>
+        </tbody>
+      </table>
 
       {subtotal >= 600 && (
         <AccentNotifier
