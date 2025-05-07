@@ -33,7 +33,7 @@ footer {
 }
 
 .contentWrapper .childWrapper .logo img {
-    width: clamp(16rem, 18vw, 20rem);
+    width: clamp(11rem, 10vw, 14rem);
     height: auto;
 }
 

@@ -2,9 +2,10 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import TableStyles from "assets/css/TableStyles.module.css";
-import { Truck, Minus, Plus } from "lucide-react";
+import { Truck, Minus, Plus, AlertCircle } from "lucide-react";
 import DOMPurify from "dompurify";
 import AccentNotifier from "./AccentNotifier";
+import Notification from "components/Notification";
 import { updateCartItemUnits, setCartItems } from "utils/cartSlice";
 import { getOrCreateCart } from "utils/api/ecommerce";
 import axios from "axios";
@@ -27,6 +28,9 @@ const validateCartItem = (item) => {
     "categorySlug",
     "perUnitPrice",
     "perPackPrice",
+    "unitsPerPack",
+    "trackInventory",
+    "stock",
   ];
   return (
     item &&
@@ -44,7 +48,10 @@ const validateCartItem = (item) => {
     typeof item.productSlug === "string" &&
     typeof item.categorySlug === "string" &&
     typeof item.perUnitPrice === "number" &&
-    typeof item.perPackPrice === "number"
+    typeof item.perPackPrice === "number" &&
+    typeof item.unitsPerPack === "number" &&
+    typeof item.trackInventory === "boolean" &&
+    typeof item.stock === "number"
   );
 };
 
@@ -61,11 +68,18 @@ const CartTable = () => {
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [cartData, setCartData] = useState(null); // Store full cart API response
-  const [imageErrors, setImageErrors] = useState({}); // Track image load failures
-  const [editPacks, setEditPacks] = useState({}); // Track pack input values
-  const [exclusiveDiscounts, setExclusiveDiscounts] = useState({}); // Store discount percentages
-  const [updatingRows, setUpdatingRows] = useState({}); // Track which rows are being updated
+  const [cartData, setCartData] = useState(null);
+  const [imageErrors, setImageErrors] = useState({});
+  const [editPacks, setEditPacks] = useState({});
+  const [exclusiveDiscounts, setExclusiveDiscounts] = useState({});
+  const [updatingRows, setUpdatingRows] = useState({});
+  const [notification, setNotification] = useState({ message: "", type: "", visible: false });
+
+  // Show notification with timeout
+  const showNotification = (message, type) => {
+    setNotification({ message, type, visible: true });
+    setTimeout(() => setNotification((prev) => ({ ...prev, visible: false })), 3000);
+  };
 
   // Fetch cart data on mount
   useEffect(() => {
@@ -74,11 +88,9 @@ const CartTable = () => {
         setLoading(true);
         setError(null);
 
-        // Step 1: Get or create the user's cart
         const cart = await getOrCreateCart();
         const cartId = cart.id;
 
-        // Step 2: Fetch full cart data
         const cartUrl = normalizeUrl(BASE_URL, `carts/${cartId}/`);
         const cartResponse = await axios.get(cartUrl, {
           headers: {
@@ -88,7 +100,6 @@ const CartTable = () => {
         const cartData = cartResponse.data;
         setCartData(cartData);
 
-        // Step 3: Fetch exclusive prices for items with user_exclusive_price
         const discounts = {};
         if (isLoggedIn) {
           const abortController = new AbortController();
@@ -120,7 +131,6 @@ const CartTable = () => {
           abortController.abort();
         }
 
-        // Step 4: Map cart items to frontend format
         const mappedItems = await Promise.all(
           cartData.items.map(async (item) => {
             try {
@@ -131,11 +141,11 @@ const CartTable = () => {
               const productSlug = product.slug || "unknown";
               const categorySlug = category.slug || "unknown";
               const unitsPerPack = productVariant.units_per_pack || 1;
+              const itemImages = itemDetails.images || []; // Extract images from item.details.images
+              const firstImage = itemImages.length > 0 ? itemImages[0].image : ""; // Use the first image or empty string if none
 
               const discountPercentage = discounts[item.id]?.discount_percentage || 0;
-              const description = `${
-                itemDetails.title || productVariant.name || `Item ${item.item.id}`
-              }${discountPercentage > 0 ? ` (Exclusive: ${discountPercentage}% off)` : ""}`;
+              const description = itemDetails.title || productVariant.name || `Item ${item.item.id}`;
 
               return {
                 id: item.id.toString(),
@@ -146,7 +156,7 @@ const CartTable = () => {
                 total: parseFloat(item.total) || 0,
                 displayPriceType: item.unit_type,
                 variantId: productVariant.id?.toString() || "unknown",
-                image: "", // API doesn't provide images, so default to empty
+                image: firstImage, // Use the first item image
                 sku: itemDetails.sku || `SKU-${item.item.id}`,
                 productSlug,
                 categorySlug,
@@ -154,14 +164,15 @@ const CartTable = () => {
                 perPackPrice: parseFloat(item.price_per_pack) || 0,
                 pricingTierId: item.pricing_tier.id,
                 discountPercentage,
+                unitsPerPack,
+                trackInventory: itemDetails.track_inventory || false,
+                stock: itemDetails.stock || 0,
               };
             } catch (itemErr) {
               console.warn(`Failed to map item ${item.item.id}:`, itemErr.message);
               return {
                 id: item.id.toString(),
-                description: `Item ${item.item.id} (Details unavailable)${
-                  discounts[item.id]?.discount_percentage > 0 ? ` (Exclusive: ${discounts[item.id].discount_percentage}% off)` : ""
-                }`,
+                description: `Item ${item.item.id} (Details unavailable)`,
                 packs: item.pack_quantity,
                 units: item.pack_quantity,
                 subtotal: parseFloat(item.subtotal) || 0,
@@ -176,17 +187,37 @@ const CartTable = () => {
                 perPackPrice: parseFloat(item.price_per_pack) || 0,
                 pricingTierId: item.pricing_tier.id,
                 discountPercentage: discounts[item.id]?.discount_percentage || 0,
+                unitsPerPack: 1,
+                trackInventory: false,
+                stock: 0,
               };
             }
           })
         );
 
-        // Step 5: Validate and dispatch to Redux store
         const validatedItems = mappedItems.filter(validateCartItem);
         if (validatedItems.length !== mappedItems.length) {
           console.warn("Invalid cart items detected. Filtering invalid entries.");
         }
-        dispatch(setCartItems(validatedItems));
+
+        // Validate stock on initial load
+        const stockAdjustedItems = validatedItems.map((item) => {
+          if (item.trackInventory && item.units > item.stock) {
+            const maxPacks = Math.floor(item.stock / item.unitsPerPack);
+            showNotification(
+              `Stock for ${item.sku} adjusted. Available: ${item.stock} units (Max ${item.stock} units). Set to ${maxPacks} packs.`,
+              "warning"
+            );
+            return {
+              ...item,
+              packs: maxPacks,
+              units: maxPacks * item.unitsPerPack,
+            };
+          }
+          return item;
+        });
+
+        dispatch(setCartItems(stockAdjustedItems));
         setLoading(false);
       } catch (err) {
         console.error("Error fetching cart data:", err.message);
@@ -198,7 +229,6 @@ const CartTable = () => {
     fetchCartData();
   }, [dispatch, isLoggedIn]);
 
-  // Handle pack quantity update
   const handlePackChange = async (itemId, newPacks) => {
     const item = cartItems.find((item) => item.id === itemId);
     if (!item || !validateCartItem(item)) {
@@ -217,7 +247,6 @@ const CartTable = () => {
     setUpdatingRows((prev) => ({ ...prev, [itemId]: true }));
 
     try {
-      // Fetch current cart item details
       const cartItemUrl = normalizeUrl(BASE_URL, `cart-items/${itemId}/`);
       const cartItemResponse = await axios.get(cartItemUrl, {
         headers: {
@@ -226,9 +255,8 @@ const CartTable = () => {
       });
       const currentCartItem = cartItemResponse.data;
 
-      // Fetch item details to get units_per_pack and product_variant
       const itemDetails = backendItem.item;
-      const unitsPerPack = itemDetails.product_variant?.units_per_pack || 1;
+      const unitsPerPack = item.unitsPerPack;
       const productVariantId = itemDetails.product_variant?.id;
 
       if (!productVariantId) {
@@ -237,14 +265,22 @@ const CartTable = () => {
         return;
       }
 
-      // Round newPacks to the nearest whole number
-      const roundedPacks = Math.max(0, Math.round(newPacks));
+      let roundedPacks = Math.max(0, Math.round(newPacks));
       const newUnits = roundedPacks * unitsPerPack;
+
+      // Stock validation
+      if (item.trackInventory && newUnits > item.stock) {
+        const maxPacks = Math.floor(item.stock / unitsPerPack);
+        roundedPacks = maxPacks;
+        showNotification(
+          `Insufficient stock for ${item.sku}. Available: ${item.stock} units (Max ${item.stock} units). Adjusted to ${maxPacks} packs.`,
+          "warning"
+        );
+      }
 
       let pricingTierId = currentCartItem.pricing_tier.id;
 
       if (roundedPacks > 0) {
-        // Fetch available pricing tiers for the product variant
         const pricingTiersUrl = normalizeUrl(BASE_URL, `pricing-tiers/?product_variant=${productVariantId}`);
         const pricingTiersResponse = await axios.get(pricingTiersUrl, {
           headers: {
@@ -259,7 +295,6 @@ const CartTable = () => {
           return;
         }
 
-        // Select a pricing tier that matches the new quantity
         let selectedTier = null;
         for (const tier of pricingTiers) {
           const withinRange =
@@ -281,7 +316,6 @@ const CartTable = () => {
       }
 
       if (roundedPacks === 0) {
-        // Delete the cart item
         const deleteUrl = normalizeUrl(BASE_URL, `cart-items/${itemId}/`);
         await axios.delete(deleteUrl, {
           headers: {
@@ -289,16 +323,9 @@ const CartTable = () => {
             "Content-Type": "application/json",
           },
         });
-        dispatch(updateCartItemUnits({
-          itemId,
-          units: 0,
-          packs: 0,
-          subtotal: 0,
-          total: 0,
-          discountPercentage: 0,
-          perUnitPrice: 0,
-          perPackPrice: 0,
-        }));
+
+        dispatch(setCartItems(cartItems.filter((i) => i.id !== itemId)));
+
         setCartData((prev) => ({
           ...prev,
           items: prev.items.filter((i) => i.id.toString() !== itemId),
@@ -309,9 +336,8 @@ const CartTable = () => {
           total_weight: prev.total_weight - backendItem.weight,
         }));
       } else {
-        // Update the cart item
         const patchUrl = normalizeUrl(BASE_URL, `cart-items/${itemId}/`);
-        await axios.patch(
+        const patchResponse = await axios.patch(
           patchUrl,
           {
             pack_quantity: roundedPacks,
@@ -325,102 +351,77 @@ const CartTable = () => {
           }
         );
 
-        // Fetch updated cart
-        const cartUrl = normalizeUrl(BASE_URL, `carts/${cartData.id}/`);
-        const updatedCartResponse = await axios.get(cartUrl, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-          },
-        });
-        const updatedCartData = updatedCartResponse.data;
-        setCartData(updatedCartData);
+        if (patchResponse.status === 200) {
+          const cartUrl = normalizeUrl(BASE_URL, `carts/${cartData.id}/`);
+          const updatedCartResponse = await axios.get(cartUrl, {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+            },
+          });
+          const updatedCartData = updatedCartResponse.data;
+          setCartData(updatedCartData);
 
-        const updatedItem = updatedCartData.items.find((i) => i.id.toString() === itemId);
-        if (!updatedItem) {
-          console.warn(`Updated item ${itemId} not found in cart after update`);
-          dispatch(updateCartItemUnits({
-            itemId,
-            units: 0,
-            packs: 0,
-            subtotal: 0,
-            total: 0,
-            discountPercentage: 0,
-            perUnitPrice: 0,
-            perPackPrice: 0,
-          }));
-          setCartData((prev) => ({
-            ...prev,
-            items: prev.items.filter((i) => i.id.toString() !== itemId),
-          }));
-          return;
-        }
+          const updatedItem = updatedCartData.items.find((i) => i.id.toString() === itemId);
+          if (!updatedItem) {
+            console.warn(`Updated item ${itemId} not found in cart after update`);
+            dispatch(setCartItems(cartItems.filter((i) => i.id !== itemId)));
+            setCartData((prev) => ({
+              ...prev,
+              items: prev.items.filter((i) => i.id.toString() !== itemId),
+            }));
+            return;
+          }
 
-        const discountPercentage = exclusiveDiscounts[itemId]?.discount_percentage || 0;
-        const description = `${
-          updatedItem.item.title || updatedItem.item.product_variant?.name || `Item ${updatedItem.item.id}`
-        }${discountPercentage > 0 ? ` (Exclusive: ${discountPercentage}% off)` : ""}`;
+          const discountPercentage = exclusiveDiscounts[itemId]?.discount_percentage || 0;
+          const description = updatedItem.item.title || updatedItem.item.product_variant?.name || `Item ${updatedItem.item.id}`;
 
-        // Update Redux for the specific item
-        dispatch(updateCartItemUnits({
-          itemId,
-          units: newUnits,
-          packs: updatedItem.pack_quantity,
-          subtotal: parseFloat(updatedItem.subtotal) || 0,
-          total: parseFloat(updatedItem.total) || 0,
-          discountPercentage,
-          perUnitPrice: parseFloat(updatedItem.price_per_unit) || 0,
-          perPackPrice: parseFloat(updatedItem.price_per_pack) || 0,
-          description,
-          pricingTierId: updatedItem.pricing_tier.id,
-        }));
-
-        // Update the entire cart in Redux
-        const mappedItems = updatedCartData.items.map((item) => {
-          const productVariant = item.item.product_variant || {};
-          const product = productVariant.product || {};
-          const category = product.category || {};
-          const productSlug = product.slug || "unknown";
-          const categorySlug = category.slug || "unknown";
-          const unitsPerPack = productVariant.units_per_pack || 1;
-
-          const discountPercentage = exclusiveDiscounts[item.id]?.discount_percentage || 0;
-
-          return {
-            id: item.id.toString(),
-            description: `${
-              item.item.title || productVariant.name || `Item ${item.item.id}`
-            }${discountPercentage > 0 ? ` (Exclusive: ${discountPercentage}% off)` : ""}`,
-            packs: item.pack_quantity,
-            units: item.pack_quantity * unitsPerPack,
-            subtotal: parseFloat(item.subtotal) || 0,
-            total: parseFloat(item.total) || 0,
-            displayPriceType: item.unit_type,
-            variantId: productVariant.id?.toString() || "unknown",
-            image: "",
-            sku: item.item.sku || `SKU-${item.item.id}`,
-            productSlug,
-            categorySlug,
-            perUnitPrice: parseFloat(item.price_per_unit) || 0,
-            perPackPrice: parseFloat(item.price_per_pack) || 0,
-            pricingTierId: item.pricing_tier.id,
+          const updatedCartItem = {
+            ...item,
+            units: roundedPacks * unitsPerPack,
+            packs: updatedItem.pack_quantity,
+            subtotal: parseFloat(updatedItem.subtotal) || 0,
+            total: parseFloat(updatedItem.total) || 0,
             discountPercentage,
+            perUnitPrice: parseFloat(updatedItem.price_per_unit) || 0,
+            perPackPrice: parseFloat(updatedItem.price_per_pack) || 0,
+            description,
+            pricingTierId: updatedItem.pricing_tier.id,
           };
-        });
 
-        const validatedItems = mappedItems.filter(validateCartItem);
-        dispatch(setCartItems(validatedItems));
+          const updatedCartItems = cartItems.map((cartItem) =>
+            cartItem.id === itemId ? updatedCartItem : cartItem
+          );
+          dispatch(setCartItems(updatedCartItems));
+        } else if (patchResponse.status === 400) {
+          const errorDetail = patchResponse.data.detail;
+          const stockErrorMatch = errorDetail.match(/Insufficient stock for ([^\.]+)\. Available: (\d+) units, Required: (\d+) units\./);
+          if (stockErrorMatch) {
+            const [, sku, available] = stockErrorMatch;
+            const availableUnits = parseInt(available);
+            const maxPacks = Math.floor(availableUnits / unitsPerPack);
+            setError(`Insufficient stock for ${sku}. Available: ${availableUnits} units (Max ${availableUnits} units). Adjusted to ${maxPacks} packs.`);
+            showNotification(
+              `Insufficient stock for ${sku}. Available: ${availableUnits} units (Max ${availableUnits} units). Adjusted to ${maxPacks} packs.`,
+              "warning"
+            );
+            await handlePackChange(itemId, maxPacks); // Recursively adjust to available stock
+            return;
+          } else {
+            setError("Failed to update pack quantity. Please try again.");
+          }
+        }
       }
 
       setEditPacks((prev) => ({ ...prev, [itemId]: roundedPacks }));
     } catch (err) {
       console.error("Error updating pack quantity:", err.message);
-      setError(err.response?.data?.__all__?.[0] || "Failed to update pack quantity. Please try again.");
+      const errorMessage = err.response?.data?.detail || "Failed to update pack quantity. Please try again.";
+      setError(errorMessage);
     } finally {
       setUpdatingRows((prev) => ({ ...prev, [itemId]: false }));
     }
   };
 
-  // Handle pack increment
   const handlePackIncrement = (itemId) => {
     if (updatingRows[itemId]) return;
     const currentPacks = editPacks[itemId] !== undefined ? editPacks[itemId] : cartItems.find((item) => item.id === itemId)?.packs || 0;
@@ -429,7 +430,6 @@ const CartTable = () => {
     handlePackChange(itemId, newPacks);
   };
 
-  // Handle pack decrement
   const handlePackDecrement = (itemId) => {
     if (updatingRows[itemId]) return;
     const currentPacks = editPacks[itemId] !== undefined ? editPacks[itemId] : cartItems.find((item) => item.id === itemId)?.packs || 0;
@@ -438,7 +438,6 @@ const CartTable = () => {
     handlePackChange(itemId, newPacks);
   };
 
-  // Handle input change and blur/enter
   const handlePackInputChange = (itemId, e) => {
     if (updatingRows[itemId]) return;
     const newValue = parseInt(e.target.value, 10) || 0;
@@ -459,27 +458,21 @@ const CartTable = () => {
     }
   };
 
-  // Handle image load error
   const handleImageError = (itemId) => {
     setImageErrors((prev) => ({ ...prev, [itemId]: true }));
   };
 
-  // Calculate order summary from API response
   const calculateSummary = () => {
     if (!cartData) {
       return { totalItems: 0, totalPacks: 0, subtotal: 0, total: 0, weight: 0, vat: 0, discount: 0, vat_amount: 0, discount_amount: 0 };
     }
 
-    // Parse the API fields
     const subtotal = parseFloat(cartData.subtotal) || 0;
     const discount = parseFloat(cartData.discount) || 0;
     const vat = parseFloat(cartData.vat) || 0;
 
-    // Calculate discount amount: (subtotal * discount) / 100
     const discount_amount = (subtotal * discount) / 100;
-    // Calculate discounted subtotal: subtotal - discount_amount
     const discounted_subtotal = subtotal - discount_amount;
-    // Calculate VAT amount: (discounted_subtotal * vat) / 100
     const vat_amount = (discounted_subtotal * vat) / 100;
 
     return {
@@ -490,8 +483,8 @@ const CartTable = () => {
       weight: parseFloat(cartData.total_weight) || 0,
       vat: vat,
       discount: discount,
-      vat_amount: Number(vat_amount.toFixed(2)), // Round to 2 decimal places
-      discount_amount: Number(discount_amount.toFixed(2)), // Round to 2 decimal places
+      vat_amount: Number(vat_amount.toFixed(2)),
+      discount_amount: Number(discount_amount.toFixed(2)),
     };
   };
 
@@ -507,18 +500,16 @@ const CartTable = () => {
     );
   }
 
-  if (error) {
-    return (
-      <div className={TableStyles.container}>
-        <div className={TableStyles.tableContentWrapper}>
-          <p className="c3 text-center clr-danger">{error}</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className={TableStyles.container}>
+      <Notification message={notification.message} type={notification.type} visible={notification.visible} />
+      {error && (
+        <AccentNotifier
+          icon={AlertCircle}
+          text={error}
+          className="clr-danger"
+        />
+      )}
       <div className={TableStyles.tableContentWrapper}>
         <div className={TableStyles.tableContainer}>
           <table className={TableStyles.table} role="grid">
