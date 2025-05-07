@@ -232,8 +232,10 @@ export const getOrCreateCart = async () => {
 
     // Retrieve the user's cart
     const response = await apiClient.get("carts/");
+    console.log(response, 'response');
     return response.data;
   } catch (error) {
+    console.log('error', error);
     const errorMessage = error.message || error?.fieldErrors?.detail || "Failed to retrieve or create cart";
     throw new Error(errorMessage);
   }

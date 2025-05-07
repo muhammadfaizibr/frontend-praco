@@ -451,6 +451,7 @@ const ProductsTable = ({ variantsWithData }) => {
     try {
       // Get or create cart
       const cart = await getOrCreateCart();
+      console.log(cart, 'cart')
       if (!cart?.id) {
         showNotification("Failed to retrieve or create cart.", "error");
         return;
@@ -487,7 +488,7 @@ const ProductsTable = ({ variantsWithData }) => {
           cart: cart.id,
           item: item.id,
           pricing_tier: tier.id,
-          quantity,
+          pack_quantity: quantity,
           unit_type: "pack",
           user_exclusive_price: exclusiveDiscounts[item.id]?.id || null,
         });
