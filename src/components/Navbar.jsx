@@ -8,7 +8,7 @@ import {
   X,
 } from "lucide-react";
 import Logo from "assets/images/logo.svg";
-import { NavLink, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import SearchBarHeader from "components/SearchBarHeader";
 import UnitConversionPopup from "components/UnitConversionPopup";
 import MenuCategories from "./MenuCategories";
@@ -108,13 +108,13 @@ const Navbar = () => {
                 aria-hidden="true"
               />
             </button>
-            <button
+            <Link
               className={`${NavBarStyles.actionButtonStyle} accent-palette`}
-              type="button"
+              to={"/cart"}
               aria-label="View Cart"
             >
               <ShoppingBag className="icon-md icon-blue-accent-dark" aria-hidden="true" />
-            </button>
+            </Link>
             
             {isLoggedIn ? (
               <div className={NavBarStyles.accountWrapper}>
@@ -160,14 +160,16 @@ const Navbar = () => {
               </NavLink>
             )}
 
-            <a href="tel:01162607078" aria-label="Call 0116 365 3008">
-              <button
-                className={`${NavBarStyles.callBtn} primary-btn b2`}
-                type="button"
-              >
-                0116 365 3008
-              </button>
-            </a>
+            <div>
+              <a href="tel:01162607078" aria-label="Call 0116 365 3008">
+                <button
+                  className={`${NavBarStyles.callBtn} primary-btn b2`}
+                  type="button"
+                >
+                  0116 365 3008
+                </button>
+              </a>
+            </div>
             {toggleUnitConversionPopup && (
               <div className={NavBarStyles.unitConversionContainer}>
                 <UnitConversionPopup />

@@ -126,7 +126,7 @@ const SearchBarHeader = () => {
   }, []);
 
   return (
-    <div style={{ position: "relative", width: "100%" }}>
+    <div style={{ position: "relative", width: "100%", display: 'flex', alignItems: 'stretch' }}>
       <div className={SearchBarHeaderStyles.searchBar}>
         <input
           className="b3"

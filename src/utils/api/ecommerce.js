@@ -224,18 +224,14 @@ export const getUserExclusivePrice = async (itemId, signal) => {
 
 export const getOrCreateCart = async () => {
   try {
-    // Check for access token
     const token = localStorage.getItem("accessToken");
     if (!token) {
       throw new Error("No access token found. Please log in.");
     }
 
-    // Retrieve the user's cart
     const response = await apiClient.get("carts/");
-    console.log(response, 'response');
     return response.data;
   } catch (error) {
-    console.log('error', error);
     const errorMessage = error.message || error?.fieldErrors?.detail || "Failed to retrieve or create cart";
     throw new Error(errorMessage);
   }
@@ -243,13 +239,11 @@ export const getOrCreateCart = async () => {
 
 export const addCartItem = async (cartItems) => {
   try {
-    // Check for access token
     const token = localStorage.getItem("accessToken");
     if (!token) {
       throw new Error("No access token found. Please log in.");
     }
 
-    // Handle both single item and bulk creation
     const payload = Array.isArray(cartItems) ? cartItems : [cartItems];
     const response = await apiClient.post("cart-items/", payload);
     return Array.isArray(cartItems) ? response.data : response.data[0];
@@ -262,7 +256,7 @@ export const addCartItem = async (cartItems) => {
 export const getCartItems = async (cartId) => {
   try {
     const response = await apiClient.get(`cart-items/?cart=${cartId}`);
-    return response.data; // Return the full response object including results
+    return response.data;
   } catch (error) {
     throw error;
   }
@@ -281,7 +275,10 @@ export const addOrderItem = async (orderId, itemData) => {
   try {
     const response = await apiClient.post("order-items/", {
       order: orderId,
-      ...itemData
+      item: itemData.item,
+      pricing_tier: itemData.pricing_tier,
+      pack_quantity: itemData.pack_quantity,
+      unit_type: itemData.unit_type,
     });
     return response.data;
   } catch (error) {

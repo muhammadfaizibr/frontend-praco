@@ -39,6 +39,8 @@ nav {
 .searchBarWrapper {
     max-width: 60rem;
     flex-grow: 1;
+    display: flex;
+    align-items: stretch;
 }
 
 .searchMobileToggleBtn {
@@ -56,6 +58,7 @@ nav {
 
 .actionButtons .actionButtonStyle {
     border: none;
+    padding: clamp(0.6rem, 1vw, 1rem) clamp(0.6rem, 1vw, 1rem);
 }
 
 

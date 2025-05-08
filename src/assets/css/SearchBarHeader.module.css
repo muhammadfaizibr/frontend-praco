@@ -5,13 +5,13 @@
     border: 1px solid var(--clr-border);
     display: flex;
     gap: clamp(0.8rem, 1vw, 1rem);
-    align-items: center;
+    align-items: stretch;
     width: 100%;
 }
 
 .searchBar input {
     width: 100%;
-    padding: clamp(0.8rem, 1vw, 1.2rem) 0 clamp(0.8rem, 1vw, 1.2rem) clamp(1.2rem, 2vw, 2rem);
+    padding: clamp(0.6rem, 0.8vw, 0.8rem) 0 clamp(0.6rem, 0.8vw, 0.8rem) clamp(1.2rem, 2vw, 2rem);
     border: none;
     outline: none;
     box-sizing: border-box;
@@ -19,7 +19,7 @@
 }
 
 .searchBar button {
-    padding: clamp(0.8rem, 1vw, 1.2rem);
+    padding: clamp(0.6rem, 0.8vw, 0.8rem);
     border: none;
 }
 
