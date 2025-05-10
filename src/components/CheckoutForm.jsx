@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import FormStyles from "assets/css/FormStyles.module.css";
-import { AreaChart, Code2, MapPin, MapPinCheck, Home, CreditCard } from "lucide-react";
+import { AreaChart, Code2, MapPin, MapPinCheck, Home, CreditCard, User } from "lucide-react";
 import { createOrder, getOrCreateCart, getCartItems, getShippingAddresses, getBillingAddresses, createShippingAddress, createBillingAddress } from "utils/api/ecommerce";
 import { setCartItems } from "utils/cartSlice";
 
@@ -10,8 +10,26 @@ const CheckoutForm = () => {
   const [billingAddresses, setBillingAddresses] = useState([]);
   const [selectedShippingAddress, setSelectedShippingAddress] = useState("");
   const [selectedBillingAddress, setSelectedBillingAddress] = useState("");
-  const [newShippingAddress, setNewShippingAddress] = useState({ street: "", city: "", state: "", postal_code: "", country: "United Kingdom" });
-  const [newBillingAddress, setNewBillingAddress] = useState({ street: "", city: "", state: "", postal_code: "", country: "United Kingdom" });
+  const [newShippingAddress, setNewShippingAddress] = useState({
+    first_name: "",
+    last_name: "",
+    telephone_number: "",
+    street: "",
+    city: "",
+    state: "",
+    postal_code: "",
+    country: "United Kingdom"
+  });
+  const [newBillingAddress, setNewBillingAddress] = useState({
+    first_name: "",
+    last_name: "",
+    telephone_number: "",
+    street: "",
+    city: "",
+    state: "",
+    postal_code: "",
+    country: "United Kingdom"
+  });
   const [showNewShippingForm, setShowNewShippingForm] = useState(false);
   const [showNewBillingForm, setShowNewBillingForm] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("");
@@ -35,13 +53,16 @@ const CheckoutForm = () => {
 
   // Validate address objects to ensure they have required fields
   const validateAddresses = (addresses) => {
-    return (addresses || []).filter((addr) => 
-      addr && 
+    return (addresses || []).filter((addr) =>
+      addr &&
       typeof addr === 'object' &&
-      addr.id && 
-      addr.street && 
-      addr.city && 
-      addr.postal_code && 
+      addr.id &&
+      addr.first_name &&
+      addr.last_name &&
+      addr.telephone_number &&
+      addr.street &&
+      addr.city &&
+      addr.postal_code &&
       addr.country
     );
   };
@@ -121,18 +142,30 @@ const CheckoutForm = () => {
       newErrors.billing_address = "Please select or create a billing address.";
     }
     if (showNewShippingForm) {
+      if (!newShippingAddress.first_name) newErrors.shipping_first_name = "First name is required.";
+      if (!newShippingAddress.last_name) newErrors.shipping_last_name = "Last name is required.";
+      if (!newShippingAddress.telephone_number) {
+        newErrors.shipping_telephone_number = "Telephone number is required.";
+      } else if (!/^\+?\d{8,15}$/.test(newShippingAddress.telephone_number)) {
+        newErrors.shipping_telephone_number = "Invalid telephone number (8-15 digits, optional +).";
+      }
       if (!newShippingAddress.street) newErrors.shipping_street = "Street is required.";
       if (!newShippingAddress.city) newErrors.shipping_city = "City is required.";
-      if (!newShippingAddress.state) newErrors.shipping_state = "State is required.";
       if (!newShippingAddress.postal_code) newErrors.shipping_postal_code = "Postal code is required.";
       if (newShippingAddress.postal_code && !/^[A-Z]{1,2}[0-9R][0-9A-Z]? ?[0-9][A-Z]{2}$/.test(newShippingAddress.postal_code)) {
         newErrors.shipping_postal_code = "Invalid UK postal code format.";
       }
     }
     if (showNewBillingForm) {
+      if (!newBillingAddress.first_name) newErrors.billing_first_name = "First name is required.";
+      if (!newBillingAddress.last_name) newErrors.billing_last_name = "Last name is required.";
+      if (!newBillingAddress.telephone_number) {
+        newErrors.billing_telephone_number = "Telephone number is required.";
+      } else if (!/^\+?\d{8,15}$/.test(newBillingAddress.telephone_number)) {
+        newErrors.billing_telephone_number = "Invalid telephone number (8-15 digits, optional +).";
+      }
       if (!newBillingAddress.street) newErrors.billing_street = "Street is required.";
       if (!newBillingAddress.city) newErrors.billing_city = "City is required.";
-      if (!newBillingAddress.state) newErrors.billing_state = "State is required.";
       if (!newBillingAddress.postal_code) newErrors.billing_postal_code = "Postal code is required.";
       if (newBillingAddress.postal_code && !/^[A-Z]{1,2}[0-9R][0-9A-Z]? ?[0-9][A-Z]{2}$/.test(newBillingAddress.postal_code)) {
         newErrors.billing_postal_code = "Invalid UK postal code format.";
@@ -161,12 +194,30 @@ const CheckoutForm = () => {
       if (type === 'shipping') {
         setShippingAddresses([...shippingAddresses, response]);
         setSelectedShippingAddress(response.id);
-        setNewShippingAddress({ street: "", city: "", state: "", postal_code: "", country: "United Kingdom" });
+        setNewShippingAddress({
+          first_name: "",
+          last_name: "",
+          telephone_number: "",
+          street: "",
+          city: "",
+          state: "",
+          postal_code: "",
+          country: "United Kingdom"
+        });
         setShowNewShippingForm(false);
       } else {
         setBillingAddresses([...billingAddresses, response]);
         setSelectedBillingAddress(response.id);
-        setNewBillingAddress({ street: "", city: "", state: "", postal_code: "", country: "United Kingdom" });
+        setNewBillingAddress({
+          first_name: "",
+          last_name: "",
+          telephone_number: "",
+          street: "",
+          city: "",
+          state: "",
+          postal_code: "",
+          country: "United Kingdom"
+        });
         setShowNewBillingForm(false);
       }
     } catch (error) {
@@ -174,6 +225,9 @@ const CheckoutForm = () => {
       setErrors((prev) => ({
         ...prev,
         ...error.fieldErrors,
+        [`${type}_first_name`]: error.fieldErrors.first_name || prev[`${type}_first_name`],
+        [`${type}_last_name`]: error.fieldErrors.last_name || prev[`${type}_last_name`],
+        [`${type}_telephone_number`]: error.fieldErrors.telephone_number || prev[`${type}_telephone_number`],
         [`${type}_street`]: error.fieldErrors.street || prev[`${type}_street`],
         [`${type}_city`]: error.fieldErrors.city || prev[`${type}_city`],
         [`${type}_state`]: error.fieldErrors.state || prev[`${type}_state`],
@@ -202,14 +256,31 @@ const CheckoutForm = () => {
         const response = await createShippingAddress(newShippingAddress, { signal: abortController.signal });
         shippingAddressId = response.id;
         setShippingAddresses([...shippingAddresses, response]);
-        setNewShippingAddress({ street: "", city: "", state: "", postal_code: "", country: "United Kingdom" });
+        setNewShippingAddress({
+          first_name: "",
+          last_name: "",
+          telephone_number: "",
+          street: "",
+          city: "",
+          state: "",
+          postal_code: "",
+          country: "United Kingdom"
+        });
         setShowNewShippingForm(false);
       }
       if (showNewBillingForm) {
         const response = await createBillingAddress(newBillingAddress, { signal: abortController.signal });
         billingAddressId = response.id;
         setBillingAddresses([...billingAddresses, response]);
-        setNewBillingAddress({ street: "", city: "", state: "", postal_code: "", country: "United Kingdom" });
+        setNewBillingAddress({
+          first_name: "",
+          last_name: "",
+          telephone_number: "",
+          street: "",
+          state: "",
+          postal_code: "",
+          country: "United Kingdom"
+        });
         setShowNewBillingForm(false);
       }
 
@@ -253,6 +324,9 @@ const CheckoutForm = () => {
   };
 
   const addressFields = [
+    { label: "First Name", name: "first_name", type: "text", icon: <User /> },
+    { label: "Last Name", name: "last_name", type: "text", icon: <User /> },
+    { label: "Telephone Number", name: "telephone_number", type: "tel", icon: <User /> },
     { label: "Street", name: "street", type: "text", icon: <MapPinCheck /> },
     { label: "City", name: "city", type: "text", icon: <AreaChart /> },
     { label: "State", name: "state", type: "text", icon: <Home /> },
@@ -288,7 +362,7 @@ const CheckoutForm = () => {
               <option value="">Select an address</option>
               {shippingAddresses.map((addr) => (
                 <option key={addr.id} value={addr.id}>
-                  {addr.street}, {addr.city}, {addr.postal_code}, {addr.country}
+                  {addr.first_name} {addr.last_name}, {addr.street}, {addr.city}, {addr.postal_code}, {addr.country}
                 </option>
               ))}
             </select>
@@ -355,7 +429,7 @@ const CheckoutForm = () => {
               <option value="">Select an address</option>
               {billingAddresses.map((addr) => (
                 <option key={addr.id} value={addr.id}>
-                  {addr.street}, {addr.city}, {addr.postal_code}, {addr.country}
+                  {addr.first_name} {addr.last_name}, {addr.street}, {addr.city}, {addr.postal_code}, {addr.country}
                 </option>
               ))}
             </select>
