@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import SearchBarHeaderStyles from "assets/css/SearchBarHeader.module.css";
 import { Filter, Search } from "lucide-react";
-import AdvanceSearchPopup from "components/AdvanceSearchPopup";
+// import AdvanceSearchPopup from "components/AdvanceSearchPopup";
 import { searchProducts } from "utils/api/ecommerce";
 
 const SearchBarHeader = () => {
@@ -140,15 +140,15 @@ const SearchBarHeader = () => {
           aria-autocomplete="list"
           aria-controls="suggestion-list"
         />
-        <button
+        {/* <button
           className={SearchBarHeaderStyles.advanceSearchButton}
           type="button"
           name="advance-search-button"
           id="advance-search-button"
           onClick={() => setToggleAdvanceSearch(!toggleAdvanceSearch)}
-        >
-          <Filter className={`icon-md ${toggleAdvanceSearch ? "icon-orange" : "clr-gray"}`} />
-        </button>
+        > */}
+          {/* <Filter className={`icon-md ${toggleAdvanceSearch ? "icon-orange" : "clr-gray"}`} /> */}
+        {/* </button> */}
         <button
           className={SearchBarHeaderStyles.searchButton}
           type="button"
@@ -202,9 +202,9 @@ const SearchBarHeader = () => {
         </div>
       )}
 
-      <div className={SearchBarHeaderStyles.advanceSearchContainer}>
-        {toggleAdvanceSearch ? <AdvanceSearchPopup /> : ""}
-      </div>
+      {/* <div className={SearchBarHeaderStyles.advanceSearchContainer}> */}
+        {/* {toggleAdvanceSearch ? <AdvanceSearchPopup /> : ""} */}
+      {/* </div> */}
     </div>
   );
 };
