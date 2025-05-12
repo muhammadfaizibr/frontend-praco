@@ -6,7 +6,8 @@
   max-width: clamp(480px, 50vw, 540px);
   align-items: flex-start;
   background-color: var(--clr-secondary-light);
-  border-radius: clamp(1.2rem, 3.4rem, 4rem);
+  border: 1px solid var(--clr-border);
+  /* border-radius: clamp(1.2rem, 3.4rem, 4rem); */
   width: 100%;
 }
 

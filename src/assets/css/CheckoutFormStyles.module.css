@@ -1,5 +1,9 @@
-.container{
-    box-shadow: none !important;
-    max-width: 100% !important;
-    gap: var(--gap-l) !important;
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem; /* Reduced gap for less whitespace */
+    align-items: flex-start;
+    width: 100%;
+    background: var(--clr-white);
+    gap: var(--gap-m) !important;
 }

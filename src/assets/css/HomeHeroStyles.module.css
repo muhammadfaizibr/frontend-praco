@@ -3,7 +3,7 @@
 .homeHero {
   display: flex;
   flex-grow: 1;
-  border: 1px solid var(--clr-border);
+  /* border: 1px solid var(--clr-border); */
   aspect-ratio: 2 / 1;
   max-height: calc(100vh - 10rem);
 }

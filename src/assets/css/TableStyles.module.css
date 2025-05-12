@@ -324,7 +324,7 @@
   background: none;
   border: 1px solid var(--clr-border);
   padding: 0.2rem;
-  border-radius: 4px;
+  /* border-radius: 4px; */
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -366,13 +366,10 @@
 .stickyBar {
   position: fixed;
   bottom: 0;
-  z-index: 10;
+  z-index: 1000;
   border: 1px solid var(--clr-border);
-  min-width: 600px;
   background-color: var(--clr-white);
   align-self: flex-end;
-  bottom: 0;
-  z-index: 1000;
 }
 
 .stickyBarContent {
@@ -384,44 +381,95 @@
   background-color: var(--clr-white);
 }
 
-.summaryTable {
+/* Cart Summary Table (for CartTable.jsx) */
+.cartSummaryTable {
+  width: 100%;
+  max-width: 400px;
+  margin-left: auto;
   border-collapse: collapse;
   border: 1px solid var(--clr-border);
-  margin-left: auto; /* Align to the right */
   background-color: var(--clr-white);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* Subtle shadow for a polished look */
-  width: 500px;
+  font-size: 0.9rem;
 }
 
-.summaryTable th,
-.summaryTable td {
+.cartSummaryTable th,
+.cartSummaryTable td {
   padding: var(--padding-xs) var(--padding-s);
-  text-align: left;
-  border-right: 1px solid var(--clr-border);
   border-bottom: 1px solid var(--clr-border);
+  border-right: 1px solid var(--clr-border);
+  text-align: right;
   color: var(--clr-black);
 }
 
-.summaryTable th {
+.cartSummaryTable th {
   font-weight: 600;
-  background-color: var(--clr-gray-light);
+  background-color: var(--clr-blue-light);
+  color: var(--clr-blue-dark);
 }
 
-.summaryTable td.numeric {
-  text-align: right;
+.cartSummaryTable td {
+  color: var(--clr-text);
 }
 
-.summaryTable tr.summaryRow {
+.cartSummaryTable th:last-child,
+.cartSummaryTable td:last-child {
+  border-right: none;
+}
+
+.cartSummaryTable tr:hover {
+  background-color: var(--clr-blue-tint-light);
   transition: background-color 0.2s;
 }
 
-.summaryTable tr.summaryRow:hover {
-  background-color: var(--clr-primary-tint-light);
+.cartSummaryTable .totalRow th,
+.cartSummaryTable .totalRow td {
+  font-weight: 700;
+  background-color: var(--clr-blue-dark);
+  color: var(--clr-white);
 }
 
-.summaryTable th:last-child,
-.summaryTable td:last-child {
+/* Products Summary Table (for ProductsTable.jsx sticky bar) */
+.productsSummaryTable {
+  max-width: 600px;
+  margin: 0 auto;
+  border-collapse: collapse;
+  border: 1px solid var(--clr-border);
+  background-color: var(--clr-white);
+  font-size: 0.9rem;
+}
+
+.productsSummaryTable th,
+.productsSummaryTable td {
+  padding: var(--padding-xs) var(--padding-s);
+  border-bottom: 1px solid var(--clr-border);
+  border-right: 1px solid var(--clr-border);
+  color: var(--clr-black);
+}
+
+.productsSummaryTable th {
+  font-weight: 600;
+  background-color: var(--clr-green-light);
+  color: var(--clr-green-text);
+  text-align: right;
+}
+
+.productsSummaryTable td {
+  text-align: right;
+}
+
+.productsSummaryTable th:first-child,
+.productsSummaryTable td:first-child {
+  text-align: left;
+}
+
+.productsSummaryTable th:last-child,
+.productsSummaryTable td:last-child {
   border-right: none;
+}
+
+.productsSummaryTable tr:hover {
+  background-color: var(--clr-green-tint-light);
+  transition: background-color 0.2s;
 }
 
 .stickyBarActions {
@@ -470,7 +518,6 @@
 }
 
 @media (max-width: 540px) {
-  
   .variantNavBar,
   .stickyBarContent {
     max-width: 100%;
@@ -489,14 +536,36 @@
     height: 60px;
   }
 
-  .summaryTable th,
-  .summaryTable td {
+  .cartSummaryTable,
+  .productsSummaryTable {
+    width: 100%;
+    margin: 0;
+    font-size: 0.85rem;
+  }
+
+  .cartSummaryTable th,
+  .cartSummaryTable td,
+  .productsSummaryTable th,
+  .productsSummaryTable td {
     padding: var(--padding-xs);
   }
 
-  .summaryTable {
-    margin-left: 0; /* Prevent overflow on small screens */
-    margin-right: auto; /* Center on small screens if needed */
-    width: 100%;
+  .stickyBar {
+    min-width: 0;
+  }
+
+  .totalPrice {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .totalPrice {
+    font-size: 1.25rem;
+  }
+
+  .cartSummaryTable,
+  .productsSummaryTable {
+    font-size: 0.8rem;
   }
 }

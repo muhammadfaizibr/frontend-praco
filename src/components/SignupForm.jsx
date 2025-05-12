@@ -16,7 +16,7 @@ const SignupForm = () => {
   const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
   const [generatedOtp, setGeneratedOtp] = useState(null);
-  const [interestedInMarketing, setInterestedInMarketing] = useState(false);
+  const [receiveMarketing, setReceiveMarketing] = useState(false);
   const [noCompanyName, setNoCompanyName] = useState(false);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
@@ -41,7 +41,7 @@ const SignupForm = () => {
     if (!lastName.trim()) newErrors["last-name"] = "Last name is required";
     if (!noCompanyName && !companyName.trim()) newErrors["company-name"] = "Company name is required";
     if (!password) newErrors.password = "Password is required";
-    else if (password.length < 6) newErrors.password = "Password must be at least 6 characters";
+    else if (password.length < 8) newErrors.password = "Password must be at least 8 characters";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   }, [email, firstName, lastName, companyName, password, isEmailVerified, noCompanyName]);
@@ -72,18 +72,22 @@ const SignupForm = () => {
     setIsVerifying(true);
     try {
       const response = await authenticateEmail(
-        { email: email.trim(), code: newOtp },
+        { email: email.trim(), code: newOtp, authentication_type: "signup" },
         { signal: abortController.signal }
       );
       if (response.exists) {
         setApiError("An account already exists with this email.");
-      } else if (response.success) {
+      } else if (response.success && response.authentication_type === "signup") {
         setShowOtpInput(true);
       } else {
         setApiError(response.message || "Failed to send OTP. Please try again.");
       }
     } catch (error) {
-      setApiError(error.message || "Failed to send OTP. Please try again.");
+      if (error.fieldErrors?.authentication_type) {
+        setApiError(error.fieldErrors.authentication_type.join(" "));
+      } else {
+        setApiError(error.message || "Failed to send OTP. Please try again.");
+      }
     } finally {
       setIsVerifying(false);
     }
@@ -101,12 +105,12 @@ const SignupForm = () => {
     setIsVerifying(true);
     try {
       const response = await authenticateEmail(
-        { email: email.trim(), code: otp },
+        { email: email.trim(), code: otp, authentication_type: "signup" },
         { signal: abortController.signal }
       );
       if (response.exists) {
         setApiError("An account already exists with this email.");
-      } else if (response.success) {
+      } else if (response.success && response.authentication_type === "signup") {
         setIsEmailVerified(true);
         setShowOtpInput(false);
         setOtp("");
@@ -116,7 +120,11 @@ const SignupForm = () => {
         setApiError(response.message || "Invalid OTP. Please try again.");
       }
     } catch (error) {
-      setApiError(error.message || "OTP verification failed. Please try again.");
+      if (error.fieldErrors?.authentication_type) {
+        setApiError(error.fieldErrors.authentication_type.join(" "));
+      } else {
+        setApiError(error.message || "OTP verification failed. Please try again.");
+      }
     } finally {
       setIsVerifying(false);
     }
@@ -137,7 +145,7 @@ const SignupForm = () => {
           first_name: firstName.trim(),
           last_name: lastName.trim(),
           password: password.trim(),
-          interested_in_marketing_communications: interestedInMarketing,
+          receive_marketing: receiveMarketing,
         };
         if (!noCompanyName) {
           payload.company_name = companyName.trim();
@@ -158,7 +166,7 @@ const SignupForm = () => {
         setLastName("");
         setCompanyName("");
         setPassword("");
-        setInterestedInMarketing(false);
+        setReceiveMarketing(false);
         setNoCompanyName(false);
         setIsEmailVerified(false);
         setShowOtpInput(false);
@@ -186,7 +194,7 @@ const SignupForm = () => {
       lastName,
       companyName,
       password,
-      interestedInMarketing,
+      receiveMarketing,
       noCompanyName,
       isEmailVerified,
       validateForm,
@@ -392,15 +400,15 @@ const SignupForm = () => {
         <div className={FormStyles.checkBoxInput}>
           <input
             type="checkbox"
-            name="marketing-communications"
-            id="marketing-communications"
-            checked={interestedInMarketing}
-            onChange={(e) => setInterestedInMarketing(e.target.checked)}
+            name="receive-marketing"
+            id="receive-marketing"
+            checked={receiveMarketing}
+            onChange={(e) => setReceiveMarketing(e.target.checked)}
             disabled={isLoading}
-            aria-label="Opt-in to marketing communications"
+            aria-label="Opt-in to receive marketing communications"
           />
-          <label className="c3" htmlFor="marketing-communications">
-            I would like to receive marketing communications
+          <label className="c3" htmlFor="receive-marketing">
+            Opt-in to receive marketing communications
           </label>
         </div>
 
@@ -413,7 +421,7 @@ const SignupForm = () => {
         </Link>
 
         <button
-          className={`primary-btn large-btn full-width text-large ${
+          className={`primary-btn giant-btn full-width text-giant ${
             isLoading ? FormStyles.loading : ""
           }`}
           type="submit"

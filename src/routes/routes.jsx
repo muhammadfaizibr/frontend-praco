@@ -10,7 +10,7 @@ import VerifyOtp from "pages/VerifyOTP";
 import Contact from "pages/Contact";
 import Categories from "pages/Categories";
 import Checkout from "pages/Checkout";
-import TrackOrder from "pages/TrackOrder";
+import TrackOrders from "pages/TrackOrders";
 import OrderHistory from "pages/OrderHistory";
 // import Search from "pages/Search";
 import Cart from "pages/Cart";
@@ -115,7 +115,7 @@ export function AppRoutes() {
         path="/track-order"
         element={
           <ProtectedRoute>
-            <TrackOrder />
+            <TrackOrders />
           </ProtectedRoute>
         }
       />

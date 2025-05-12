@@ -54,8 +54,8 @@
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .marquee span {
-    min-width: 420px !important;
+    min-width: 530px !important;
   }
 }

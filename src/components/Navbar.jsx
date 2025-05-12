@@ -108,13 +108,13 @@ const Navbar = () => {
                 aria-hidden="true"
               />
             </button>
-            <Link
+            <div><Link
               className={`${NavBarStyles.actionButtonStyle} accent-palette`}
               to={"/cart"}
               aria-label="View Cart"
             >
               <ShoppingBag className="icon-md icon-blue-accent-dark" aria-hidden="true" />
-            </Link>
+            </Link></div>
             
             {isLoggedIn ? (
               <div className={NavBarStyles.accountWrapper}>
@@ -129,6 +129,14 @@ const Navbar = () => {
                 </button>
                 {showAccountPopup && (
                   <div className={NavBarStyles.accountPopup} role="menu">
+                    <NavLink
+                      to="/track-order"
+                      className="b2 clr-black"
+                      role="menuitem"
+                      aria-label="Change Password"
+                    ><button className={NavBarStyles.actionButtonStyle}>
+                      Track Orders
+                    </button></NavLink>
                     <NavLink
                       to="/change-password"
                       className="b2 clr-black"
@@ -150,7 +158,8 @@ const Navbar = () => {
                 )}
               </div>
             ) : (
-              <NavLink to="/login" aria-label="Login">
+              <div>
+                <NavLink to="/login" aria-label="Login">
                 <button
                   className={`${NavBarStyles.actionButtonStyle} primary-btn b2`}
                   type="button"
@@ -158,6 +167,7 @@ const Navbar = () => {
                   Login
                 </button>
               </NavLink>
+              </div>
             )}
 
             <div>

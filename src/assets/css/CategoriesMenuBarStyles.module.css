@@ -6,8 +6,13 @@
     border-right: 1px solid var(--clr-border);
     width: clamp(28rem, 25vw, 32rem);
     overflow-y: auto;
-    background-color: var(--clr-white);
+    backdrop-filter: blur(5px);
+    /* background-color: var(--clr-primary); */
+    background-color: rgba(0, 0, 0, 0.25);
     height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
 }
 
 /* ========================================================================== */

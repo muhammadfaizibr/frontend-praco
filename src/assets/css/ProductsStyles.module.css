@@ -1,37 +1,48 @@
-/* ========================================================================== */
 /* Container */
 .container {
   display: flex;
   flex-direction: column;
   gap: var(--padding-m);
+  width: 100%;
+  padding: 0 var(--padding-s);
 }
 
-/* ========================================================================== */
 /* Product Grid */
 .productGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(30rem, 1fr));
-  gap: clamp(1.2rem, 2vw, 2rem);
-  justify-content: space-between;
+  grid-template-columns: repeat(auto-fill, minmax(30rem, 1fr)); /* Larger columns for ~4 columns on large screens */
+  gap: clamp(1.8rem, 2.2vw, 2.6rem);
+  justify-content: start;
 }
 
-/* ========================================================================== */
 /* Media Queries */
-@media (max-width: 768px) {
+@media (max-width: 1200px) {
   .container {
-      gap: clamp(1.5rem, 3vw, 3rem);
+    gap: clamp(1.6rem, 2.5vw, 2rem);
+    padding: 0 var(--padding-xs);
   }
   .productGrid {
-      grid-template-columns: repeat(auto-fill, minmax(24rem, 1fr));
-      gap: clamp(1rem, 1.5vw, 1.5rem);
+    grid-template-columns: repeat(auto-fill, minmax(28rem, 1fr)); /* Larger columns for ~3 columns */
+    gap: clamp(1.6rem, 2vw, 2.2rem);
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 900px) {
   .container {
-      gap: clamp(1rem, 2vw, 2rem);
+    gap: clamp(1.2rem, 2vw, 1.6rem);
   }
   .productGrid {
-      grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(auto-fill, minmax(26rem, 1fr)); /* Larger columns for ~2 columns */
+    gap: clamp(1.4rem, 1.8vw, 1.8rem);
+  }
+}
+
+@media (max-width: 600px) {
+  .container {
+    gap: clamp(0.8rem, 1.5vw, 1.2rem);
+  }
+  .productGrid {
+    grid-template-columns: 1fr; /* Single column for small devices */
+    gap: clamp(0.8rem, 1.2vw, 1rem);
   }
 }

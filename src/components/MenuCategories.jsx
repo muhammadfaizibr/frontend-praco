@@ -33,7 +33,7 @@ const MenuCategories = () => {
         }}
       >
         <p className="b2" style={{ color: "var(--clr-text)" }}>
-          Loading categories...
+          Loading...
         </p>
       </div>
     );

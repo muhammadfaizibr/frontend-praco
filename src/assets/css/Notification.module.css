@@ -4,7 +4,7 @@
     left: 50%;
     transform: translateX(-50%);
     padding: var(--gap-s) var(--gap-m);
-    border-radius: var(--radius-s);
+    /* border-radius: var(--radius-s); */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     z-index: 2000;
     animation: fadeInOut 5s ease-in-out;

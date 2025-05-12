@@ -98,8 +98,8 @@ const ForgetPasswordForm = () => {
   const validatePasswords = () => {
     const newErrors = {};
     if (!newPasswordValue) newErrors["new-password"] = "New password is required";
-    else if (newPasswordValue.length < 6)
-      newErrors["new-password"] = "Password must be at least 6 characters";
+    else if (newPasswordValue.length < 8)
+      newErrors["new-password"] = "Password must be at least 8 characters";
     if (!confirmNewPasswordValue)
       newErrors["confirm-new-password"] = "Confirm password is required";
     else if (confirmNewPasswordValue !== newPasswordValue)
@@ -118,18 +118,22 @@ const ForgetPasswordForm = () => {
     setIsVerifying(true);
     try {
       const response = await authenticateEmail(
-        { email: emailValue, code: newOtp },
+        { email: emailValue, code: newOtp, authentication_type: "forgot_password" },
         { signal: abortController.signal }
       );
       if (!response.exists) {
         setApiError("No account found with this email address.");
-      } else if (response.success) {
+      } else if (response.success && response.authentication_type === "forgot_password") {
         setShowOtpInput(true);
       } else {
         setApiError(response.message || "Failed to send OTP. Please try again.");
       }
     } catch (error) {
-      setApiError(error.message || "Failed to send OTP. Please try again.");
+      if (error.fieldErrors?.authentication_type) {
+        setApiError(error.fieldErrors.authentication_type.join(" "));
+      } else {
+        setApiError(error.message || "Failed to send OTP. Please try again.");
+      }
     } finally {
       setIsVerifying(false);
     }
@@ -140,7 +144,6 @@ const ForgetPasswordForm = () => {
     setSuccessMessage("");
     if (!validateOtp()) return;
 
-    // Client-side OTP check
     if (otpValue !== generatedOtp) {
       setApiError("Invalid OTP. Please try again.");
       return;
@@ -149,12 +152,12 @@ const ForgetPasswordForm = () => {
     setIsVerifying(true);
     try {
       const response = await authenticateEmail(
-        { email: emailValue, code: otpValue },
+        { email: emailValue, code: otpValue, authentication_type: "forgot_password" },
         { signal: abortController.signal }
       );
       if (!response.exists) {
         setApiError("No account found with this email address.");
-      } else if (response.success) {
+      } else if (response.success && response.authentication_type === "forgot_password") {
         setIsEmailVerified(true);
         setShowOtpInput(false);
         setOtpValue("");
@@ -164,7 +167,11 @@ const ForgetPasswordForm = () => {
         setApiError(response.message || "Invalid OTP. Please try again.");
       }
     } catch (error) {
-      setApiError(error.message || "OTP verification failed. Please try again.");
+      if (error.fieldErrors?.authentication_type) {
+        setApiError(error.fieldErrors.authentication_type.join(" "));
+      } else {
+        setApiError(error.message || "OTP verification failed. Please try again.");
+      }
     } finally {
       setIsVerifying(false);
     }
@@ -185,7 +192,6 @@ const ForgetPasswordForm = () => {
         new_password: newPasswordValue,
         confirm_new_password: confirmNewPasswordValue,
       };
-      console.log("Reset Password Payload:", payload); // Debugging
       const response = await resetPassword(payload, {
         signal: abortController.signal,
       });
@@ -207,7 +213,6 @@ const ForgetPasswordForm = () => {
         setApiError(response.message || "Password reset failed. Please try again.");
       }
     } catch (error) {
-      console.error("Reset Password Error:", error); // Debugging
       if (error.fieldErrors) {
         setErrors((prev) => ({
           ...prev,
@@ -232,7 +237,7 @@ const ForgetPasswordForm = () => {
   return (
     <div className={FormStyles.formWrapper}>
       <form className={FormStyles.container} onSubmit={handleResetPassword}>
-        <h4 className="dark">Update Password</h4>
+        <h4 className="dark">Forget Password</h4>
 
         {apiError && (
           <div className={FormStyles.errorMessage}>{apiError}</div>
@@ -297,13 +302,13 @@ const ForgetPasswordForm = () => {
         </Link>
 
         <button
-          className={`primary-btn large-btn full-width text-large ${
+          className={`primary-btn giant-btn full-width text-giant ${
             isLoading ? FormStyles.loading : ""
           }`}
           type="submit"
           disabled={isLoading || !isEmailVerified}
         >
-          {isLoading ? "Updating..." : "Update Password"}
+          {isLoading ? "Resetting..." : "Reset Password"}
         </button>
       </form>
     </div>

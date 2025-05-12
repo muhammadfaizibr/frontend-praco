@@ -44,7 +44,7 @@
 .iconWrapper {
     background-color: var(--clr-secondary-light);
     padding: clamp(1.8rem, 2.2vw, 2.2rem);
-    border-radius: 2.4rem;
+    /* border-radius: 2.4rem; */
 }
 
 /* ========================================================================== */

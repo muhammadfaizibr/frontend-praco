@@ -1,28 +1,31 @@
-/* ========================================================================== */
 /* Product Card */
 .productCard {
   display: flex;
   flex-direction: column;
-  overflow: visible;
   background: var(--clr-white);
-  -webkit-transition: box-shadow 00.15s ease;
-  transition: box-shadow 00.15s ease;
   border: 1px solid var(--clr-border);
+  overflow: hidden;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
 }
 
 .productCard:hover {
   box-shadow: var(--shadow-card);
+  transform: translateY(-2px);
 }
 
-.productCard:hover > .imageWrapper {
-  background-color: rgba(0, 0, 0, 0.5);
+.productCard:hover > .imageWrapper::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.3);
+  transition: background-color 0.15s ease;
 }
 
-/* ========================================================================== */
 /* Image Wrapper */
 .imageWrapper {
   position: relative;
   padding-top: 100%;
+  overflow: hidden;
 }
 
 .imageWrapper img {
@@ -32,40 +35,43 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
 }
 
-/* ========================================================================== */
 /* Content Wrapper */
 .contentWrapper {
   display: flex;
   flex-direction: column;
   background-color: var(--clr-secondary-light);
   border-top: 1px solid var(--clr-border);
-  padding: var(--padding-xs);
-  gap: var(--gap-xs);
+  padding: var(--padding-s);
+  gap: var(--gap-s);
 }
 
 .content {
   display: flex;
   justify-content: space-between;
-  gap: var(--gap-s);
   align-items: center;
+  gap: var(--gap-m);
 }
 
-/* ========================================================================== */
 /* Button */
 .productCard button {
   background-color: var(--clr-gray-dark);
   color: var(--clr-white);
-  /* padding: clamp(0.8rem, 1vw, 1.2rem); */
   border: none;
-  align-self: flex-end;
 }
 
-.productPrice{
+.productCard button:hover {
+  background-color: var(--clr-primary);
+}
+
+/* Price */
+.productPrice {
   color: var(--clr-black);
+  font-weight: 500;
 }
 
-.productCard:hover .productPrice{
+.productCard:hover .productPrice {
   text-decoration: underline;
 }

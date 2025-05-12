@@ -1,12 +1,13 @@
 import axios from "axios";
 import { CancelToken } from "axios";
+import { BASE_URL, TIMEOUT, CONTENT_TYPE } from "../global";
 
 const apiClient = axios.create({
-  baseURL: "http://127.0.0.1:8000/api/account/",
-  timeout: 10000,
+  baseURL: BASE_URL.replace(/ecommerce\/$/, "account/"), // Adjust base URL for account endpoints
+  timeout: TIMEOUT,
   headers: {
-    "Content-Type": "application/json",
-    "Accept": "application/json",
+    "Content-Type": CONTENT_TYPE,
+    "Accept": CONTENT_TYPE,
   },
 });
 
@@ -44,7 +45,7 @@ apiClient.interceptors.response.use(
           throw new Error("No refresh token available");
         }
         const response = await axios.post(
-          "http://127.0.0.1:8000/api/account/token/refresh/",
+          `${BASE_URL.replace(/ecommerce\/$/, "account/")}token/refresh/`,
           { refresh: refreshToken },
           { timeout: 5000 }
         );
@@ -139,14 +140,7 @@ export const login = ({ email, password }, { signal } = {}) => {
 };
 
 export const signup = (
-  {
-    email,
-    first_name,
-    last_name,
-    company_name,
-    password,
-    interested_in_marketing_communications,
-  },
+  { email, first_name, last_name, company_name, password, receive_marketing },
   { signal } = {}
 ) => {
   const trimmedEmail = email.trim();
@@ -156,7 +150,7 @@ export const signup = (
     first_name: first_name.trim(),
     last_name: last_name.trim(),
     password: password.trim(),
-    interested_in_marketing_communications,
+    receive_marketing,
   };
   if (company_name) {
     payload.company_name = company_name.trim();
@@ -168,13 +162,20 @@ export const signup = (
   );
 };
 
-export const authenticateEmail = ({ email, code }, { signal } = {}) => {
+export const authenticateEmail = ({ email, code, authentication_type }, { signal } = {}) => {
   const trimmedEmail = email.trim();
-  const cacheKey = `email-auth:${trimmedEmail}:${code}`;
+  const cacheKey = `email-auth:${trimmedEmail}:${code}:${authentication_type}`;
+  if (!authentication_type || !["signup", "forgot_password"].includes(authentication_type)) {
+    throw new Error("Invalid or missing authentication type");
+  }
   return withCache(
     cacheKey,
     (cancelToken) =>
-      apiClient.post("email-authentication/", { email: trimmedEmail, code }, { cancelToken }),
+      apiClient.post(
+        "email-authentication/",
+        { email: trimmedEmail, code, authentication_type },
+        { cancelToken }
+      ),
     signal
   );
 };
@@ -230,7 +231,7 @@ export const refreshToken = ({ refresh }, { signal } = {}) => {
     cacheKey,
     (cancelToken) =>
       axios.post(
-        "http://127.0.0.1:8000/api/account/token/refresh/",
+        `${BASE_URL.replace(/ecommerce\/$/, "account/")}token/refresh/`,
         { refresh },
         { cancelToken, timeout: 5000 }
       ),

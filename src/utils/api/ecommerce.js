@@ -116,14 +116,15 @@ export const getShippingAddresses = async () => {
     while (url) {
       const response = await apiClient.get(url);
       const data = response.data || {};
-      const validAddresses = (data.results || []).filter((addr) => 
-        addr && 
+      const validAddresses = (data.results || []).filter((addr) =>
+        addr &&
         typeof addr === 'object' &&
-        addr.id && 
-        addr.street && 
-        addr.city && 
-        addr.postal_code && 
-        addr.country
+        addr.id &&
+        addr.street &&
+        addr.city &&
+        addr.postal_code &&
+        addr.country &&
+        addr.telephone_number
       );
       allAddresses = allAddresses.concat(validAddresses);
       url = data.next || null;
@@ -142,14 +143,15 @@ export const getBillingAddresses = async () => {
     while (url) {
       const response = await apiClient.get(url);
       const data = response.data || {};
-      const validAddresses = (data.results || []).filter((addr) => 
-        addr && 
+      const validAddresses = (data.results || []).filter((addr) =>
+        addr &&
         typeof addr === 'object' &&
-        addr.id && 
-        addr.street && 
-        addr.city && 
-        addr.postal_code && 
-        addr.country
+        addr.id &&
+        addr.street &&
+        addr.city &&
+        addr.postal_code &&
+        addr.country &&
+        addr.telephone_number
       );
       allAddresses = allAddresses.concat(validAddresses);
       url = data.next || null;
@@ -177,6 +179,26 @@ export const createBillingAddress = async (addressData, { signal }) => {
     return response.data;
   } catch (error) {
     console.error("createBillingAddress error:", error);
+    throw error;
+  }
+};
+
+export const deleteShippingAddress = async (addressId, { signal }) => {
+  try {
+    const response = await apiClient.delete(`shipping-addresses/${addressId}/`, { signal });
+    return response.data;
+  } catch (error) {
+    console.error("deleteShippingAddress error:", error);
+    throw error;
+  }
+};
+
+export const deleteBillingAddress = async (addressId, { signal }) => {
+  try {
+    const response = await apiClient.delete(`billing-addresses/${addressId}/`, { signal });
+    return response.data;
+  } catch (error) {
+    console.error("deleteBillingAddress error:", error);
     throw error;
   }
 };
@@ -398,20 +420,55 @@ export const createOrder = async (orderData, { signal }) => {
   }
 };
 
-export const getOrders = async ({ signal }) => {
+export const getOrders = async () => {
   try {
+    console.log("Initiating API call to /orders/...");
     let allOrders = [];
     let url = "orders/";
+
     while (url) {
-      const response = await apiClient.get(url, { signal });
+      console.log("Fetching from URL:", `${BASE_URL}/${url}`);
+      const response = await apiClient.get(url);
+      console.log("API response:", response.data);
       const data = response.data || {};
-      allOrders = allOrders.concat(data.results || []);
-      url = data.next || null;
+
+      let ordersToProcess;
+      if (Array.isArray(data)) {
+        ordersToProcess = data;
+        url = null;
+      } else if (data.results && Array.isArray(data.results)) {
+        ordersToProcess = data.results;
+        url = data.next || null;
+      } else {
+        throw new Error("Invalid response format: expected array or object with results array");
+      }
+
+      const validOrders = ordersToProcess.filter(
+        (order) =>
+          order &&
+          typeof order === "object" &&
+          order.id &&
+          order.created_at &&
+          order.status &&
+          order.payment_status &&
+          order.total != null
+      );
+
+      allOrders = allOrders.concat(validOrders);
+      console.log("Fetched orders:", validOrders, "Next URL:", url);
     }
+
+    console.log("All orders fetched:", allOrders);
     return allOrders;
   } catch (error) {
     console.error("getOrders error:", error);
-    throw error;
+    if (error.name === "AbortError") {
+      throw error;
+    }
+    throw {
+      message: error.message || "Failed to fetch orders",
+      status: error.status || error.response?.status,
+    };
   }
 };
 

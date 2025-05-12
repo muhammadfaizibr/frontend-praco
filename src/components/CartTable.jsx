@@ -105,7 +105,8 @@ const CartTable = () => {
           const abortController = new AbortController();
           try {
             for (const item of cartData.items) {
-              if (!item.user_exclusive_price) {
+              // Check if user_exclusive_price exists and has a valid id
+              if (!item.user_exclusive_price || !item.user_exclusive_price.id) {
                 discounts[item.id] = { id: null, discount_percentage: 0 };
                 continue;
               }
@@ -621,66 +622,68 @@ const CartTable = () => {
           </tbody>
         </table>
       </div>
-      <table className={TableStyles.summaryTable}>
-        <tbody>
-          <tr>
-            <th className="b3 clr-text">Total Items</th>
-            <td className="b3 clr-text">{totalItems}</td>
-          </tr>
-          <tr>
-            <th className="b3 clr-text">Total Packs</th>
-            <td className="b3 clr-text">{totalPacks}</td>
-          </tr>
-          <tr>
-            <th className="b3 clr-text">Subtotal</th>
-            <td className="b3 clr-text">
-              £{subtotal.toLocaleString("en-GB", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </td>
-          </tr>
-          <tr>
-            <th className="b3 clr-text">Discount ({discount}%)</th>
-            <td className="b3 clr-text">
-              £{discount_amount.toLocaleString("en-GB", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </td>
-          </tr>
-          <tr>
-            <th className="b3 clr-text">VAT ({vat}%)</th>
-            <td className="b3 clr-text">
-              £{vat_amount.toLocaleString("en-GB", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </td>
-          </tr>
-          <tr>
-            <th className="b3 clr-text">Total</th>
-            <td className="b3 clr-text">
-              £{total.toLocaleString("en-GB", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </td>
-          </tr>
-          <tr>
-            <th className="b3 clr-text">Weight</th>
-            <td className="b3 clr-text">{weight.toFixed(1)}kg</td>
-          </tr>
-        </tbody>
-      </table>
-
-      {subtotal >= 600 && (
-        <AccentNotifier
-          icon={Truck}
-          text="SHOP WORTH 600£ AND GET 10% DISCOUNT ON ALL"
-        />
+      {cartItems.length > 0 && (
+        <>
+          <table className={TableStyles.cartSummaryTable}>
+            <tbody>
+              <tr>
+                <th className="b3 clr-text">Total Items</th>
+                <td className="b3 clr-text">{totalItems}</td>
+              </tr>
+              <tr>
+                <th className="b3 clr-text">Total Packs</th>
+                <td className="b3 clr-text">{totalPacks}</td>
+              </tr>
+              <tr>
+                <th className="b3 clr-text">Subtotal</th>
+                <td className="b3 clr-text">
+                  £{subtotal.toLocaleString("en-GB", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </td>
+              </tr>
+              <tr>
+                <th className="b3 clr-text">Discount ({discount}%)</th>
+                <td className="b3 clr-text">
+                  £{discount_amount.toLocaleString("en-GB", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </td>
+              </tr>
+              <tr>
+                <th className="b3 clr-text">VAT ({vat}%)</th>
+                <td className="b3 clr-text">
+                  £{vat_amount.toLocaleString("en-GB", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </td>
+              </tr>
+              <tr className={TableStyles.totalRow}>
+                <th className="b3 clr-text">Total</th>
+                <td className="b3 clr-text">
+                  £{total.toLocaleString("en-GB", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </td>
+              </tr>
+              <tr>
+                <th className="b3 clr-text">Weight</th>
+                <td className="b3 clr-text">{weight.toFixed(1)}kg</td>
+              </tr>
+            </tbody>
+          </table>
+          {subtotal >= 600 && (
+            <AccentNotifier
+              icon={Truck}
+              text="SHOP WORTH 600£ AND GET 10% DISCOUNT ON ALL"
+            />
+          )}
+        </>
       )}
-
       <div className="row-content justify-content-flex-end gap-xs">
         <Link
           to="/"

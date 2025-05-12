@@ -757,7 +757,7 @@ const ProductsTable = ({ variantsWithData }) => {
       {showStickyBar && (
         <div className={TableStyles.stickyBar}>
           <div className={TableStyles.stickyBarContent}>
-            <table className={TableStyles.summaryTable}>
+            <table className={TableStyles.productsSummaryTable}>
               <thead>
                 <tr>
                   <th className="b3 clr-text">Description</th>
@@ -781,9 +781,6 @@ const ProductsTable = ({ variantsWithData }) => {
               <div className={TableStyles.actionButtons}>
                 <button className="primary-btn" onClick={handleAddToCart} aria-label="Add selected items to cart">
                   Add to Cart
-                </button>
-                <button className="secondary-btn" onClick={() => navigate("/checkout")} aria-label="Proceed to checkout">
-                  Checkout
                 </button>
               </div>
               <div className={TableStyles.totalPrice}>TOTAL £{computeSelectedItems().totalPrice.toFixed(2)}</div>

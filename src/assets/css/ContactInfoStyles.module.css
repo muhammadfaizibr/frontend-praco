@@ -18,7 +18,7 @@
     background-color: var(--clr-secondary-light);
     padding: var(--padding-m);
     gap: var(--gap-s);
-    border-radius: var(--radius-m);
+    /* border-radius: var(--radius-m); */
     flex-grow: 1;
 }
 

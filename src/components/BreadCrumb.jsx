@@ -10,7 +10,7 @@ const BreadCrumb = ({ navigationArray }) => {
         <div className={BreadCrumbStyles.breadCrumb}>
           {navigationArray.map((navigationItem, index) => {
             return (
-              <p className="b4">
+              <p className="b4" key={navigationItem+index}>
                 {navigationArray.length - 1 === index ? (
                   <span className="clr-primary">{navigationItem}</span>
                 ) : (
@@ -31,8 +31,5 @@ BreadCrumb.propTypes = {
   navigationArray: PropTypes.array.isRequired,
 };
 
-// BreadCrumb.defaultProps = {
-//   navigationArray: [],
-// };
 
 export default BreadCrumb;

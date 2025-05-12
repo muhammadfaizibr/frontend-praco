@@ -149,7 +149,7 @@ const LoginForm = () => {
         </Link>
 
         <button
-          className={`primary-btn large-btn full-width text-large ${
+          className={`primary-btn giant-btn full-width text-giant ${
             isLoading ? FormStyles.loading : ""
           }`}
           type="submit"

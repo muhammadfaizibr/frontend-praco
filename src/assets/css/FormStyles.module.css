@@ -3,7 +3,7 @@
   box-shadow: var(--shadow-form);
   display: flex;
   flex-direction: column;
-  gap: clamp(1.5rem, 1.5vw, 2rem);
+  gap: 1rem;
   max-width: clamp(480px, 50vw, 540px);
   align-items: flex-start;
   width: 100%;
@@ -13,7 +13,7 @@
 .formWrapper {
   display: flex;
   flex-direction: column;
-  gap: clamp(1.5rem, 1.5vw, 2rem);
+  gap: 1rem;
   width: 100%;
   justify-content: center;
   align-items: center;
@@ -22,13 +22,13 @@
 .inputGroup {
   display: flex;
   flex-direction: column;
-  gap: clamp(0.5rem, 0.8vw, 0.8rem);
+  gap: 0.5rem;
   width: 100%;
 }
 
 .inputWrapper {
   display: flex;
-  gap: clamp(0.3rem, 0.6vw, 0.6rem);
+  gap: 0.3rem;
   position: relative;
   flex-grow: 1;
   width: 100%;
@@ -47,6 +47,31 @@
   color: var(--clr-black);
   width: clamp(2rem, 2vw, 2rem);
   height: clamp(2rem, 2vw, 2rem);
+}
+
+.inputWrapper select {
+  border: 1px solid var(--clr-border);
+  flex-grow: 1;
+  padding: var(--form-input-padding) var(--form-input-padding-icon-whitespace);
+  border-radius: 0;
+  box-sizing: border-box;
+  font-size: 1.6rem;
+  appearance: none;
+  background: var(--clr-white) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23000' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E") no-repeat right 0.7rem center;
+  background-size: 1rem;
+  cursor: pointer;
+}
+
+.inputWrapper select:disabled {
+  background: var(--clr-gray-light);
+  cursor: not-allowed;
+}
+
+.inputWrapper option {
+  padding: 0.5rem 1rem;
+  background: var(--clr-white);
+  color: var(--clr-black);
+  font-size: 1.6rem;
 }
 
 .inputWrapper input {
@@ -77,16 +102,25 @@
   background: var(--clr-danger-bg-light);
   color: var(--clr-danger-dark);
   padding: var(--padding-xs);
-  border-radius: var(--radius-xxs);
+  /* border-radius: var(--radius-xxs); */
   text-align: center;
   width: 100%;
 }
+.warningMessage{
+  background: var(--clr-warning-bg-light);
+  color: var(--clr-warning-dark);
+  padding: var(--padding-xs);
+  /* border-radius: var(--radius-xxs); */
+  text-align: center;
+  width: 100%;
+}
+
 
 .successMessage {
   background: var(--clr-success-bg-light);
   color: var(--clr-success-dark);
   padding: var(--padding-xs);
-  border-radius: var(--radius-xxs);
+  /* border-radius: var(--radius-xxs); */
   text-align: center;
   width: 100%;
 }
@@ -94,19 +128,6 @@
 .loading {
   opacity: 0.7;
   cursor: not-allowed;
-}
-
-.formWrapper button {
-  background: var(--clr-primary);
-  color: var(--clr-white);
-  border: none;
-  padding: var(--large-btn-padding);
-  cursor: pointer;
-  font-size: 1.6rem;
-}
-
-.formWrapper button:hover:not(:disabled) {
-  background: var(--clr-primary-light);
 }
 
 .checkBoxInput {
@@ -119,6 +140,27 @@
   font-size: 1.4rem;
   color: var(--clr-text);
 }
+
+.formSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-s);
+  align-items: flex-start;
+  border: 1px solid var(--clr-border);
+  padding: var(--padding-s);
+  width: 100%;
+  background-color: var(--clr-secondary-light);
+}
+
+.cartList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
 
 @media (max-width: 620px) {
   .container {

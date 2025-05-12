@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import FormStyles from "assets/css/FormStyles.module.css";
-import { AreaChart, Code2, MapPin, MapPinCheck, Home, CreditCard, User } from "lucide-react";
-import { createOrder, getOrCreateCart, getCartItems, getShippingAddresses, getBillingAddresses, createShippingAddress, createBillingAddress } from "utils/api/ecommerce";
+import CheckoutFormStyles from "assets/css/CheckoutFormStyles.module.css";
+import { AreaChart, Code2, MapPin, MapPinCheck, Home, CreditCard, User, Phone, Trash2 } from "lucide-react";
+import { createOrder, getOrCreateCart, getCartItems, getShippingAddresses, getBillingAddresses, createShippingAddress, createBillingAddress, deleteShippingAddress, deleteBillingAddress } from "utils/api/ecommerce";
 import { setCartItems } from "utils/cartSlice";
 
 const CheckoutForm = () => {
@@ -13,45 +15,40 @@ const CheckoutForm = () => {
   const [newShippingAddress, setNewShippingAddress] = useState({
     first_name: "",
     last_name: "",
-    telephone_number: "",
     street: "",
     city: "",
     state: "",
     postal_code: "",
-    country: "United Kingdom"
+    country: "United Kingdom",
+    telephone_number: "",
   });
   const [newBillingAddress, setNewBillingAddress] = useState({
     first_name: "",
     last_name: "",
-    telephone_number: "",
     street: "",
     city: "",
     state: "",
     postal_code: "",
-    country: "United Kingdom"
+    country: "United Kingdom",
+    telephone_number: "",
   });
   const [showNewShippingForm, setShowNewShippingForm] = useState(false);
   const [showNewBillingForm, setShowNewBillingForm] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState("");
-  const [shippingCost, setShippingCost] = useState("10.00");
+  const [paymentMethod, setPaymentMethod] = useState("manual_payment");
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const abortController = new AbortController();
+  const navigate = useNavigate();
 
   const cartItems = useSelector((state) => state.cart.items);
   const dispatch = useDispatch();
 
   const paymentMethodOptions = [
-    { value: "credit_card", label: "Credit Card" },
-    { value: "debit_card", label: "Debit Card" },
-    { value: "paypal", label: "PayPal" },
-    { value: "bank_transfer", label: "Bank Transfer" },
-    { value: "manual_payment", label: "Manual Payment" },
+    { value: "manual_payment", label: "Manual Payment" }
   ];
 
-  // Validate address objects to ensure they have required fields
   const validateAddresses = (addresses) => {
     return (addresses || []).filter((addr) =>
       addr &&
@@ -59,27 +56,38 @@ const CheckoutForm = () => {
       addr.id &&
       addr.first_name &&
       addr.last_name &&
-      addr.telephone_number &&
       addr.street &&
       addr.city &&
       addr.postal_code &&
-      addr.country
+      addr.country &&
+      addr.telephone_number
     );
+  };
+
+  const validateAddress = (address, type) => {
+    const errors = {};
+    if (!address.first_name) errors[`${type}_first_name`] = "First name is required.";
+    if (!address.last_name) errors[`${type}_last_name`] = "Last name is required.";
+    if (!address.street) errors[`${type}_street`] = "Street is required.";
+    if (!address.city) errors[`${type}_city`] = "City is required.";
+    if (!address.postal_code) errors[`${type}_postal_code`] = "Postal code is required.";
+    if (address.postal_code && !/^[A-Z]{1,2}[0-9R][0-9A-Z]? ?[0-9][A-Z]{2}$/i.test(address.postal_code)) {
+      errors[`${type}_postal_code`] = "Invalid UK postal code format.";
+    }
+    if (!address.telephone_number) errors[`${type}_telephone_number`] = "Telephone number is required.";
+    if (address.telephone_number && !/^\+?\d{10,14}$/.test(address.telephone_number)) {
+      errors[`${type}_telephone_number`] = "Invalid telephone number format.";
+    }
+    return errors;
   };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        // Fetch cart
-        const cart = await getOrCreateCart().catch((err) => {
-          throw new Error(`Failed to fetch cart: ${err.message || "Unknown error"}`);
-        });
+        const cart = await getOrCreateCart();
         const cartId = cart.id;
-        // Fetch cart items
-        const cartItemsResponse = await getCartItems(cartId).catch((err) => {
-          throw new Error(`Failed to fetch cart items: ${err.message || "Unknown error"}`);
-        });
+        const cartItemsResponse = await getCartItems(cartId);
         const mappedItems = (cartItemsResponse.results || []).map((item) => ({
           id: item.id.toString(),
           description: item.item.title || item.item.product_variant?.name || `Item ${item.item.id}`,
@@ -98,13 +106,8 @@ const CheckoutForm = () => {
         }));
         dispatch(setCartItems(mappedItems));
 
-        // Fetch addresses
-        const shippingAddressesResponse = await getShippingAddresses().catch((err) => {
-          throw new Error(`Failed to fetch shipping addresses: ${err.message || "Unknown error"}`);
-        });
-        const billingAddressesResponse = await getBillingAddresses().catch((err) => {
-          throw new Error(`Failed to fetch billing addresses: ${err.message || "Unknown error"}`);
-        });
+        const shippingAddressesResponse = await getShippingAddresses();
+        const billingAddressesResponse = await getBillingAddresses();
         const validShippingAddresses = validateAddresses(shippingAddressesResponse);
         const validBillingAddresses = validateAddresses(billingAddressesResponse);
         setShippingAddresses(validShippingAddresses);
@@ -128,10 +131,13 @@ const CheckoutForm = () => {
 
   useEffect(() => {
     if (successMessage) {
-      const timer = setTimeout(() => setSuccessMessage(""), 5000);
+      const timer = setTimeout(() => {
+        setSuccessMessage("");
+        navigate("/track-order");
+      }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [successMessage]);
+  }, [successMessage, navigate]);
 
   const validateForm = () => {
     const newErrors = {};
@@ -142,40 +148,13 @@ const CheckoutForm = () => {
       newErrors.billing_address = "Please select or create a billing address.";
     }
     if (showNewShippingForm) {
-      if (!newShippingAddress.first_name) newErrors.shipping_first_name = "First name is required.";
-      if (!newShippingAddress.last_name) newErrors.shipping_last_name = "Last name is required.";
-      if (!newShippingAddress.telephone_number) {
-        newErrors.shipping_telephone_number = "Telephone number is required.";
-      } else if (!/^\+?\d{8,15}$/.test(newShippingAddress.telephone_number)) {
-        newErrors.shipping_telephone_number = "Invalid telephone number (8-15 digits, optional +).";
-      }
-      if (!newShippingAddress.street) newErrors.shipping_street = "Street is required.";
-      if (!newShippingAddress.city) newErrors.shipping_city = "City is required.";
-      if (!newShippingAddress.postal_code) newErrors.shipping_postal_code = "Postal code is required.";
-      if (newShippingAddress.postal_code && !/^[A-Z]{1,2}[0-9R][0-9A-Z]? ?[0-9][A-Z]{2}$/.test(newShippingAddress.postal_code)) {
-        newErrors.shipping_postal_code = "Invalid UK postal code format.";
-      }
+      Object.assign(newErrors, validateAddress(newShippingAddress, "shipping"));
     }
     if (showNewBillingForm) {
-      if (!newBillingAddress.first_name) newErrors.billing_first_name = "First name is required.";
-      if (!newBillingAddress.last_name) newErrors.billing_last_name = "Last name is required.";
-      if (!newBillingAddress.telephone_number) {
-        newErrors.billing_telephone_number = "Telephone number is required.";
-      } else if (!/^\+?\d{8,15}$/.test(newBillingAddress.telephone_number)) {
-        newErrors.billing_telephone_number = "Invalid telephone number (8-15 digits, optional +).";
-      }
-      if (!newBillingAddress.street) newErrors.billing_street = "Street is required.";
-      if (!newBillingAddress.city) newErrors.billing_city = "City is required.";
-      if (!newBillingAddress.postal_code) newErrors.billing_postal_code = "Postal code is required.";
-      if (newBillingAddress.postal_code && !/^[A-Z]{1,2}[0-9R][0-9A-Z]? ?[0-9][A-Z]{2}$/.test(newBillingAddress.postal_code)) {
-        newErrors.billing_postal_code = "Invalid UK postal code format.";
-      }
+      Object.assign(newErrors, validateAddress(newBillingAddress, "billing"));
     }
     if (!paymentMethod) {
       newErrors.payment_method = "Payment method is required.";
-    }
-    if (!shippingCost || parseFloat(shippingCost) < 0) {
-      newErrors.shipping_cost = "Shipping cost must be a non-negative number.";
     }
     if (!cartItems.length) {
       newErrors.cart = "Cart is empty. Add items to proceed.";
@@ -188,7 +167,14 @@ const CheckoutForm = () => {
     try {
       setIsLoading(true);
       setErrors({});
+      setApiError("");
       const addressData = type === 'shipping' ? newShippingAddress : newBillingAddress;
+      const addressErrors = validateAddress(addressData, type);
+      if (Object.keys(addressErrors).length > 0) {
+        setErrors(addressErrors);
+        setApiError(`Please correct the errors in the ${type} address form.`);
+        return;
+      }
       const createFn = type === 'shipping' ? createShippingAddress : createBillingAddress;
       const response = await createFn(addressData, { signal: abortController.signal });
       if (type === 'shipping') {
@@ -197,12 +183,12 @@ const CheckoutForm = () => {
         setNewShippingAddress({
           first_name: "",
           last_name: "",
-          telephone_number: "",
           street: "",
           city: "",
           state: "",
           postal_code: "",
-          country: "United Kingdom"
+          country: "United Kingdom",
+          telephone_number: "",
         });
         setShowNewShippingForm(false);
       } else {
@@ -211,12 +197,12 @@ const CheckoutForm = () => {
         setNewBillingAddress({
           first_name: "",
           last_name: "",
-          telephone_number: "",
           street: "",
           city: "",
           state: "",
           postal_code: "",
-          country: "United Kingdom"
+          country: "United Kingdom",
+          telephone_number: "",
         });
         setShowNewBillingForm(false);
       }
@@ -225,15 +211,35 @@ const CheckoutForm = () => {
       setErrors((prev) => ({
         ...prev,
         ...error.fieldErrors,
-        [`${type}_first_name`]: error.fieldErrors.first_name || prev[`${type}_first_name`],
-        [`${type}_last_name`]: error.fieldErrors.last_name || prev[`${type}_last_name`],
-        [`${type}_telephone_number`]: error.fieldErrors.telephone_number || prev[`${type}_telephone_number`],
-        [`${type}_street`]: error.fieldErrors.street || prev[`${type}_street`],
-        [`${type}_city`]: error.fieldErrors.city || prev[`${type}_city`],
-        [`${type}_state`]: error.fieldErrors.state || prev[`${type}_state`],
-        [`${type}_postal_code`]: error.fieldErrors.postal_code || prev[`${type}_postal_code`],
+        [`${type}_first_name`]: error.fieldErrors?.first_name || prev[`${type}_first_name`],
+        [`${type}_last_name`]: error.fieldErrors?.last_name || prev[`${type}_last_name`],
+        [`${type}_street`]: error.fieldErrors?.street || prev[`${type}_street`],
+        [`${type}_city`]: error.fieldErrors?.city || prev[`${type}_city`],
+        [`${type}_state`]: error.fieldErrors?.state || prev[`${type}_state`],
+        [`${type}_postal_code`]: error.fieldErrors?.postal_code || prev[`${type}_postal_code`],
+        [`${type}_telephone_number`]: error.fieldErrors?.telephone_number || prev[`${type}_telephone_number`],
       }));
       setApiError(error.message || `Failed to create ${type} address. Please check the form.`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteAddress = async (type, addressId) => {
+    try {
+      setIsLoading(true);
+      const deleteFn = type === 'shipping' ? deleteShippingAddress : deleteBillingAddress;
+      await deleteFn(addressId, { signal: abortController.signal });
+      if (type === 'shipping') {
+        setShippingAddresses(shippingAddresses.filter((addr) => addr.id !== addressId));
+        if (selectedShippingAddress === addressId) setSelectedShippingAddress("");
+      } else {
+        setBillingAddresses(billingAddresses.filter((addr) => addr.id !== addressId));
+        if (selectedBillingAddress === addressId) setSelectedBillingAddress("");
+      }
+    } catch (error) {
+      console.error(`Error deleting ${type} address:`, error);
+      setApiError(error.message || `Failed to delete ${type} address. Please try again.`);
     } finally {
       setIsLoading(false);
     }
@@ -259,12 +265,12 @@ const CheckoutForm = () => {
         setNewShippingAddress({
           first_name: "",
           last_name: "",
-          telephone_number: "",
           street: "",
           city: "",
           state: "",
           postal_code: "",
-          country: "United Kingdom"
+          country: "United Kingdom",
+          telephone_number: "",
         });
         setShowNewShippingForm(false);
       }
@@ -275,11 +281,12 @@ const CheckoutForm = () => {
         setNewBillingAddress({
           first_name: "",
           last_name: "",
-          telephone_number: "",
           street: "",
+          city: "",
           state: "",
           postal_code: "",
-          country: "United Kingdom"
+          country: "United Kingdom",
+          telephone_number: "",
         });
         setShowNewBillingForm(false);
       }
@@ -287,22 +294,21 @@ const CheckoutForm = () => {
       const orderData = {
         shipping_address: parseInt(shippingAddressId),
         billing_address: parseInt(billingAddressId),
-        shipping_cost: parseFloat(shippingCost).toFixed(2),
+        shipping_cost: 0.00,
         vat: 20.00,
         discount: 0.00,
-        status: "pending",
-        payment_status: "pending",
+        status: "PENDING",
+        payment_status: "PENDING",
         payment_method: paymentMethod,
       };
 
       await createOrder(orderData, { signal: abortController.signal });
 
       dispatch(setCartItems([]));
-      setSuccessMessage("Order placed successfully! Cart has been cleared.");
+      setSuccessMessage("Order placed successfully! Redirecting to order tracking...");
       setSelectedShippingAddress("");
       setSelectedBillingAddress("");
-      setPaymentMethod("");
-      setShippingCost("10.00");
+      setPaymentMethod("manual_payment");
       setErrors({});
     } catch (error) {
       console.error("Checkout error:", error);
@@ -312,7 +318,6 @@ const CheckoutForm = () => {
           ...error.fieldErrors,
           shipping_address: error.fieldErrors.shipping_address || prev.shipping_address,
           billing_address: error.fieldErrors.billing_address || prev.billing_address,
-          shipping_cost: error.fieldErrors.shipping_cost || prev.shipping_cost,
           payment_method: error.fieldErrors.payment_method || prev.payment_method,
           cart: error.fieldErrors.cart || prev.cart,
         }));
@@ -326,55 +331,69 @@ const CheckoutForm = () => {
   const addressFields = [
     { label: "First Name", name: "first_name", type: "text", icon: <User /> },
     { label: "Last Name", name: "last_name", type: "text", icon: <User /> },
-    { label: "Telephone Number", name: "telephone_number", type: "tel", icon: <User /> },
     { label: "Street", name: "street", type: "text", icon: <MapPinCheck /> },
     { label: "City", name: "city", type: "text", icon: <AreaChart /> },
     { label: "State", name: "state", type: "text", icon: <Home /> },
     { label: "Postal Code", name: "postal_code", type: "text", icon: <Code2 /> },
+    { label: "Telephone Number", name: "telephone_number", type: "tel", icon: <Phone /> },
     { label: "Country", name: "country", type: "text", icon: <MapPin />, disabled: true },
   ];
 
   return (
-    <div className={FormStyles.formWrapper}>
-      <form className={FormStyles.container} onSubmit={handleCheckout}>
-        <h4 className="dark">
-          Place your <span className="clr-orange">Order</span>
+    <div className={CheckoutFormStyles.container}>
+      <form className={CheckoutFormStyles.container} onSubmit={handleCheckout}>
+        <h4 className={FormStyles.title}>
+          Place your <span className={FormStyles.accent}>Order</span>
         </h4>
 
-        {apiError && <div className={FormStyles.errorMessage}>{apiError}</div>}
-        {successMessage && (
-          <div className={FormStyles.successMessage}>{successMessage}</div>
-        )}
+        {/* <div className={FormStyles.messageContainer}> */}
+          {apiError && <div className={FormStyles.errorMessage}>{apiError}</div>}
+          {successMessage && <div className={FormStyles.successMessage}>{successMessage}</div>}
+        {/* </div> */}
 
         <div className={FormStyles.formSection}>
-          <h5>Shipping Address</h5>
+          <h5 className={FormStyles.sectionTitle}>Shipping Address</h5>
           <div className={FormStyles.inputGroup}>
-            <label className="dark l2" htmlFor="shipping_address">
+            <label className={FormStyles.label} htmlFor="shipping_address">
               Select Shipping Address
             </label>
-            <select
-              className={`b2 ${errors.shipping_address ? FormStyles.inputError : ""}`}
-              id="shipping_address"
-              value={selectedShippingAddress}
-              onChange={(e) => setSelectedShippingAddress(e.target.value)}
-              disabled={isLoading || showNewShippingForm}
-            >
-              <option value="">Select an address</option>
-              {shippingAddresses.map((addr) => (
-                <option key={addr.id} value={addr.id}>
-                  {addr.first_name} {addr.last_name}, {addr.street}, {addr.city}, {addr.postal_code}, {addr.country}
-                </option>
-              ))}
-            </select>
-            {errors.shipping_address && (
-              <span className={FormStyles.errorText}>{errors.shipping_address}</span>
-            )}
+            <div className={FormStyles.inputWrapper}>
+              <span className={FormStyles.inputIcon}><MapPin size={20} /></span>
+              <select
+                className={`${FormStyles.input} ${errors.shipping_address ? FormStyles.inputError : ""}`}
+                id="shipping_address"
+                value={selectedShippingAddress}
+                onChange={(e) => setSelectedShippingAddress(e.target.value)}
+                disabled={isLoading || showNewShippingForm}
+              >
+                <option value="">Select an address</option>
+                {shippingAddresses.map((addr) => (
+                  <option key={addr.id} value={addr.id}>
+                    {addr.first_name} {addr.last_name}, {addr.street}, {addr.city}, {addr.postal_code}, {addr.country}, {addr.telephone_number}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {errors.shipping_address && <span className={FormStyles.errorText}>{errors.shipping_address}</span>}
+            {shippingAddresses.map((addr) => (
+              <button
+                key={addr.id}
+                type="button"
+                className='secodary-btn'
+                onClick={() => handleDeleteAddress('shipping', addr.id)}
+                disabled={isLoading}
+                data-loading={isLoading}
+              >
+                <Trash2 size={16} /> Delete {addr.first_name}'s Address
+              </button>
+            ))}
           </div>
           <button
             type="button"
             className="secondary-btn"
             onClick={() => setShowNewShippingForm(!showNewShippingForm)}
             disabled={isLoading}
+            data-loading={isLoading}
           >
             {showNewShippingForm ? "Cancel" : "Add New Shipping Address"}
           </button>
@@ -382,13 +401,13 @@ const CheckoutForm = () => {
             <div className={FormStyles.formSection}>
               {addressFields.map((field) => (
                 <div className={FormStyles.inputGroup} key={field.name}>
-                  <label className="dark l2" htmlFor={`shipping_${field.name}`}>
+                  <label className={FormStyles.label} htmlFor={`shipping_${field.name}`}>
                     {field.label}
                   </label>
                   <div className={FormStyles.inputWrapper}>
-                    <span className={FormStyles.inputIcon}>{field.icon}</span>
+                    <span className={FormStyles.inputIcon}>{React.cloneElement(field.icon, { size: 20 })}</span>
                     <input
-                      className={`b2 ${errors[`shipping_${field.name}`] ? FormStyles.inputError : ""}`}
+                      className={`${FormStyles.input} ${errors[`shipping_${field.name}`] ? FormStyles.inputError : ""}`}
                       type={field.type}
                       id={`shipping_${field.name}`}
                       value={newShippingAddress[field.name] || ""}
@@ -403,9 +422,10 @@ const CheckoutForm = () => {
               ))}
               <button
                 type="button"
-                className="primary-btn"
+                className={'primary-btn'}
                 onClick={() => handleCreateAddress('shipping')}
                 disabled={isLoading}
+                data-loading={isLoading}
               >
                 Save Shipping Address
               </button>
@@ -414,34 +434,48 @@ const CheckoutForm = () => {
         </div>
 
         <div className={FormStyles.formSection}>
-          <h5>Billing Address</h5>
+          <h5 className={FormStyles.sectionTitle}>Billing Address</h5>
           <div className={FormStyles.inputGroup}>
-            <label className="dark l2" htmlFor="billing_address">
+            <label className={FormStyles.label} htmlFor="billing_address">
               Select Billing Address
             </label>
-            <select
-              className={`b2 ${errors.billing_address ? FormStyles.inputError : ""}`}
-              id="billing_address"
-              value={selectedBillingAddress}
-              onChange={(e) => setSelectedBillingAddress(e.target.value)}
-              disabled={isLoading || showNewBillingForm}
-            >
-              <option value="">Select an address</option>
-              {billingAddresses.map((addr) => (
-                <option key={addr.id} value={addr.id}>
-                  {addr.first_name} {addr.last_name}, {addr.street}, {addr.city}, {addr.postal_code}, {addr.country}
-                </option>
-              ))}
-            </select>
-            {errors.billing_address && (
-              <span className={FormStyles.errorText}>{errors.billing_address}</span>
-            )}
+            <div className={FormStyles.inputWrapper}>
+              <span className={FormStyles.inputIcon}><MapPin size={20} /></span>
+              <select
+                className={`${FormStyles.input} ${errors.billing_address ? FormStyles.inputError : ""}`}
+                id="billing_address"
+                value={selectedBillingAddress}
+                onChange={(e) => setSelectedBillingAddress(e.target.value)}
+                disabled={isLoading || showNewBillingForm}
+              >
+                <option value="">Select an address</option>
+                {billingAddresses.map((addr) => (
+                  <option key={addr.id} value={addr.id}>
+                    {addr.first_name} {addr.last_name}, {addr.street}, {addr.city}, {addr.postal_code}, {addr.country}, {addr.telephone_number}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {errors.billing_address && <span className={FormStyles.errorText}>{errors.billing_address}</span>}
+            {billingAddresses.map((addr) => (
+              <button
+                key={addr.id}
+                type="button"
+                className='secodary-btn'
+                onClick={() => handleDeleteAddress('billing', addr.id)}
+                disabled={isLoading}
+                data-loading={isLoading}
+              >
+                <Trash2 size={16} /> Delete {addr.first_name}'s Address
+              </button>
+            ))}
           </div>
           <button
             type="button"
             className="secondary-btn"
             onClick={() => setShowNewBillingForm(!showNewBillingForm)}
             disabled={isLoading}
+            data-loading={isLoading}
           >
             {showNewBillingForm ? "Cancel" : "Add New Billing Address"}
           </button>
@@ -449,13 +483,13 @@ const CheckoutForm = () => {
             <div className={FormStyles.formSection}>
               {addressFields.map((field) => (
                 <div className={FormStyles.inputGroup} key={field.name}>
-                  <label className="dark l2" htmlFor={`billing_${field.name}`}>
+                  <label className={FormStyles.label} htmlFor={`billing_${field.name}`}>
                     {field.label}
                   </label>
                   <div className={FormStyles.inputWrapper}>
-                    <span className={FormStyles.inputIcon}>{field.icon}</span>
+                    <span className={FormStyles.inputIcon}>{React.cloneElement(field.icon, { size: 20 })}</span>
                     <input
-                      className={`b2 ${errors[`billing_${field.name}`] ? FormStyles.inputError : ""}`}
+                      className={`${FormStyles.input} ${errors[`billing_${field.name}`] ? FormStyles.inputError : ""}`}
                       type={field.type}
                       id={`billing_${field.name}`}
                       value={newBillingAddress[field.name] || ""}
@@ -470,9 +504,10 @@ const CheckoutForm = () => {
               ))}
               <button
                 type="button"
-                className="primary-btn"
+                className={'primary-btn'}
                 onClick={() => handleCreateAddress('billing')}
                 disabled={isLoading}
+                data-loading={isLoading}
               >
                 Save Billing Address
               </button>
@@ -481,15 +516,15 @@ const CheckoutForm = () => {
         </div>
 
         <div className={FormStyles.formSection}>
-          <h5>Payment Details</h5>
+          <h5 className={FormStyles.sectionTitle}>Payment Details</h5>
           <div className={FormStyles.inputGroup}>
-            <label className="dark l2" htmlFor="payment_method">
+            <label className={FormStyles.label} htmlFor="payment_method">
               Payment Method
             </label>
             <div className={FormStyles.inputWrapper}>
-              <span className={FormStyles.inputIcon}><CreditCard /></span>
+              <span className={FormStyles.inputIcon}><CreditCard size={20} /></span>
               <select
-                className={`b2 ${errors.payment_method ? FormStyles.inputError : ""}`}
+                className={`${FormStyles.input} ${errors.payment_method ? FormStyles.inputError : ""}`}
                 id="payment_method"
                 value={paymentMethod}
                 onChange={(e) => setPaymentMethod(e.target.value)}
@@ -503,57 +538,32 @@ const CheckoutForm = () => {
                 ))}
               </select>
             </div>
-            {errors.payment_method && (
-              <span className={FormStyles.errorText}>{errors.payment_method}</span>
-            )}
+            {errors.payment_method && <span className={FormStyles.errorText}>{errors.payment_method}</span>}
           </div>
+        </div>
+
+        <div className={FormStyles.formSection}>
           <div className={FormStyles.inputGroup}>
-            <label className="dark l2" htmlFor="shipping_cost">
-              Shipping Cost (€)
-            </label>
-            <div className={FormStyles.inputWrapper}>
-              <span className={FormStyles.inputIcon}><MapPin /></span>
-              <input
-                className={`b2 ${errors.shipping_cost ? FormStyles.inputError : ""}`}
-                type="number"
-                id="shipping_cost"
-                value={shippingCost}
-                onChange={(e) => setShippingCost(e.target.value)}
-                min="0"
-                step="0.01"
-                disabled={isLoading}
-              />
-            </div>
-            {errors.shipping_cost && (
-              <span className={FormStyles.errorText}>{errors.shipping_cost}</span>
+            <h5 className={FormStyles.sectionTitle}>Cart Items</h5>
+            {cartItems.length > 0 ? (
+              <ul className={FormStyles.cartList}>
+                {cartItems.map((item) => (
+                  <li key={item.id} className={FormStyles.cartItem}>
+                    {item.description} - {item.packs} pack{item.packs > 1 ? "s" : ""}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className={FormStyles.emptyCart}>No items in cart.</p>
             )}
+            {errors.cart && <span className={FormStyles.errorText}>{errors.cart}</span>}
           </div>
         </div>
-
-        <div className={FormStyles.inputGroup}>
-          <label className="dark l2">Cart Items</label>
-          {cartItems.length > 0 ? (
-            <ul className={FormStyles.cartList}>
-              {cartItems.map((item) => (
-                <li key={item.id} className="b2">
-                  {item.description} - {item.packs} pack{item.packs > 1 ? "s" : ""}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="b2">No items in cart.</p>
-          )}
-          {errors.cart && (
-            <span className={FormStyles.errorText}>{errors.cart}</span>
-          )}
-        </div>
-
         <button
-          className={`primary-btn large-btn full-width text-large ${
-            isLoading ? FormStyles.loading : errors.cart ? FormStyles.errorButton : ""
-          }`}
+          className={`primary-btn full-width text-giant ${isLoading ? FormStyles.loading : ""}`}
           type="submit"
           disabled={isLoading}
+          data-loading={isLoading}
         >
           {isLoading ? "Processing..." : "Place Order"}
         </button>
