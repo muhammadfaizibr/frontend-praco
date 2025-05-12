@@ -112,9 +112,9 @@ const CheckoutForm = () => {
         const validBillingAddresses = validateAddresses(billingAddressesResponse);
         setShippingAddresses(validShippingAddresses);
         setBillingAddresses(validBillingAddresses);
-        if (!validShippingAddresses.length && !validBillingAddresses.length) {
-          setApiError("No valid addresses found. Please add a shipping and billing address.");
-        }
+        // if (!validShippingAddresses.length && !validBillingAddresses.length) {
+          // setApiError("No valid addresses found. Please add a shipping and billing address.");
+        // }
       } catch (error) {
         console.error("Error fetching data:", error);
         setApiError(error.message || "Failed to load checkout data. Please try again or contact support.");
