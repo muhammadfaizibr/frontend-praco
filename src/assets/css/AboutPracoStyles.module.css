@@ -19,7 +19,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--whitespace-bwt-heading-para);
-  padding: clamp(2rem, 4vw, 3.6rem) 0;
+  padding-block: clamp(2rem, 4vw, 3.6rem);
   align-items: flex-start;
   justify-content: center;
 }
@@ -31,7 +31,7 @@
   align-items: center;
   gap: clamp(1rem, 2vw, 2rem);
   background-color: var(--clr-primary);
-  padding: clamp(1rem, 2vw, 2rem) 0;
+  padding-block: clamp(1rem, 2vw, 2rem);
   width: 100%;
 }
 
@@ -47,7 +47,7 @@
   gap: clamp(1.2rem, 2.5vw, 2.4rem);
   align-items: center;
   width: clamp(20rem, 80vw, 48rem);
-  padding: 0 clamp(1.6rem, 4vw, 4rem);
+  padding-inline: clamp(1.6rem, 4vw, 4rem);
 }
 
 .featureDisplay .featureDisplayTextDetails {
@@ -69,13 +69,15 @@
 @media (max-width: 1200px) {
   .container {
     flex-direction: column;
-    padding: clamp(5rem, 5vw, 8rem) 0;
+    padding-block: clamp(5rem, 5vw, 8rem);
     gap: clamp(1.5rem, 3vw, 3rem);
   }
+
   .contentWrapper {
     gap: clamp(0.8rem, 1.5vw, 1.6rem);
     padding: 0;
   }
+
   .featuresDisplayWrapper {
     flex-direction: row;
     flex-wrap: wrap;
@@ -83,15 +85,18 @@
     padding: 0;
     gap: clamp(0.8rem, 1.5vw, 1.6rem);
   }
+
   .featuresDisplayWrapper .featureDisplayBlock {
     background-color: var(--clr-primary);
     flex: 1 1 clamp(28rem, 45vw, 40rem);
     padding: clamp(1rem, 2vw, 2rem);
     align-items: center;
+    border-radius: var(--radius-m);
   }
+
   .featuresDisplayWrapper .featureDisplay {
     width: 100%;
-    padding: 0 clamp(1rem, 2vw, 1.6rem);
+    padding-inline: clamp(1rem, 2vw, 1.6rem);
     gap: clamp(0.5rem, 1vw, 0.9rem);
     flex-direction: column;
     align-items: center;
@@ -101,6 +106,7 @@
   .featureDisplayDivider {
     display: none;
   }
+
   .featureDisplay .featureDisplayTextDetails {
     align-items: center;
     text-align: center;
@@ -111,21 +117,24 @@
 
 @media (max-width: 768px) {
   .container {
-    padding-top: clamp(4rem, 6vw, 8rem);
-    padding-bottom: clamp(4rem, 6vw, 8rem);
+    padding-block: clamp(4rem, 6vw, 8rem);
     gap: clamp(2rem, 6vw, 8rem);
   }
+
   .featuresDisplayWrapper {
     gap: clamp(2rem, 2vw, 2rem);
   }
+
   .featuresDisplayWrapper .featureDisplayBlock {
     flex: 1 1 clamp(24rem, 45vw, 36rem);
     padding: clamp(0.4rem, 0.8vw, 0.8rem) clamp(0.8rem, 1.5vw, 1.2rem);
   }
+
   .featuresDisplayWrapper .featureDisplay {
     gap: clamp(0.8rem, 1.5vw, 1.6rem);
-    padding: 0 clamp(0.8rem, 1.5vw, 1.2rem);
+    padding-inline: clamp(0.8rem, 1.5vw, 1.2rem);
   }
+
   .featureDisplay .featureDisplayTextDetails {
     padding: clamp(0.4rem, 1vw, 0.8rem);
   }
@@ -140,24 +149,28 @@
     gap: clamp(0.6rem, 1vw, 1.2rem);
     align-items: center;
   }
+
   .featuresDisplayWrapper {
     flex-direction: column;
     gap: clamp(1rem, 1vw, 1rem);
   }
+
   .featuresDisplayWrapper .featureDisplayBlock {
     flex: 1 1 auto;
     padding: clamp(0.8rem, 1vw, 1rem) clamp(0.6rem, 1vw, 1rem);
     justify-content: center;
   }
+
   .featuresDisplayWrapper .featureDisplay {
     width: 100%;
     max-width: 40rem;
-    padding: 0 clamp(0.6rem, 1vw, 1rem);
+    padding-inline: clamp(0.6rem, 1vw, 1rem);
     flex-direction: row;
     gap: clamp(1.4rem, 1.6vw, 1.8rem);
     align-items: center;
     justify-content: flex-start;
   }
+
   .featureDisplay .featureDisplayTextDetails {
     align-items: flex-start;
     text-align: left;

@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import FormStyles from "assets/css/FormStyles.module.css";
 import CheckoutFormStyles from "assets/css/CheckoutFormStyles.module.css";
-import { AreaChart, Code2, MapPin, MapPinCheck, Home, CreditCard, User, Phone, Trash2 } from "lucide-react";
+import { Building2, MapPin, MapPinCheck, Home, CreditCard, User, Phone, Trash2 } from "lucide-react";
 import { createOrder, getOrCreateCart, getCartItems, getShippingAddresses, getBillingAddresses, createShippingAddress, createBillingAddress, deleteShippingAddress, deleteBillingAddress } from "utils/api/ecommerce";
 import { setCartItems } from "utils/cartSlice";
 
@@ -332,9 +332,9 @@ const CheckoutForm = () => {
     { label: "First Name", name: "first_name", type: "text", icon: <User /> },
     { label: "Last Name", name: "last_name", type: "text", icon: <User /> },
     { label: "Street", name: "street", type: "text", icon: <MapPinCheck /> },
-    { label: "City", name: "city", type: "text", icon: <AreaChart /> },
+    { label: "City", name: "city", type: "text", icon: <Building2 /> },
     { label: "State", name: "state", type: "text", icon: <Home /> },
-    { label: "Postal Code", name: "postal_code", type: "text", icon: <Code2 /> },
+    { label: "Postal Code", name: "postal_code", type: "text", icon: <Building2 /> },
     { label: "Telephone Number", name: "telephone_number", type: "tel", icon: <Phone /> },
     { label: "Country", name: "country", type: "text", icon: <MapPin />, disabled: true },
   ];

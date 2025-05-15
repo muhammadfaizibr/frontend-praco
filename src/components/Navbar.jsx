@@ -58,10 +58,10 @@ const Navbar = () => {
     setToggleUnitConversionPopup(false);
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     dispatch(logout());
     navigate("/", { replace: true });
-  };
+  }, [dispatch, navigate]);
 
   return (
     <nav aria-label="Main navigation">
@@ -81,8 +81,8 @@ const Navbar = () => {
             <SearchBarHeader />
           </div>
           <div className={NavBarStyles.actionButtons}>
-          <button
-              className={`${NavBarStyles.actionButtonStyle} ${NavBarStyles.searchMobileToggleBtn} accent-palette`}
+            <button
+              className={`${NavBarStyles.actionButtonStyle} ${NavBarStyles.searchMobileToggleBtn} accent-palette ${searchMobile ? NavBarStyles.active : ""}`}
               type="button"
               aria-label={searchMobile ? "Close Search" : "Open Search"}
               onClick={toggleSearchMobile}
@@ -108,13 +108,13 @@ const Navbar = () => {
                 aria-hidden="true"
               />
             </button>
-            <div><Link
+            <Link
               className={`${NavBarStyles.actionButtonStyle} accent-palette`}
-              to={"/cart"}
+              to="/cart"
               aria-label="View Cart"
             >
               <ShoppingBag className="icon-md icon-blue-accent-dark" aria-hidden="true" />
-            </Link></div>
+            </Link>
             
             {isLoggedIn ? (
               <div className={NavBarStyles.accountWrapper}>
@@ -123,30 +123,36 @@ const Navbar = () => {
                   type="button"
                   aria-label="Account Menu"
                   aria-expanded={showAccountPopup}
+                  aria-controls="account-popup"
                   onClick={toggleAccountPopup}
                 >
                   <CircleUserRound className="icon-md icon-blue-accent-dark" aria-hidden="true" />
                 </button>
                 {showAccountPopup && (
-                  <div className={NavBarStyles.accountPopup} role="menu">
+                  <div
+                    className={NavBarStyles.accountPopup}
+                    id="account-popup"
+                    role="menu"
+                    aria-orientation="vertical"
+                  >
                     <NavLink
                       to="/track-order"
-                      className="b2 clr-black"
+                      className={`${NavBarStyles.actionButtonStyle} b2 clr-black`}
                       role="menuitem"
-                      aria-label="Change Password"
-                    ><button className={NavBarStyles.actionButtonStyle}>
+                      aria-label="Track Orders"
+                    >
                       Track Orders
-                    </button></NavLink>
+                    </NavLink>
                     <NavLink
                       to="/change-password"
-                      className="b2 clr-black"
+                      className={`${NavBarStyles.actionButtonStyle} b2 clr-black`}
                       role="menuitem"
                       aria-label="Change Password"
-                    ><button className={NavBarStyles.actionButtonStyle}>
+                    >
                       Change Password
-                    </button></NavLink>
+                    </NavLink>
                     <button
-                      className={`${NavBarStyles.logoutButton} b2`}
+                      className={`${NavBarStyles.actionButtonStyle} ${NavBarStyles.logoutButton} b2`}
                       type="button"
                       onClick={handleLogout}
                       role="menuitem"
@@ -158,8 +164,7 @@ const Navbar = () => {
                 )}
               </div>
             ) : (
-              <div>
-                <NavLink to="/login" aria-label="Login">
+              <NavLink to="/login" aria-label="Login">
                 <button
                   className={`${NavBarStyles.actionButtonStyle} primary-btn b2`}
                   type="button"
@@ -167,19 +172,16 @@ const Navbar = () => {
                   Login
                 </button>
               </NavLink>
-              </div>
             )}
 
-            <div>
-              <a href="tel:01162607078" aria-label="Call 0116 365 3008">
-                <button
-                  className={`${NavBarStyles.callBtn} primary-btn b2`}
-                  type="button"
-                >
-                  0116 365 3008
-                </button>
-              </a>
-            </div>
+            <a href="tel:01162607078" aria-label="Call 0116 365 3008">
+              <button
+                className={`${NavBarStyles.callBtn} primary-btn b2`}
+                type="button"
+              >
+                0116 365 3008
+              </button>
+            </a>
             {toggleUnitConversionPopup && (
               <div className={NavBarStyles.unitConversionContainer}>
                 <UnitConversionPopup />
@@ -197,7 +199,5 @@ const Navbar = () => {
     </nav>
   );
 };
-
-Navbar.propTypes = {};
 
 export default memo(Navbar);

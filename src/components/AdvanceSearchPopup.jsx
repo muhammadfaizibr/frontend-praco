@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import AdvanceSearchPopupStyles from "assets/css/AdvanceSearchPopupStyles.module.css";
 import HeadingBar from "components/HeadingBar";
@@ -23,10 +23,29 @@ const AdvanceSearchPopup = () => {
   const abortControllerRef = useRef(null);
   const navigate = useNavigate();
 
-  // Handle search
-  const handleSearch = async () => {
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
+
+  const handleSearch = useCallback(async (e) => {
+    e.preventDefault();
+
     // Validate inputs
-    if (!width || !height || !length || parseFloat(width) <= 0 || parseFloat(height) <= 0 || parseFloat(length) <= 0) {
+    const parsedWidth = parseFloat(width);
+    const parsedHeight = parseFloat(height);
+    const parsedLength = parseFloat(length);
+
+    if (
+      !width ||
+      !height ||
+      !length ||
+      isNaN(parsedWidth) ||
+      isNaN(parsedHeight) ||
+      isNaN(parsedLength) ||
+      parsedWidth <= 0 ||
+      parsedHeight <= 0 ||
+      parsedLength <= 0
+    ) {
       setError("Please provide valid dimensions (greater than 0).");
       return;
     }
@@ -58,19 +77,17 @@ const AdvanceSearchPopup = () => {
         approx_size: productSizeValue === transformText("Approx Size") ? "true" : "false",
         minimum_size: productSizeValue === transformText("Minimum Size") ? "true" : "false",
       });
-      console.log("Navigating with params:", params.toString()); // Debug
+
       navigate(`/search?${params.toString()}`);
     } catch (err) {
       if (err.name === "AbortError") {
-        console.log("Search request aborted"); // Debug
         return;
       }
-      console.error("Navigation error:", err); // Debug
       setError("Failed to initiate search");
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [width, height, length, productCategoryValue, measurementUnitValue, productSizeValue, navigate]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -82,20 +99,24 @@ const AdvanceSearchPopup = () => {
   }, []);
 
   return (
-    <div className={AdvanceSearchPopupStyles.wrapper}>
+    <form
+      className={AdvanceSearchPopupStyles.wrapper}
+      onSubmit={handleSearch}
+      aria-label="Advanced Search Form"
+    >
       <HeadingBar
         displayType={"column"}
-        headline={"Advance Search"}
+        headline={"Advanced Search"}
         headlineSize={"h4"}
         headlineSizeType={"tag"}
       />
 
       <div className={AdvanceSearchPopupStyles.attributes}>
         <div className={AdvanceSearchPopupStyles.attribute}>
-          <label className="l1">Size</label>
+          <label className="l1" htmlFor="as-d-h">Size</label>
           <div className={`${AdvanceSearchPopupStyles.options} ${AdvanceSearchPopupStyles.sizeDimensions}`}>
             <input
-              className={`${AdvanceSearchPopupStyles.dimensionInput} c3`}
+              className={`${AdvanceSearchPopupStyles.dimensionInput}`}
               name="as-d-h"
               id="as-d-h"
               type="number"
@@ -103,11 +124,15 @@ const AdvanceSearchPopup = () => {
               min={min}
               max={max}
               value={height}
-              onChange={(e) => setHeight(e.target.value)}
+              onChange={(e) => {
+                setHeight(e.target.value);
+                clearError();
+              }}
+              aria-describedby={error ? "search-error" : undefined}
             />
-            <X />
+            <div style={{ display: 'flex', alignItems: 'center'}}><X style={{strokeWidth: 'var(--icon-stroke-xl)', width: '1.75rem', height: '1.75rem'}}  aria-hidden="true" /></div>
             <input
-              className={AdvanceSearchPopupStyles.dimensionInput}
+              className={`${AdvanceSearchPopupStyles.dimensionInput}`}
               name="as-d-w"
               id="as-d-w"
               type="number"
@@ -115,11 +140,15 @@ const AdvanceSearchPopup = () => {
               min={min}
               max={max}
               value={width}
-              onChange={(e) => setWidth(e.target.value)}
+              onChange={(e) => {
+                setWidth(e.target.value);
+                clearError();
+              }}
+              aria-describedby={error ? "search-error" : undefined}
             />
-            <X />
+            <div style={{ display: 'flex', alignItems: 'center'}}><X style={{strokeWidth: 'var(--icon-stroke-xl)', width: '1.75rem', height: '1.75rem'}}  aria-hidden="true" /></div>
             <input
-              className={AdvanceSearchPopupStyles.dimensionInput}
+              className={`${AdvanceSearchPopupStyles.dimensionInput}`}
               name="as-d-l"
               id="as-d-l"
               type="number"
@@ -127,7 +156,11 @@ const AdvanceSearchPopup = () => {
               min={min}
               max={max}
               value={length}
-              onChange={(e) => setLength(e.target.value)}
+              onChange={(e) => {
+                setLength(e.target.value);
+                clearError();
+              }}
+              aria-describedby={error ? "search-error" : undefined}
             />
           </div>
         </div>
@@ -138,11 +171,24 @@ const AdvanceSearchPopup = () => {
               <button
                 key={`productCategory_${productCategory}_${index}`}
                 className={`${AdvanceSearchPopupStyles.productCategoryBtn} ${
-                  transformText(productCategory) === productCategoryValue ? AdvanceSearchPopupStyles.productCategoryBtnActive : ""
-                } c3 square-btn`}
+                  transformText(productCategory) === productCategoryValue
+                    ? AdvanceSearchPopupStyles.productCategoryBtnActive
+                    : ""
+                }`}
                 name={`${transformText(productCategory)}_${index}`}
                 id={`${transformText(productCategory)}_${index}`}
-                onClick={() => setProductCategoryValue(transformText(productCategory))}
+                onClick={() => {
+                  setProductCategoryValue(transformText(productCategory));
+                  clearError();
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setProductCategoryValue(transformText(productCategory));
+                    clearError();
+                  }
+                }}
+                aria-pressed={transformText(productCategory) === productCategoryValue}
               >
                 {productCategory}
               </button>
@@ -154,16 +200,26 @@ const AdvanceSearchPopup = () => {
           <div className={AdvanceSearchPopupStyles.options}>
             <div className={AdvanceSearchPopupStyles.radioBtnWithLabelsWrapper}>
               {measurementUnits.map((measurementUnit, index) => (
-                <div key={`measurementUnit_${measurementUnit}_${index}`} className={AdvanceSearchPopupStyles.radioBtnWithLabel}>
+                <div
+                  key={`measurementUnit_${measurementUnit}_${index}`}
+                  className={AdvanceSearchPopupStyles.radioBtnWithLabel}
+                >
                   <input
                     type="radio"
                     id={`${transformText(measurementUnit)}_${index}`}
                     name="measurementUnits"
                     value={measurementUnit}
                     checked={measurementUnitValue === measurementUnit}
-                    onChange={(e) => setMeasurementUnitValue(e.target.value)}
+                    onChange={(e) => {
+                      setMeasurementUnitValue(e.target.value);
+                      clearError();
+                    }}
+                    aria-checked={measurementUnitValue === measurementUnit}
                   />
-                  <label className="c3" htmlFor={`${transformText(measurementUnit)}_${index}`}>
+                  <label
+                    className="b4"
+                    htmlFor={`${transformText(measurementUnit)}_${index}`}
+                  >
                     {measurementUnit}
                   </label>
                 </div>
@@ -176,16 +232,26 @@ const AdvanceSearchPopup = () => {
           <div className={AdvanceSearchPopupStyles.options}>
             <div className={AdvanceSearchPopupStyles.radioBtnWithLabelsWrapper}>
               {productSizes.map((productSize, index) => (
-                <div key={`productSize_${productSize}_${index}`} className={AdvanceSearchPopupStyles.radioBtnWithLabel}>
+                <div
+                  key={`productSize_${productSize}_${index}`}
+                  className={AdvanceSearchPopupStyles.radioBtnWithLabel}
+                >
                   <input
                     type="radio"
                     id={`${transformText(productSize)}_${index}`}
                     name="productSizes"
                     value={transformText(productSize)}
                     checked={productSizeValue === transformText(productSize)}
-                    onChange={(e) => setProductSizeValue(e.target.value)}
+                    onChange={(e) => {
+                      setProductSizeValue(e.target.value);
+                      clearError();
+                    }}
+                    aria-checked={productSizeValue === transformText(productSize)}
                   />
-                  <label className="c3" htmlFor={`${transformText(productSize)}_${index}`}>
+                  <label
+                    className="b4"
+                    htmlFor={`${transformText(productSize)}_${index}`}
+                  >
                     {productSize}
                   </label>
                 </div>
@@ -196,15 +262,23 @@ const AdvanceSearchPopup = () => {
       </div>
 
       <button
-        className="primary-btn large-btn full-width text-large"
-        onClick={handleSearch}
+        className="primary-btn large-btn full-width text-giant"
+        type="submit"
         disabled={isLoading}
       >
         {isLoading ? "Searching..." : "Search"}
       </button>
 
-      {error && <div className={`${AdvanceSearchPopupStyles.error} clr-red`}>{error}</div>}
-    </div>
+      {error && (
+        <div
+          className={`${AdvanceSearchPopupStyles.error} clr-danger`}
+          id="search-error"
+          role="alert"
+        >
+          {error}
+        </div>
+      )}
+    </form>
   );
 };
 

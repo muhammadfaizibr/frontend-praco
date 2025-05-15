@@ -1,3 +1,4 @@
+/* ========================================================================== */
 /* Product Details Layout */
 .productDetailsContainer {
   display: flex;
@@ -21,11 +22,12 @@
 
 .largePreviewImage {
   width: 100%;
-  max-width: 600px;
-  height: 600px;
+  max-width: 60rem;
+  height: 60rem;
   object-fit: contain;
   transition: transform 0.2s;
   border: 1px solid var(--clr-border);
+  border-radius: var(--radius-s);
 }
 
 .thumbnailContainer {
@@ -35,11 +37,12 @@
 }
 
 .thumbnailImage {
-  width: 80px;
-  height: 80px;
+  width: 8rem;
+  height: 8rem;
   object-fit: contain;
   cursor: pointer;
   transition: opacity 0.2s;
+  border-radius: var(--radius-s);
 }
 
 .thumbnailImage:hover {
@@ -48,6 +51,7 @@
 
 .selectedThumbnail {
   border: 2px solid var(--clr-primary);
+  border-radius: var(--radius-s);
 }
 
 .productDescription {
@@ -59,30 +63,31 @@
 }
 
 .productDescription hr {
-  border: 0.75px solid var(--clr-border);
+  border: 0.075rem solid var(--clr-border);
   margin: var(--padding-xxs) 0;
 }
 
 .presentDescription h2 {
   color: var(--clr-text);
-  margin-bottom: var(--padding-xxs) var(--padding-s);
+  margin-bottom: var(--padding-xxs);
 }
 
 .productDescription p {
-  margin-bottom: var(--padding-xxs) var(--padding-s);
+  margin-bottom: var(--padding-xxs);
 }
 
 .productDescription ul {
   list-style: disc;
   margin-left: 2rem;
-  margin-bottom: var(--padding-xxs) var(--padding-s);
+  margin-bottom: var(--padding-xxs);
 }
 
+/* ========================================================================== */
 /* Sticky Variant Navigation Bar */
 .variantNavBar {
   position: sticky;
   top: 0;
-  background-color: rgba(255, 255, 255, 1);
+  background-color: var(--clr-white);
   backdrop-filter: blur(40px);
   z-index: 10;
   display: flex;
@@ -97,11 +102,14 @@
   background: transparent;
   color: var(--clr-text);
   cursor: pointer;
+  padding: var(--padding-xs) var(--padding-s);
   transition: color 0.2s;
+  border-radius: var(--radius-s);
 }
 
 .variantNavLink.activeVariant {
   color: var(--clr-primary);
+
 }
 
 .variantNavLink:hover,
@@ -110,19 +118,20 @@
   outline: none;
 }
 
+/* ========================================================================== */
 /* Table Styles */
 .tableContentWrapper {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: var(--gap-l);
+  gap: var(--gap-m);
 }
 
 .variantSection {
-  margin-bottom: var(--gap-l);
+  margin-bottom: var(--gap-m);
   display: flex;
   flex-direction: column;
-  gap: var(--gap-s);
+  gap: var(--gap-xs);
 }
 
 .variantHeading {
@@ -133,6 +142,7 @@
   width: 100%;
   overflow-x: auto;
   border: 1px solid var(--clr-border);
+  border-radius: var(--radius-s);
 }
 
 .tableWrapper {
@@ -143,22 +153,26 @@
   width: 100%;
   border-collapse: collapse;
   color: var(--clr-text);
+  font-size: var(--font-size-small);
 }
 
 .table th,
 .table td {
-  padding: 0 var(--padding-s);
+  padding: var(--padding-xxs) var(--padding-xs);
   text-align: center;
   border-right: 1px solid var(--clr-border);
   border-top: 1px solid var(--clr-border);
 }
 
+.table th{
+  border-top: none;
+}
 .table th {
-  padding: var(--padding-xxs);
+  padding: var(--padding-xs) var(--padding-l);
 }
 
 .table td {
-  min-width: 130px;
+  min-width: 10rem;
 }
 
 .table th:last-child,
@@ -166,22 +180,21 @@
   border-right: none;
 }
 
-/* Make "No. of Units" column sticky */
+/* Sticky "No. of Units" Column */
 .table th:last-child,
 .table td:last-child {
   position: sticky;
   right: 0;
-  background-color: var(--clr-white); /* Match table background */
-  z-index: 2; /* Ensure it appears above other cells */
-  box-shadow: -2px 0 2px rgba(0, 0, 0, 0.5); /* Add a subtle shadow for separation */
-  border-left: 1px solid var(--clr-border) !important; /* Add a left border for separation */
+  background-color: var(--clr-white);
+  z-index: 2;
+  box-shadow: -2px 0 2px rgba(0, 0, 0, 0.5);
+  border-left: 1px solid var(--clr-border);
 }
 
-/* Ensure the header of the sticky column matches its style */
 .table th:last-child {
-  background-color: var(--clr-green-light); /* Match unitsInputHeader background */
+  background-color: var(--clr-green-light);
   color: var(--clr-green-text);
-  z-index: 3; /* Higher z-index for header to stay above cells */
+  z-index: 3;
 }
 
 .defaultHeader,
@@ -204,12 +217,12 @@
 }
 
 .pricingTierHeader {
-  background-color: var(--clr-yellow-light);
+  background-color: var(--clr-accent);
   color: var(--clr-yellow-text);
 }
 
 .longField {
-  min-width: 400px;
+  min-width: 30rem;
 }
 
 .thWithButtons {
@@ -227,24 +240,25 @@
 .thButton {
   background: none;
   border: 1px solid var(--clr-border);
-  padding: 0.2rem 0.4rem;
+  padding: var(--padding-xxs) var(--padding-xs);
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 0.2rem;
+  gap: var(--gap-xxs);
   background-color: var(--clr-white);
+  border-radius: var(--radius-s);
 }
 
 .thButton.active {
   background: var(--clr-primary);
-  color: #ffffff;
+  color: var(--clr-white);
   border-color: var(--clr-primary);
 }
 
 .thButton:hover,
 .thButton:focus {
   background: var(--clr-primary);
-  color: #ffffff;
+  color: var(--clr-white);
   outline: none;
 }
 
@@ -265,8 +279,8 @@
 }
 
 .colImageContainer {
-  width: 60px;
-  height: 60px;
+  width: 6rem;
+  height: 6rem;
   object-fit: fill;
   display: flex;
   justify-content: center;
@@ -276,21 +290,26 @@
 .priceButton {
   border: none;
   cursor: pointer;
-  padding: var(--padding-xxs) var(--padding-s);
+  padding: var(--padding-xxs) var(--padding-xs);
   color: var(--clr-text);
   width: 100%;
-  height: 40px;
+  height: 3rem;
+  border-radius: var(--radius-s);
+  background-color: var(--clr-gray-light);
+  padding: var(--padding-l);
 }
 
 .priceButton:hover,
 .priceButton:focus {
   outline: none;
+  background: var(--clr-primary-tint-light);
 }
 
 .selectedTier {
   color: var(--clr-white) !important;
   font-weight: bold;
-  background-color: var(--clr-primary);
+  background-color: var(--clr-primary) !important;
+  padding: var(--padding-l);
 }
 
 .selectedTier .exclusivePrice {
@@ -308,10 +327,11 @@
 }
 
 .unitInput {
-  width: 60px;
-  padding: 0.2rem 0.4rem;
+  width: 5rem;
+  padding: 0.1rem 0.3rem;
   border: 1px solid var(--clr-gray);
   text-align: center;
+  border-radius: 0 !important;
 }
 
 .unitInputGroup {
@@ -323,27 +343,27 @@
 .unitButton {
   background: none;
   border: 1px solid var(--clr-border);
-  padding: 0.2rem;
-  /* border-radius: 4px; */
+  padding: 0.1rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   background-color: var(--clr-white);
+  border-radius: var(--radius-s);
 }
 
 .unitButtonMinus {
   color: var(--clr-success);
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
-  border-right: 0;
+  border-right: none;
 }
 
 .unitButtonPlus {
   color: var(--clr-danger);
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
-  border-left: 0;
+  border-left: none;
 }
 
 .unitInput:focus {
@@ -354,7 +374,7 @@
 .discountTag {
   margin-left: 0.5rem;
   color: var(--clr-primary);
-  font-size: 0.9rem;
+  font-size: var(--font-size-small);
   font-weight: 500;
 }
 
@@ -362,6 +382,7 @@
   margin-bottom: var(--gap-m);
 }
 
+/* ========================================================================== */
 /* Bottom Sticky Bar */
 .stickyBar {
   position: fixed;
@@ -377,24 +398,24 @@
   display: flex;
   flex-direction: column;
   gap: var(--padding-xxs);
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   background-color: var(--clr-white);
 }
 
-/* Cart Summary Table (for CartTable.jsx) */
+/* ========================================================================== */
+/* Cart Summary Table */
 .cartSummaryTable {
   width: 100%;
-  max-width: 400px;
+  max-width: 40rem;
   margin-left: auto;
   border-collapse: collapse;
   border: 1px solid var(--clr-border);
   background-color: var(--clr-white);
-  font-size: 0.9rem;
+  font-size: var(--font-size-small);
 }
 
 .cartSummaryTable th,
 .cartSummaryTable td {
-  padding: var(--padding-xs) var(--padding-s);
+  padding: var(--padding-xxs) var(--padding-xs);
   border-bottom: 1px solid var(--clr-border);
   border-right: 1px solid var(--clr-border);
   text-align: right;
@@ -403,7 +424,7 @@
 
 .cartSummaryTable th {
   font-weight: 600;
-  background-color: var(--clr-blue-light);
+  background-color: var(--clr-gray-light);
   color: var(--clr-blue-dark);
 }
 
@@ -424,18 +445,19 @@
 .cartSummaryTable .totalRow th,
 .cartSummaryTable .totalRow td {
   font-weight: 700;
-  background-color: var(--clr-blue-dark);
+  background-color: var(--clr-primary);
   color: var(--clr-white);
 }
 
-/* Products Summary Table (for ProductsTable.jsx sticky bar) */
+/* ========================================================================== */
+/* Products Summary Table */
 .productsSummaryTable {
-  max-width: 600px;
+  max-width: 60rem;
   margin: 0 auto;
   border-collapse: collapse;
   border: 1px solid var(--clr-border);
   background-color: var(--clr-white);
-  font-size: 0.9rem;
+  font-size: var(--font-size-small);
 }
 
 .productsSummaryTable th,
@@ -444,12 +466,13 @@
   border-bottom: 1px solid var(--clr-border);
   border-right: 1px solid var(--clr-border);
   color: var(--clr-black);
+  min-width: 120px;
 }
 
 .productsSummaryTable th {
   font-weight: 600;
-  background-color: var(--clr-green-light);
-  color: var(--clr-green-text);
+  background-color: var(--clr-gray-light);
+  color: var(--clr-black);
   text-align: right;
 }
 
@@ -476,17 +499,17 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 var(--padding-s) var(--padding-s) var(--padding-s);
+  padding: var(--padding-xs);
 }
 
 .actionButtons {
   display: flex;
-  gap: var(--padding-s);
+  gap: var(--padding-xs);
 }
 
 .totalPrice {
   font-size: 2rem;
-  color: #000000;
+  color: var(--clr-black);
   font-weight: bold;
 }
 
@@ -498,7 +521,8 @@
   color: var(--clr-text);
 }
 
-/* Responsive Design */
+/* ========================================================================== */
+/* Media Queries */
 @media (max-width: 1024px) {
   .productDetailsContainer {
     flex-direction: column;
@@ -513,7 +537,7 @@
   }
 
   .table {
-    font-size: 1.4rem;
+    font-size: var(--font-size-small);
   }
 }
 
@@ -524,48 +548,28 @@
   }
 
   .unitInput {
-    width: 60px;
+    width: 5rem;
   }
 
   .largePreviewImage {
-    height: 200px;
+    height: 20rem;
   }
 
   .thumbnailImage {
-    width: 60px;
-    height: 60px;
+    width: 6rem;
+    height: 6rem;
   }
 
   .cartSummaryTable,
   .productsSummaryTable {
     width: 100%;
     margin: 0;
-    font-size: 0.85rem;
   }
 
-  .cartSummaryTable th,
-  .cartSummaryTable td,
-  .productsSummaryTable th,
-  .productsSummaryTable td {
-    padding: var(--padding-xs);
-  }
+
 
   .stickyBar {
     min-width: 0;
   }
 
-  .totalPrice {
-    font-size: 1.5rem;
-  }
-}
-
-@media (max-width: 400px) {
-  .totalPrice {
-    font-size: 1.25rem;
-  }
-
-  .cartSummaryTable,
-  .productsSummaryTable {
-    font-size: 0.8rem;
-  }
 }

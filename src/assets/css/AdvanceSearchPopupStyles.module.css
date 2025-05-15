@@ -3,11 +3,12 @@
 .wrapper {
     display: flex;
     flex-direction: column;
-    padding: clamp(1.2rem, 2vw, 1.8rem);
-    gap: clamp(1.6rem, 2.5vw, 2.4rem);
+    padding: var(--padding-m);
+    gap: var(--gap-s);
     width: 100%;
     box-shadow: var(--shadow-form);
     background-color: var(--clr-white);
+    border-radius: var(--radius-m);
 }
 
 /* ========================================================================== */
@@ -15,29 +16,35 @@
 .attributes {
     display: flex;
     flex-direction: column;
-    gap: clamp(1.6rem, 2.5vw, 2.4rem);
+    gap: var(--gap-m);
 }
 
 .attribute {
     display: flex;
     justify-content: space-between;
-    gap: clamp(0.8rem, 1.5vw, 1.2rem);
+    gap: var(--gap-xs);
     align-items: center;
     flex-wrap: wrap;
 }
 
-.attribute .options,
+.attribute .options {
+    display: flex;
+    gap: var(--gap-xs);
+    align-items: center;
+    /* flex-wrap: wrap; */
+    justify-content: flex-end;
+}
+
 .attribute .radioBtnWithLabelsWrapper {
     display: flex;
-    gap: clamp(0.8rem, 1.5vw, 1.2rem);
+    gap: var(--gap-s);
     align-items: center;
     flex-wrap: wrap;
-    justify-content: flex-end;
 }
 
 .attribute .radioBtnWithLabel {
     display: flex;
-    gap: clamp(0.4rem, 1vw, 0.6rem);
+    gap: var(--gap-xxs);
     align-items: center;
 }
 
@@ -46,13 +53,22 @@
 .productCategoryBtn {
     background-color: var(--clr-accent);
     color: var(--clr-text);
-    padding: clamp(0.8rem, 1vw, 1.2rem);
+    padding: var(--padding-xs);
     border: none;
-    font-size: 1.4rem;
+    font-size: var(--font-size-small);
+    border-radius: var(--radius-s);
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .productCategoryBtn.productCategoryBtnActive {
     background-color: var(--clr-gray-dark);
+    color: var(--clr-white);
+}
+
+.productCategoryBtn:hover,
+.productCategoryBtn:focus {
+    background-color: var(--clr-primary);
     color: var(--clr-white);
 }
 
@@ -61,32 +77,72 @@
 .dimensionInput {
     display: flex;
     text-align: center;
-    padding: clamp(0.8rem, 1vw, 1.2rem);
-    width: 6rem;
+    padding: var(--padding-xs) !important;
+    /* width: clamp(5rem, 8vw, 6.4rem); */
     border: 1px solid var(--clr-border);
+    border-radius: var(--radius-s);
+    font-size: var(--font-size-small) !important;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: textfield;
 }
 
-.sizeDimensions svg {
-    color: var(--clr-text);
-    width: 1.2rem;
-    height: 1.2rem;
+.dimensionInput::-webkit-inner-spin-button,
+.dimensionInput::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.dimensionInput:focus {
+    box-shadow: var(--shadow-primary-pressed);
+    border-color: var(--clr-primary);
+}
+
+.sizeDimensions {
+    display: flex;
+    align-items: center;
+    gap: clamp(0.4rem, 1vw, 0.6rem);
+}
+
+/* ========================================================================== */
+/* Error */
+.error {
+    color: var(--clr-danger);
+    font-size: var(--font-size-base);
+    text-align: center;
+
 }
 
 /* ========================================================================== */
 /* Media Queries */
 @media (max-width: 480px) {
+    .wrapper {
+        padding: var(--padding-s);
+        gap: var(--gap-xl);
+    }
+
+    .attributes{
+        gap: var(--gap-xl);
+    }
+
     .attribute {
         align-items: flex-start;
         flex-direction: column;
-        gap: clamp(0.8rem, 1.5vw, 1.2rem);
+        gap: var(--gap-s);
     }
+
     .attribute .options,
     .attribute .radioBtnWithLabelsWrapper {
-        /* justify-content: space-between !important; */
+        justify-content: flex-start;
         width: 100%;
     }
-    .options input[type="number"],
-    .options button {
+
+    .dimensionInput {
+        width: 100%;
         flex-grow: 1;
+    }
+
+    .productCategoryBtn {
+        padding: var(--padding-xs);
     }
 }

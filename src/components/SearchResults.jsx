@@ -3,6 +3,7 @@ import { useLocation, Link } from "react-router-dom";
 import HeadingBar from "components/HeadingBar";
 import { searchItems } from "utils/api/ecommerce";
 import TableStyles from "assets/css/TableStyles.module.css";
+import CustomLoading from "components/CustomLoading";
 
 const SearchResults = () => {
   const [results, setResults] = useState([]);
@@ -104,7 +105,7 @@ const SearchResults = () => {
         headlineSizeType={"tag"}
       />
 
-      {isLoading && <div className={TableStyles.loading}>Loading...</div>}
+      {isLoading && <CustomLoading />}
 
       {error && <div className={`${TableStyles.error} clr-red`}>{error}</div>}
 

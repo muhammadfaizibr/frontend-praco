@@ -10,6 +10,7 @@ import {
   getTableFieldsByProductVariant,
   getPricingTierDataByItem,
 } from "utils/api/ecommerce";
+import CustomLoading from "components/CustomLoading";
 
 // Error Boundary Component
 const ErrorBoundary = ({ children }) => {
@@ -185,7 +186,7 @@ const ProductDetails = () => {
     setSelectedImage(image);
   }, []);
 
-  if (loading) return <div className={TableStyles.loading}>Loading...</div>;
+  if (loading) return <CustomLoading />;
   if (error) return <div className={TableStyles.error}>Error: {error}</div>;
 
   const sanitizedDescription = DOMPurify.sanitize(productData.description || "");

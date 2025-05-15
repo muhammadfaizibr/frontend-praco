@@ -8,6 +8,7 @@
   width: 100%;
   box-shadow: var(--shadow-form);
   background-color: var(--clr-white);
+  border-radius: var(--radius-m);
 }
 
 /* ========================================================================== */
@@ -31,16 +32,16 @@
   padding: 0;
   border: 1px solid var(--clr-border);
   display: flex;
+  border-radius: var(--radius-s);
 }
 
 .inputGroup .unitInputWrapper input {
   border: none;
   width: 100%;
-  border-right: 1px solid var(--clr-border);
   padding: clamp(0.6rem, 0.8vw, 0.8rem) clamp(1.2rem, 1.4vw, 1.4rem);
   outline: none;
   color: var(--clr-text);
-  z-index: 10;
+  font-size: var(--font-size-base);
 }
 
 .inputGroup .unitInputWrapper .copyBtn {
@@ -49,13 +50,16 @@
   border: none;
   background-color: var(--clr-accent);
   color: var(--clr-text);
+  padding: clamp(0.6rem, 0.8vw, 0.8rem);
+  border-radius: 0 var(--radius-s) var(--radius-s) 0;
+  cursor: pointer;
 }
 
 /* ========================================================================== */
 /* Media Queries */
 @media (max-width: 480px) {
   .inputGrid {
-      grid-template-columns: 1fr;
-      gap: clamp(0.8rem, 1.5vw, 1.2rem);
+    grid-template-columns: 1fr;
+    gap: clamp(0.8rem, 1.5vw, 1.2rem);
   }
 }

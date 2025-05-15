@@ -3,32 +3,32 @@
 .container {
     display: flex;
     width: 100%;
-}
-
-.container.row {
+  }
+  
+  .container.row {
     gap: clamp(2rem, 3vw, 3rem);
     flex-direction: row;
     align-items: center;
-}
-
-.container.column {
+  }
+  
+  .container.column {
     gap: clamp(0.8rem, 1.5vw, 1rem);
     flex-direction: column;
-}
-
-/* ========================================================================== */
-/* Divider Wrapper */
-.dividerWrapper {
+  }
+  
+  /* ========================================================================== */
+  /* Divider Wrapper */
+  .dividerWrapper {
     display: flex;
     height: 0.1rem;
     flex-grow: 1;
-}
-
-
-/* ========================================================================== */
-/* Media Queries */
-@media (max-width: 768px) {
+    background-color: var(--clr-border);
+  }
+  
+  /* ========================================================================== */
+  /* Media Queries */
+  @media (max-width: 768px) {
     .container.row .dividerWrapper {
-        display: none;
+      display: none;
     }
-}
+  }

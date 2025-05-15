@@ -86,7 +86,7 @@ export function AppRoutes() {
         }
       />
       <Route
-        path="/forget-password"
+        path="/forgot-password"
         element={
           <GuestRoute>
             <ForgetPassword />

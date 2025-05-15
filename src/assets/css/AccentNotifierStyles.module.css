@@ -4,4 +4,5 @@
     display: flex;
     gap: var(--gap-s);
     align-items: center;
+    border-radius: var(--radius-m);
 }

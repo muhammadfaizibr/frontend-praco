@@ -1,16 +1,18 @@
+/* ========================================================================== */
 /* Product Card */
 .productCard {
   display: flex;
   flex-direction: column;
   background: var(--clr-white);
   border: 1px solid var(--clr-border);
+  border-radius: var(--radius-m);
   overflow: hidden;
   transition: box-shadow 0.15s ease, transform 0.15s ease;
 }
 
 .productCard:hover {
   box-shadow: var(--shadow-card);
-  transform: translateY(-2px);
+  transform: translateY(-0.2rem);
 }
 
 .productCard:hover > .imageWrapper::after {
@@ -21,10 +23,11 @@
   transition: background-color 0.15s ease;
 }
 
+/* ========================================================================== */
 /* Image Wrapper */
 .imageWrapper {
   position: relative;
-  padding-top: 100%;
+  padding-top: 100%; /* Maintains 1:1 aspect ratio */
   overflow: hidden;
 }
 
@@ -38,6 +41,7 @@
   display: block;
 }
 
+/* ========================================================================== */
 /* Content Wrapper */
 .contentWrapper {
   display: flex;
@@ -55,21 +59,29 @@
   gap: var(--gap-m);
 }
 
+/* ========================================================================== */
 /* Button */
 .productCard button {
   background-color: var(--clr-gray-dark);
   color: var(--clr-white);
   border: none;
+  border-radius: var(--radius-s);
+  padding: var(--medium-btn-padding);
+  font-size: var(--font-size-base);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
 }
 
 .productCard button:hover {
   background-color: var(--clr-primary);
 }
 
+/* ========================================================================== */
 /* Price */
 .productPrice {
   color: var(--clr-black);
   font-weight: 500;
+  font-size: var(--font-size-base);
 }
 
 .productCard:hover .productPrice {

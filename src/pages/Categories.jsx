@@ -5,6 +5,7 @@ import Products from "components/Products";
 import BreadCrumb from "components/BreadCrumb";
 import FormStyles from "assets/css/FormStyles.module.css";
 import { getProductsByCategory, getCategories, getProductVariants } from "utils/api/ecommerce";
+import CustomLoading from "components/CustomLoading";
 
 const Categories = () => {
   const { slug } = useParams();
@@ -88,7 +89,7 @@ const Categories = () => {
       <div className="centered-layout-wrapper layout-spacing full-width-flex-col layout-vertical-padding">
         <div className="centered-layout page-layout layout-spacing full-width-flex-col">
           {isLoading && (
-            <div className={`${FormStyles.loading} b3 clr-gray`}>Loading...</div>
+           <CustomLoading />
           )}
           {error && <div className={FormStyles.errorMessage}>{error}</div>}
           {!isLoading && !error && products.length === 0 && (

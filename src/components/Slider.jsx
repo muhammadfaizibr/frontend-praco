@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from "react";
 import SliderStyles from "assets/css/Slider.module.css";
 import { Link } from "react-router-dom";
 import { getCategories } from "utils/api/ecommerce";
+import CustomLoading from "components/CustomLoading";
 
 const Slider = () => {
   const sliderRef = useRef(null);
@@ -84,7 +85,7 @@ const Slider = () => {
 
   return (
     <div className={SliderStyles.sliderContainer}>
-      {isLoading && <div className={`${SliderStyles.loading} b3 clr-gray`}>Loading...</div>}
+      {isLoading && <CustomLoading />}
       {error && <div className={SliderStyles.errorMessage}>{error}</div>}
       {!isLoading && !error && categories.length === 0 && (
         <div className="b3 clr-gray">No categories available.</div>

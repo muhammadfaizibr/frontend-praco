@@ -779,7 +779,7 @@ const ProductsTable = ({ variantsWithData }) => {
             </table>
             <div className={TableStyles.stickyBarActions}>
               <div className={TableStyles.actionButtons}>
-                <button className="primary-btn" onClick={handleAddToCart} aria-label="Add selected items to cart">
+                <button className="primary-btn text-large" onClick={handleAddToCart} aria-label="Add selected items to cart">
                   Add to Cart
                 </button>
               </div>

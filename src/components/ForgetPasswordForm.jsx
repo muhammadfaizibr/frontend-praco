@@ -1,8 +1,50 @@
-import React, { useState, useEffect } from "react";
-import FormStyles from "assets/css/FormStyles.module.css";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useCallback } from "react";
+import PropTypes from "prop-types";
+import styles from "assets/css/FormStyles.module.css";
+import { Link } from "react-router-dom";
 import { Lock, Mail } from "lucide-react";
 import { authenticateEmail, resetPassword, clearRequestCache } from "utils/api/account";
+import { useNavigate } from "react-router-dom";
+
+const InputField = ({ label, name, type, icon, value, onChange, error, disabled, button }) => (
+  <div className={styles.inputGroup}>
+    <label className="dark l2" htmlFor={name}>
+      {label}
+    </label>
+    <div className={styles.inputWrapper}>
+      <span className={styles.inputIcon}>{icon}</span>
+      <input
+        className={`b2 ${error ? styles.inputError : ""}`}
+        type={type}
+        name={name}
+        id={name}
+        value={value}
+        onChange={onChange}
+        disabled={disabled}
+        aria-invalid={!!error}
+        aria-describedby={error ? `${name}-error` : undefined}
+      />
+      {button}
+    </div>
+    {error && (
+      <span id={`${name}-error`} className={styles.errorText} role="alert">
+        {error}
+      </span>
+    )}
+  </div>
+);
+
+InputField.propTypes = {
+  label: PropTypes.string.isRequired,
+  name: PropTypes.string.isRequired,
+  type: PropTypes.string.isRequired,
+  icon: PropTypes.node.isRequired,
+  value: PropTypes.string.isRequired,
+  onChange: PropTypes.func.isRequired,
+  error: PropTypes.string,
+  disabled: PropTypes.bool,
+  button: PropTypes.node,
+};
 
 const ForgetPasswordForm = () => {
   const [emailValue, setEmailValue] = useState("");
@@ -19,96 +61,37 @@ const ForgetPasswordForm = () => {
   const [isEmailVerified, setIsEmailVerified] = useState(false);
   const navigate = useNavigate();
 
-  const abortController = new AbortController();
+  const generateOtp = useCallback(() => {
+    return Math.floor(1000 + Math.random() * 9000).toString();
+  }, []);
 
-  const generateOtp = () => {
-    return Math.floor(1000 + Math.random() * 9000).toString(); // 4-digit OTP
-  };
-
-  const formInputs = [
-    {
-      label: "Email Address",
-      name: "email",
-      type: "email",
-      icon: <Mail />,
-      value: emailValue,
-      onchange: (e) => {
-        setEmailValue(e.target.value);
-        setShowOtpInput(false);
-        setOtpValue("");
-        setGeneratedOtp(null);
-        setIsEmailVerified(false);
-        setNewPasswordValue("");
-        setConfirmNewPasswordValue("");
-        setSuccessMessage("");
-      },
-    },
-    ...(showOtpInput
-      ? [
-          {
-            label: "Enter OTP",
-            name: "otp",
-            type: "text",
-            icon: <Lock />,
-            value: otpValue,
-            onchange: (e) => setOtpValue(e.target.value),
-          },
-        ]
-      : []),
-    ...(isEmailVerified
-      ? [
-          {
-            label: "New Password",
-            name: "new-password",
-            type: "password",
-            icon: <Lock />,
-            value: newPasswordValue,
-            onchange: (e) => setNewPasswordValue(e.target.value),
-          },
-          {
-            label: "Confirm Password",
-            name: "confirm-new-password",
-            type: "password",
-            icon: <Lock />,
-            value: confirmNewPasswordValue,
-            onchange: (e) => setConfirmNewPasswordValue(e.target.value),
-          },
-        ]
-      : []),
-  ];
-
-  const validateEmail = () => {
+  const validateEmail = useCallback(() => {
     const newErrors = {};
     if (!emailValue) newErrors.email = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(emailValue))
-      newErrors.email = "Invalid email format";
+    else if (!/\S+@\S+\.\S+/.test(emailValue)) newErrors.email = "Invalid email format";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
+  }, [emailValue]);
 
-  const validateOtp = () => {
+  const validateOtp = useCallback(() => {
     const newErrors = {};
     if (!otpValue) newErrors.otp = "OTP is required";
-    else if (!/^\d{4}$/.test(otpValue))
-      newErrors.otp = "OTP must be a 4-digit number";
+    else if (!/^\d{4}$/.test(otpValue)) newErrors.otp = "OTP must be a 4-digit number";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
+  }, [otpValue]);
 
-  const validatePasswords = () => {
+  const validatePasswords = useCallback(() => {
     const newErrors = {};
     if (!newPasswordValue) newErrors["new-password"] = "New password is required";
-    else if (newPasswordValue.length < 8)
-      newErrors["new-password"] = "Password must be at least 8 characters";
-    if (!confirmNewPasswordValue)
-      newErrors["confirm-new-password"] = "Confirm password is required";
-    else if (confirmNewPasswordValue !== newPasswordValue)
-      newErrors["confirm-new-password"] = "Passwords do not match";
+    else if (newPasswordValue.length < 8) newErrors["new-password"] = "Password must be at least 8 characters";
+    if (!confirmNewPasswordValue) newErrors["confirm-new-password"] = "Confirm password is required";
+    else if (confirmNewPasswordValue !== newPasswordValue) newErrors["confirm-new-password"] = "Passwords do not match";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
+  }, [newPasswordValue, confirmNewPasswordValue]);
 
-  const handleSendOtp = async () => {
+  const handleSendOtp = useCallback(async () => {
     setApiError("");
     setSuccessMessage("");
     if (!validateEmail()) return;
@@ -116,6 +99,7 @@ const ForgetPasswordForm = () => {
     const newOtp = generateOtp();
     setGeneratedOtp(newOtp);
     setIsVerifying(true);
+    const abortController = new AbortController();
     try {
       const response = await authenticateEmail(
         { email: emailValue, code: newOtp, authentication_type: "forgot_password" },
@@ -129,17 +113,13 @@ const ForgetPasswordForm = () => {
         setApiError(response.message || "Failed to send OTP. Please try again.");
       }
     } catch (error) {
-      if (error.fieldErrors?.authentication_type) {
-        setApiError(error.fieldErrors.authentication_type.join(" "));
-      } else {
-        setApiError(error.message || "Failed to send OTP. Please try again.");
-      }
+      setApiError(error.message || "Failed to send OTP. Please try again.");
     } finally {
       setIsVerifying(false);
     }
-  };
+  }, [emailValue, validateEmail, generateOtp]);
 
-  const handleVerifyOtp = async () => {
+  const handleVerifyOtp = useCallback(async () => {
     setApiError("");
     setSuccessMessage("");
     if (!validateOtp()) return;
@@ -150,6 +130,7 @@ const ForgetPasswordForm = () => {
     }
 
     setIsVerifying(true);
+    const abortController = new AbortController();
     try {
       const response = await authenticateEmail(
         { email: emailValue, code: otpValue, authentication_type: "forgot_password" },
@@ -167,146 +148,182 @@ const ForgetPasswordForm = () => {
         setApiError(response.message || "Invalid OTP. Please try again.");
       }
     } catch (error) {
-      if (error.fieldErrors?.authentication_type) {
-        setApiError(error.fieldErrors.authentication_type.join(" "));
-      } else {
-        setApiError(error.message || "OTP verification failed. Please try again.");
-      }
+      setApiError(error.message || "OTP verification failed. Please try again.");
     } finally {
       setIsVerifying(false);
     }
-  };
+  }, [emailValue, otpValue, generatedOtp, validateOtp]);
 
-  const handleResetPassword = async (e) => {
-    e.preventDefault();
-    setApiError("");
-    setSuccessMessage("");
-    setErrors({});
+  const handleResetPassword = useCallback(
+    async (e) => {
+      e.preventDefault();
+      setApiError("");
+      setSuccessMessage("");
+      setErrors({});
 
-    if (!validatePasswords()) return;
+      if (!validatePasswords()) return;
 
-    setIsLoading(true);
-    try {
-      const payload = {
-        email: emailValue,
-        new_password: newPasswordValue,
-        confirm_new_password: confirmNewPasswordValue,
-      };
-      const response = await resetPassword(payload, {
-        signal: abortController.signal,
-      });
+      setIsLoading(true);
+      const abortController = new AbortController();
+      try {
+        const response = await resetPassword(
+          {
+            email: emailValue,
+            new_password: newPasswordValue,
+            confirm_new_password: confirmNewPasswordValue,
+          },
+          { signal: abortController.signal }
+        );
 
-      if (!response.errors) {
-        setSuccessMessage("Password reset successfully!");
-        setEmailValue("");
-        setNewPasswordValue("");
-        setConfirmNewPasswordValue("");
-        setIsEmailVerified(false);
-        setShowOtpInput(false);
-        setOtpValue("");
-        setGeneratedOtp(null);
-        setErrors({});
-        setTimeout(() => {
-          navigate("/login");
-        }, 2000); // Redirect after 2 seconds
-      } else {
-        setApiError(response.message || "Password reset failed. Please try again.");
+        if (!response.errors) {
+          setSuccessMessage("Password reset successfully!");
+          setEmailValue("");
+          setNewPasswordValue("");
+          setConfirmNewPasswordValue("");
+          setIsEmailVerified(false);
+          setShowOtpInput(false);
+          setOtpValue("");
+          setGeneratedOtp(null);
+          setErrors({});
+          setTimeout(() => navigate("/login"), 2000);
+        } else {
+          setApiError(response.message || "Password reset failed. Please try again.");
+        }
+      } catch (error) {
+        setApiError(error.message || "Password reset failed. Please try again.");
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      if (error.fieldErrors) {
-        setErrors((prev) => ({
-          ...prev,
-          ...error.fieldErrors,
-          "new-password": error.fieldErrors.new_password || prev["new-password"],
-          "confirm-new-password": error.fieldErrors.confirm_new_password || prev["confirm-new-password"],
-        }));
-      }
-      setApiError(error.message || "Password reset failed. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    },
+    [emailValue, newPasswordValue, confirmNewPasswordValue, validatePasswords, navigate]
+  );
 
   useEffect(() => {
+    const abortController = new AbortController();
     return () => {
       abortController.abort();
       clearRequestCache();
     };
   }, []);
 
+  const formInputs = [
+    {
+      label: "Email Address",
+      name: "email",
+      type: "email",
+      icon: <Mail aria-hidden="true" />,
+      value: emailValue,
+      onChange: (e) => {
+        setEmailValue(e.target.value);
+        setShowOtpInput(false);
+        setOtpValue("");
+        setGeneratedOtp(null);
+        setIsEmailVerified(false);
+        setNewPasswordValue("");
+        setConfirmNewPasswordValue("");
+        setSuccessMessage("");
+      },
+      error: errors.email,
+      disabled: isLoading || isVerifying || isEmailVerified,
+      button: !showOtpInput && !isEmailVerified && (
+        <button
+          type="button"
+          className={`secondary-btn btn-medium ${isVerifying ? styles.loading : ""}`}
+          onClick={handleSendOtp}
+          disabled={isVerifying || isLoading}
+          aria-label="Send OTP"
+        >
+          {isVerifying ? "Processing..." : "Send OTP"}
+        </button>
+      ),
+    },
+    ...(showOtpInput
+      ? [
+          {
+            label: "Enter OTP",
+            name: "otp",
+            type: "text",
+            icon: <Lock aria-hidden="true" />,
+            value: otpValue,
+            onChange: (e) => setOtpValue(e.target.value),
+            error: errors.otp,
+            disabled: isLoading || isVerifying,
+            button: (
+              <button
+                type="button"
+                className={`secondary-btn btn-medium ${isVerifying ? styles.loading : ""}`}
+                onClick={handleVerifyOtp}
+                disabled={isVerifying || isLoading}
+                aria-label="Verify OTP"
+              >
+                {isVerifying ? "Verifying..." : "Verify OTP"}
+              </button>
+            ),
+          },
+        ]
+      : []),
+    ...(isEmailVerified
+      ? [
+          {
+            label: "New Password",
+            name: "new-password",
+            type: "password",
+            icon: <Lock aria-hidden="true" />,
+            value: newPasswordValue,
+            onChange: (e) => setNewPasswordValue(e.target.value),
+            error: errors["new-password"],
+            disabled: isLoading,
+          },
+          {
+            label: "Confirm Password",
+            name: "confirm-new-password",
+            type: "password",
+            icon: <Lock aria-hidden="true" />,
+            value: confirmNewPasswordValue,
+            onChange: (e) => setConfirmNewPasswordValue(e.target.value),
+            error: errors["confirm-new-password"],
+            disabled: isLoading,
+          },
+        ]
+      : []),
+  ];
+
   return (
-    <div className={FormStyles.formWrapper}>
-      <form className={FormStyles.container} onSubmit={handleResetPassword}>
-        <h4 className="dark">Forget Password</h4>
+    <div className={styles.formWrapper}>
+      <form
+        className={styles.container}
+        onSubmit={handleResetPassword}
+        aria-labelledby="forget-password-title"
+        noValidate
+      >
+        <h4 id="forget-password-title" className="h4--dark">
+          Forget Password
+        </h4>
 
         {apiError && (
-          <div className={FormStyles.errorMessage}>{apiError}</div>
+          <div className={styles.errorMessage} role="alert">
+            {apiError}
+          </div>
         )}
         {successMessage && (
-          <div className={FormStyles.successMessage}>{successMessage}</div>
+          <div className={styles.successMessage} role="alert">
+            {successMessage}
+          </div>
         )}
 
-        {formInputs.map((inputElement) => (
-          <div className={FormStyles.inputGroup} key={inputElement.name}>
-            <label className="dark l2" htmlFor={inputElement.name}>
-              {inputElement.label}
-            </label>
-            <div className={FormStyles.inputWrapper}>
-              <span className={FormStyles.inputIcon}>{inputElement.icon}</span>
-              <input
-                className={`b2 ${
-                  errors[inputElement.name] ? FormStyles.inputError : ""
-                }`}
-                type={inputElement.name === "otp" ? "text" : inputElement.type}
-                name={inputElement.name}
-                id={inputElement.name}
-                value={inputElement.value}
-                onChange={inputElement.onchange}
-                disabled={isLoading || isVerifying}
-              />
-              {inputElement.name === "email" && !showOtpInput && !isEmailVerified && (
-                <button
-                  type="button"
-                  className={`secondary-btn medium-btn ${
-                    isVerifying ? FormStyles.loading : ""
-                  }`}
-                  onClick={handleSendOtp}
-                  disabled={isVerifying || isLoading}
-                >
-                  {isVerifying ? "Processing..." : "Send OTP"}
-                </button>
-              )}
-              {inputElement.name === "otp" && (
-                <button
-                  type="button"
-                  className={`secondary-btn medium-btn ${
-                    isVerifying ? FormStyles.loading : ""
-                  }`}
-                  onClick={handleVerifyOtp}
-                  disabled={isVerifying || isLoading}
-                >
-                  {isVerifying ? "Verifying..." : "Verify OTP"}
-                </button>
-              )}
-            </div>
-            {errors[inputElement.name] && (
-              <span className={FormStyles.errorText}>
-                {errors[inputElement.name]}
-              </span>
-            )}
-          </div>
+        {formInputs.map((input) => (
+          <InputField key={input.name} {...input} />
         ))}
 
-        <Link to="/login" className="clr-black b4">
+        <Link to="/login" className="clr-black b4" aria-label="Back to Login">
           Back to Login
         </Link>
 
         <button
-          className={`primary-btn giant-btn full-width text-giant ${
-            isLoading ? FormStyles.loading : ""
-          }`}
+          className={`primary-btn btn-giant full-width text-giant ${isLoading ? styles.loading : ""}`}
           type="submit"
           disabled={isLoading || !isEmailVerified}
+          aria-busy={isLoading}
         >
           {isLoading ? "Resetting..." : "Reset Password"}
         </button>

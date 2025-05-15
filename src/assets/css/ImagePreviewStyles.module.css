@@ -1,11 +1,12 @@
-/* Overlay for the popup */
+/* ========================================================================== */
+/* Overlay for the Popup */
 .overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.8); /* Darker for contrast */
+  background: rgba(0, 0, 0, 0.8);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -14,7 +15,15 @@
   animation: fadeIn 0.3s ease-out forwards;
 }
 
-.imagePreviewStylesHeader{
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+/* ========================================================================== */
+/* Popup Header */
+.imagePreviewStylesHeader {
   display: flex;
   border-bottom: 1px solid var(--clr-border);
   width: 100%;
@@ -23,39 +32,42 @@
   padding: var(--padding-m);
 }
 
-/* Fade-in animation for overlay */
-@keyframes fadeIn {
-  to {
-    opacity: 1;
-  }
-}
-
-/* Popup container */
+/* ========================================================================== */
+/* Popup Container */
 .container {
   position: relative;
-  background: var(--clr-white); /* Clean white background */
-  max-width: 80%; /* Tighter layout */
+  background: var(--clr-white);
+  max-width: 80%;
   max-height: 80%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Subtle shadow */
   gap: var(--gap-s);
+  border-radius: var(--radius-m);
+  overflow: auto;
 }
 
-/* Close button */
+/* ========================================================================== */
+/* Close Button */
 .closeButton {
   background: var(--clr-white);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background-color 0.2s, color 0.2s;
   border: 1px solid var(--clr-border);
   padding: var(--padding-xxs);
+  border-radius: var(--radius-s);
+  transition: background-color 0.2s, color 0.2s;
 }
 
-/* Wrapper for main image */
+.closeButton:hover {
+  background: var(--clr-gray-light);
+  color: var(--clr-danger);
+}
+
+/* ========================================================================== */
+/* Main Image Wrapper */
 .mainImageContainer {
   display: flex;
   justify-content: center;
@@ -65,48 +77,49 @@
   padding: var(--padding-m);
 }
 
-/* Main image styling */
+/* Main Image Styling */
 .mainImage {
-  max-width: 800px; 
-  max-height: 600px;
+  max-width: 80rem;
+  max-height: 60rem;
+  object-fit: contain;
 }
 
-/* Wrapper for thumbnails */
+/* ========================================================================== */
+/* Thumbnail Wrapper */
 .thumbnailContainer {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 12px;
+  gap: var(--gap-s);
   max-width: 100%;
   margin-bottom: var(--padding-l);
-
 }
 
-/* Individual thumbnail */
+/* Individual Thumbnail */
 .thumbnail {
   cursor: pointer;
-  padding: 4px;
+  padding: var(--padding-xxs);
   border: 2px solid transparent;
   transition: transform 0.2s, border-color 0.2s;
+  border-radius: var(--radius-s);
 }
 
 .thumbnail:hover,
 .thumbnail:focus {
-  transform: scale(1.05); /* Slight zoom on hover */
+  transform: scale(1.05);
   border-color: var(--clr-primary);
   outline: none;
 }
 
-/* Selected thumbnail */
+/* Selected Thumbnail */
 .thumbnailSelected {
   border-color: var(--clr-primary);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-primary-pressed);
 }
 
-/* Thumbnail image */
+/* Thumbnail Image */
 .thumbnailImage {
-  width: 80px;
-  height: 80px;
+  width: 8rem;
+  height: 8rem;
   object-fit: contain;
 }
-

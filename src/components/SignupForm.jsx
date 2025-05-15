@@ -1,14 +1,57 @@
 import React, { useState, useEffect, useCallback, memo } from "react";
 import PropTypes from "prop-types";
-import FormStyles from "assets/css/FormStyles.module.css";
+import styles from "assets/css/FormStyles.module.css";
 import { Link, useNavigate } from "react-router-dom";
 import { Building2, Lock, Mail, User } from "lucide-react";
 import { signup, authenticateEmail, clearRequestCache } from "utils/api/account";
 import { useDispatch } from "react-redux";
 import { login } from "utils/store";
 
+const InputField = ({ label, name, type, icon, value, onChange, error, disabled, button, extra }) => (
+  <div className={styles.inputGroup}>
+    <label className="dark l2" htmlFor={name}>
+      {label}
+    </label>
+    <div className={styles.inputWrapper}>
+      <span className={styles.inputIcon}>{icon}</span>
+      <input
+        className={`b2 ${error ? styles.inputError : ""}`}
+        type={type}
+        name={name}
+        id={name}
+        value={value}
+        onChange={onChange}
+        disabled={disabled}
+        aria-invalid={!!error}
+        aria-describedby={error ? `${name}-error` : undefined}
+      />
+      {button}
+    </div>
+    {error && (
+      <span id={`${name}-error`} className={styles.errorText} role="alert">
+        {error}
+      </span>
+    )}
+    {extra}
+  </div>
+);
+
+InputField.propTypes = {
+  label: PropTypes.string.isRequired,
+  name: PropTypes.string.isRequired,
+  type: PropTypes.string.isRequired,
+  icon: PropTypes.node.isRequired,
+  value: PropTypes.string.isRequired,
+  onChange: PropTypes.func.isRequired,
+  error: PropTypes.string,
+  disabled: PropTypes.bool,
+  button: PropTypes.node,
+  extra: PropTypes.node,
+};
+
 const SignupForm = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -24,8 +67,6 @@ const SignupForm = () => {
   const [isEmailVerified, setIsEmailVerified] = useState(false);
   const [showOtpInput, setShowOtpInput] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
-  const navigate = useNavigate();
-  const abortController = new AbortController();
 
   const generateOtp = useCallback(() => {
     return Math.floor(1000 + Math.random() * 9000).toString();
@@ -70,6 +111,7 @@ const SignupForm = () => {
     const newOtp = generateOtp();
     setGeneratedOtp(newOtp);
     setIsVerifying(true);
+    const abortController = new AbortController();
     try {
       const response = await authenticateEmail(
         { email: email.trim(), code: newOtp, authentication_type: "signup" },
@@ -83,11 +125,7 @@ const SignupForm = () => {
         setApiError(response.message || "Failed to send OTP. Please try again.");
       }
     } catch (error) {
-      if (error.fieldErrors?.authentication_type) {
-        setApiError(error.fieldErrors.authentication_type.join(" "));
-      } else {
-        setApiError(error.message || "Failed to send OTP. Please try again.");
-      }
+      setApiError(error.message || "Failed to send OTP. Please try again.");
     } finally {
       setIsVerifying(false);
     }
@@ -103,6 +141,7 @@ const SignupForm = () => {
     }
 
     setIsVerifying(true);
+    const abortController = new AbortController();
     try {
       const response = await authenticateEmail(
         { email: email.trim(), code: otp, authentication_type: "signup" },
@@ -120,11 +159,7 @@ const SignupForm = () => {
         setApiError(response.message || "Invalid OTP. Please try again.");
       }
     } catch (error) {
-      if (error.fieldErrors?.authentication_type) {
-        setApiError(error.fieldErrors.authentication_type.join(" "));
-      } else {
-        setApiError(error.message || "OTP verification failed. Please try again.");
-      }
+      setApiError(error.message || "OTP verification failed. Please try again.");
     } finally {
       setIsVerifying(false);
     }
@@ -139,6 +174,7 @@ const SignupForm = () => {
       if (!validateForm()) return;
 
       setIsLoading(true);
+      const abortController = new AbortController();
       try {
         const payload = {
           email: email.trim(),
@@ -160,7 +196,6 @@ const SignupForm = () => {
         localStorage.setItem("accessToken", response.token.access);
         localStorage.setItem("refreshToken", response.token.refresh);
         dispatch(login());
-
         setEmail("");
         setFirstName("");
         setLastName("");
@@ -172,18 +207,9 @@ const SignupForm = () => {
         setShowOtpInput(false);
         setOtp("");
         setGeneratedOtp(null);
-
         navigate("/", { replace: true });
       } catch (error) {
-        if (error.fieldErrors) {
-          const newErrors = {};
-          Object.entries(error.fieldErrors).forEach(([key, value]) => {
-            newErrors[key.replace("_", "-")] = Array.isArray(value) ? value.join(" ") : value;
-          });
-          setErrors(newErrors);
-        } else {
-          setApiError(error.message || "Signup failed. Please try again.");
-        }
+        setApiError(error.message || "Signup failed. Please try again.");
       } finally {
         setIsLoading(false);
       }
@@ -204,6 +230,7 @@ const SignupForm = () => {
   );
 
   useEffect(() => {
+    const abortController = new AbortController();
     return () => {
       abortController.abort();
       clearRequestCache();
@@ -226,6 +253,17 @@ const SignupForm = () => {
       },
       error: errors.email,
       disabled: isLoading || isVerifying || isEmailVerified,
+      button: !isEmailVerified && !showOtpInput && (
+        <button
+          type="button"
+          className={`secondary-btn btn-medium ${isVerifying ? styles.loading : ""}`}
+          onClick={handleVerifyEmail}
+          disabled={isVerifying || isLoading}
+          aria-label="Verify Email Address"
+        >
+          {isVerifying ? "Processing..." : "Verify Email"}
+        </button>
+      ),
     },
     ...(showOtpInput
       ? [
@@ -238,6 +276,17 @@ const SignupForm = () => {
             onChange: (e) => setOtp(e.target.value),
             error: errors.otp,
             disabled: isLoading || isVerifying,
+            button: (
+              <button
+                type="button"
+                className={`btn--secondary btn--medium ${isVerifying ? styles.loading : ""}`}
+                onClick={handleVerifyOtp}
+                disabled={isVerifying || isLoading}
+                aria-label="Verify OTP"
+              >
+                {isVerifying ? "Verifying..." : "Verify OTP"}
+              </button>
+            ),
           },
         ]
       : []),
@@ -273,6 +322,23 @@ const SignupForm = () => {
             onChange: (e) => setCompanyName(e.target.value),
             error: errors["company-name"],
             disabled: isLoading,
+            extra: (
+              <div className={styles.checkBoxInput}>
+                <input
+                  type="checkbox"
+                  name="no-company-name"
+                  id="no-company-name"
+                  checked={noCompanyName}
+                  onChange={(e) => setNoCompanyName(e.target.checked)}
+                  disabled={isLoading}
+                  className="input--checkbox"
+                  aria-label="No company name"
+                />
+                <label className="c3" htmlFor="no-company-name">
+                  I don’t have a company name
+                </label>
+              </div>
+            ),
           },
         ]),
     {
@@ -288,99 +354,30 @@ const SignupForm = () => {
   ];
 
   return (
-    <div className={FormStyles.formWrapper}>
+    <div className={styles.formWrapper}>
       <form
-        className={FormStyles.container}
+        className={styles.container}
         onSubmit={handleSignup}
         aria-labelledby="signup-title"
         noValidate
       >
-        <h4 id="signup-title" className="dark">
+        <h4 id="signup-title" className="h4--dark">
           Signup
         </h4>
 
         {apiError && (
-          <div className={FormStyles.errorMessage} role="alert">
+          <div className={styles.errorMessage} role="alert">
             {apiError}
           </div>
         )}
 
         {formInputs.map((input) => (
-          <div className={FormStyles.inputGroup} key={input.name}>
-            <label className="dark l2" htmlFor={input.name}>
-              {input.label}
-            </label>
-            <div className={FormStyles.inputWrapper}>
-              <span className={FormStyles.inputIcon}>{input.icon}</span>
-              <input
-                className={`b2 ${input.error ? FormStyles.inputError : ""}`}
-                type={input.type}
-                name={input.name}
-                id={input.name}
-                value={input.value}
-                onChange={input.onChange}
-                disabled={input.disabled}
-                aria-invalid={!!input.error}
-                aria-describedby={input.error ? `${input.name}-error` : undefined}
-              />
-              {input.name === "email" && !isEmailVerified && !showOtpInput && (
-                <button
-                  type="button"
-                  className={`secondary-btn medium-btn ${
-                    isVerifying ? FormStyles.loading : ""
-                  }`}
-                  onClick={handleVerifyEmail}
-                  disabled={isVerifying || isLoading}
-                  aria-label="Verify Email Address"
-                >
-                  {isVerifying ? "Processing..." : "Verify Email"}
-                </button>
-              )}
-              {input.name === "otp" && (
-                <button
-                  type="button"
-                  className={`secondary-btn medium-btn ${
-                    isVerifying ? FormStyles.loading : ""
-                  }`}
-                  onClick={handleVerifyOtp}
-                  disabled={isVerifying || isLoading}
-                  aria-label="Verify OTP"
-                >
-                  {isVerifying ? "Verifying..." : "Verify OTP"}
-                </button>
-              )}
-            </div>
-            {input.error && (
-              <span
-                id={`${input.name}-error`}
-                className={FormStyles.errorText}
-                role="alert"
-              >
-                {input.error}
-              </span>
-            )}
-            {input.name === "company-name" && (
-              <div className={FormStyles.checkBoxInput}>
-                <input
-                  type="checkbox"
-                  name="no-company-name"
-                  id="no-company-name"
-                  checked={noCompanyName}
-                  onChange={(e) => setNoCompanyName(e.target.checked)}
-                  disabled={isLoading}
-                  aria-label="No company name"
-                />
-                <label className="c3" htmlFor="no-company-name">
-                  I don’t have a company name
-                </label>
-              </div>
-            )}
-          </div>
+          <InputField key={input.name} {...input} />
         ))}
 
-        {formInputs.every((input) => input.name !== "company-name") && (
-          <div className={FormStyles.inputGroup}>
-            <div className={FormStyles.checkBoxInput}>
+        {!formInputs.some((input) => input.name === "company-name") && (
+          <div className={styles.inputGroup}>
+            <div className={styles.checkBoxInput}>
               <input
                 type="checkbox"
                 name="no-company-name"
@@ -388,6 +385,7 @@ const SignupForm = () => {
                 checked={noCompanyName}
                 onChange={(e) => setNoCompanyName(e.target.checked)}
                 disabled={isLoading}
+                className="input--checkbox"
                 aria-label="No company name"
               />
               <label className="c3" htmlFor="no-company-name">
@@ -397,7 +395,7 @@ const SignupForm = () => {
           </div>
         )}
 
-        <div className={FormStyles.checkBoxInput}>
+        <div className={styles.checkBoxInput}>
           <input
             type="checkbox"
             name="receive-marketing"
@@ -405,6 +403,7 @@ const SignupForm = () => {
             checked={receiveMarketing}
             onChange={(e) => setReceiveMarketing(e.target.checked)}
             disabled={isLoading}
+            className="input--checkbox"
             aria-label="Opt-in to receive marketing communications"
           />
           <label className="c3" htmlFor="receive-marketing">
@@ -421,9 +420,7 @@ const SignupForm = () => {
         </Link>
 
         <button
-          className={`primary-btn giant-btn full-width text-giant ${
-            isLoading ? FormStyles.loading : ""
-          }`}
+          className={`primary-btn btn-giant full-width text-giant ${isLoading ? styles.loading : ""}`}
           type="submit"
           disabled={isLoading || !isEmailVerified}
           aria-busy={isLoading}

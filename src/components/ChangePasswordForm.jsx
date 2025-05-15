@@ -187,14 +187,6 @@ const ChangePasswordForm = () => {
           </div>
         ))}
 
-        <Link
-          to="/shop"
-          className="clr-black b4"
-          aria-label="Return to Shop"
-        >
-          Back to Shop
-        </Link>
-
         <button
           className={`primary-btn giant-btn full-width text-giant ${
             isLoading ? FormStyles.loading : ""

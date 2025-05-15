@@ -4,6 +4,7 @@ import FormSideContainerStyles from "assets/css/FormSideContainer.module.css";
 import { getOrCreateCart } from "utils/api/ecommerce";
 import axios from "axios";
 import { BASE_URL } from "utils/global";
+import CustomLoading from "components/CustomLoading";
 
 // Function to normalize URL by removing double slashes
 const normalizeUrl = (baseUrl, path) => {
@@ -86,7 +87,7 @@ const CheckoutSideContainer = () => {
     return (
       <div className={FormSideContainerStyles.container}>
         <div className={FormSideContainerStyles.row}>
-          <p className="b3 dark">Loading...</p>
+        <CustomLoading/>
         </div>
       </div>
     );

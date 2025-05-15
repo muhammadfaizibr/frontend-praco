@@ -3,6 +3,8 @@ import CategoriesMenuBarStyles from "assets/css/CategoriesMenuBarStyles.module.c
 import { Boxes } from "lucide-react";
 import { Link } from "react-router-dom";
 import { getCategories } from "utils/api/ecommerce";
+import CustomLoading from "components/CustomLoading";
+
 
 // Map API icon strings to lucide-react components
 const iconMap = {
@@ -46,7 +48,7 @@ const CategoriesMenuBar = () => {
 
   return (
     <div className={CategoriesMenuBarStyles.container}>
-      {isLoading && <div className="b3 clr-gray">Loading...</div>}
+      {isLoading && <CustomLoading />}
       {error && <div className={CategoriesMenuBarStyles.errorMessage}>{error}</div>}
       {!isLoading && !error && (
         <ul className={CategoriesMenuBarStyles.menu}>

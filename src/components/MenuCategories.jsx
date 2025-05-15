@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { getCategories } from "utils/api/ecommerce"; // Adjust path to your API client file
 import { NavLink } from "react-router-dom";
 import NavBarStyles from "assets/css/NavBarStyles.module.css";
+import CustomLoading from "components/CustomLoading";
 
 const MenuCategories = () => {
   const [categories, setCategories] = useState([]);
@@ -32,9 +33,7 @@ const MenuCategories = () => {
           height: "100vh",
         }}
       >
-        <p className="b2" style={{ color: "var(--clr-text)" }}>
-          Loading...
-        </p>
+       <CustomLoading/>
       </div>
     );
   }
