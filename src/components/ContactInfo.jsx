@@ -1,7 +1,7 @@
 import React from "react";
 import ContactInfoStyles from "assets/css/ContactInfoStyles.module.css";
 import HeadingBar from "components/HeadingBar";
-import { Mail, MailOpen, MapPin, Phone } from "lucide-react";
+import { MailOpen, MapPin, Phone } from "lucide-react";
 
 const ContactInfo = () => {
     const contactInfo = [

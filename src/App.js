@@ -6,18 +6,16 @@ import { AppRoutes } from "routes/routes";
 import Footer from "components/Footer";
 import { Provider } from "react-redux";
 import { store } from "utils/store";
-
 function App() {
   return (
-    <Provider store={store}>
-    <BrowserRouter>
-      {/* <AnnouncementBar /> */}
-      <Navbar />
-      <AppRoutes />
-      <Footer />
-    </BrowserRouter>
-
-    </Provider>
+      <Provider store={store}>
+        <BrowserRouter>
+          {/* <AnnouncementBar /> */}
+          <Navbar />
+          <AppRoutes />
+          <Footer />
+        </BrowserRouter>
+      </Provider>
   );
 }
 

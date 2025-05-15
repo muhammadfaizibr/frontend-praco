@@ -868,6 +868,10 @@ label {
   gap: var(--gap-xxl);
 }
 
+.text-center{
+  width: 100%;
+  text-align: center;
+}
 /* ========================================================================== */
 /* Search Bar */
 .search-bar {

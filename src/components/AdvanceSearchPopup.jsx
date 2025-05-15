@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import AdvanceSearchPopupStyles from "assets/css/AdvanceSearchPopupStyles.module.css";
 import HeadingBar from "components/HeadingBar";
 import { X } from "lucide-react";
@@ -15,13 +15,49 @@ const AdvanceSearchPopup = () => {
   const [width, setWidth] = useState("");
   const [height, setHeight] = useState("");
   const [length, setLength] = useState("");
-  const [productCategoryValue, setProductCategoryValue] = useState(transformText(productCategories[0]));
-  const [productSizeValue, setProductSizeValue] = useState(transformText(productSizes[0]));
-  const [measurementUnitValue, setMeasurementUnitValue] = useState(measurementUnits[0]);
+  const [productCategoryValue, setProductCategoryValue] = useState("");
+  const [productSizeValue, setProductSizeValue] = useState("");
+  const [measurementUnitValue, setMeasurementUnitValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const abortControllerRef = useRef(null);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Parse URL parameters and set state on mount
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    
+    const urlWidth = params.get("width");
+    const urlHeight = params.get("height");
+    const urlLength = params.get("length");
+    const urlMeasurementUnit = params.get("measurement_unit");
+    const urlCategory = params.get("category");
+    const urlApproxSize = params.get("approx_size");
+    const urlMinimumSize = params.get("minimum_size");
+
+    // Set form field values from URL parameters
+    setWidth(urlWidth || "");
+    setHeight(urlHeight || "");
+    setLength(urlLength || "");
+    setMeasurementUnitValue(
+      urlMeasurementUnit && measurementUnits.includes(urlMeasurementUnit)
+        ? urlMeasurementUnit
+        : measurementUnits[0]
+    );
+    setProductCategoryValue(
+      urlCategory && productCategories.map(transformText).includes(urlCategory)
+        ? urlCategory
+        : transformText(productCategories[0])
+    );
+    setProductSizeValue(
+      urlApproxSize === "true"
+        ? transformText("Approx Size")
+        : urlMinimumSize === "true"
+        ? transformText("Minimum Size")
+        : transformText(productSizes[0])
+    );
+  }, [location.search]);
 
   const clearError = useCallback(() => {
     setError(null);
@@ -107,7 +143,7 @@ const AdvanceSearchPopup = () => {
       <HeadingBar
         displayType={"column"}
         headline={"Advanced Search"}
-        headlineSize={"h4"}
+        headlineSize={"h5"}
         headlineSizeType={"tag"}
       />
 
@@ -160,7 +196,7 @@ const AdvanceSearchPopup = () => {
                 setLength(e.target.value);
                 clearError();
               }}
-              aria-describedby={error ? "search-error" : undefined}
+              // aria-describedby={error anticafe ? "search-error" : undefined}
             />
           </div>
         </div>

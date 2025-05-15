@@ -1,6 +1,9 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 const RefundPolicy = () => {
+        useEffect(()=>{
+          document.title = 'Refund Policy - Praco';
+        }, [])
   return (
     <div className="centered-layout padding-m column-content gap-m">
       <h2 className="dark">Refund Policy</h2>

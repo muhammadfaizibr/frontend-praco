@@ -1,7 +1,10 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, {useEffect} from "react";
 
 const PrivacyPolicy = () => {
+      useEffect(()=>{
+        document.title = 'Privacy Policy - Praco';
+      }, [])
+    
   return (
     <div className="centered-layout padding-m column-content gap-m">
       <h2 className="dark">Privacy Policy</h2>

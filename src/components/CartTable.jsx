@@ -4,9 +4,9 @@ import { useSelector, useDispatch } from "react-redux";
 import TableStyles from "assets/css/TableStyles.module.css";
 import { Truck, Minus, Plus, AlertCircle } from "lucide-react";
 import DOMPurify from "dompurify";
-import AccentNotifier from "./AccentNotifier";
+import AccentNotifier from "components/AccentNotifier";
 import Notification from "components/Notification";
-import { updateCartItemUnits, setCartItems } from "utils/cartSlice";
+import { setCartItems } from "utils/cartSlice";
 import { getOrCreateCart } from "utils/api/ecommerce";
 import axios from "axios";
 import { BASE_URL } from "utils/global";
@@ -493,7 +493,7 @@ const CartTable = () => {
     return (
       <div className={TableStyles.tableContentWrapper}>
         <div className={TableStyles.tableContainer}>
-          <p className="c3 text-center">Loading cart...</p>
+        <p className="b3 text-center">Loading cart...</p>
         </div>
       </div>
     );
@@ -547,7 +547,7 @@ const CartTable = () => {
                         ) : (
                           <img
                             src={cartElement.image}
-                            alt={`Image of ${sanitizedDescription}`}
+                            alt={`${sanitizedDescription}`}
                             className={TableStyles.colImageContainer}
                             onError={() => handleImageError(cartElement.id)}
                             loading="lazy"

@@ -2,7 +2,7 @@ import axios from "axios";
 import { BASE_URL, TIMEOUT, CONTENT_TYPE } from "utils/global";
 
 const apiClient = axios.create({
-  baseURL: BASE_URL,
+  baseURL: `${BASE_URL}ecommerce/`,
   timeout: TIMEOUT,
   headers: {
     "Content-Type": CONTENT_TYPE,

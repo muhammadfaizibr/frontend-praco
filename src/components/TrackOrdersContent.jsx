@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import TableStyles from "assets/css/TableStyles.module.css";
 import { AlertCircle, Package } from "lucide-react";
-import Notification from "components/Notification";
+// import Notification from "components/Notification";
 import { getOrders } from "utils/api/ecommerce";
 import AccentNotifier from "./AccentNotifier";
 
@@ -12,17 +12,17 @@ const TrackOrderContent = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [orders, setOrders] = useState([]);
-  const [notification, setNotification] = useState({
-    message: "",
-    type: "",
-    visible: false,
-  });
+  // const [notification, setNotification] = useState({
+  //   message: "",
+  //   type: "",
+  //   visible: false,
+  // });
 
   // Show notification with timeout
-  const showNotification = (message, type) => {
-    setNotification({ message, type, visible: true });
-    setTimeout(() => setNotification((prev) => ({ ...prev, visible: false })), 3000);
-  };
+  // const showNotification = (message, type) => {
+  //   setNotification({ message, type, visible: true });
+  //   setTimeout(() => setNotification((prev) => ({ ...prev, visible: false })), 3000);
+  // };
 
   // Fetch orders on mount
   useEffect(() => {
@@ -103,7 +103,7 @@ const TrackOrderContent = () => {
 
   return (
     <div className={TableStyles.tableContentWrapper}>
-      <Notification message={notification.message} type={notification.type} visible={notification.visible} />
+      {/* <Notification message={notification.message} type={notification.type} visible={notification.visible} /> */}
       {error && (
         <AccentNotifier
           icon={AlertCircle}
@@ -111,10 +111,8 @@ const TrackOrderContent = () => {
           className="clr-danger"
         />
       )}
-      <div className={TableStyles.tableContainer}>
-        {orders.length === 0 ? (
-          <p className="c3 text-center">You have no orders.</p>
-        ) : (
+      {orders.length === 0 ?  <p className="b3 text-center">You have no orders.</p>: <div className={TableStyles.tableContainer}>
+       
           <table className={TableStyles.table} role="grid">
             <thead>
               <tr>
@@ -138,14 +136,14 @@ const TrackOrderContent = () => {
                     {order.status}
                   </td>
                   <td className="b3 clr-text">
-                    {order.payment_status === "Paid" && order.payment_verified ? (
+                    {order.payment_status === "COMPLETED" && order.payment_verified ? (
                       <>
                         Completed{" "}
-                        <a href={order.invoice} target="_blank" rel="noopener noreferrer">
+                        <div><a href={order.invoice} target="_blank" rel="noopener noreferrer">
                           View Paid Receipt
-                        </a>
+                        </a></div>
                       </>
-                    ) : order.payment_status === "Refunded" ? (
+                    ) : order.payment_status === "REFUNDED" ? (
                       <>
                         Refunded{" "}
                         <a href={order.invoice} target="_blank" rel="noopener noreferrer">
@@ -181,8 +179,8 @@ const TrackOrderContent = () => {
               ))}
             </tbody>
           </table>
-        )}
-      </div>
+        
+      </div>}
       {orders.length > 0 && (
         <AccentNotifier
           icon={Package}

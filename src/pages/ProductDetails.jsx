@@ -20,6 +20,7 @@ const ErrorBoundary = ({ children }) => {
 };
 
 const ProductDetails = () => {
+  
   const { category, product } = useParams();
   const [productData, setProductData] = useState(null);
   const [variantsWithData, setVariantsWithData] = useState([]);
@@ -31,13 +32,21 @@ const ProductDetails = () => {
   const [suppressObserver, setSuppressObserver] = useState(false);
 
   useEffect(() => {
+    document.title = product 
+    ? product
+    .replace(/-/g, ' ') // Replace all hyphens with spaces
+    .split(' ') // Split into words
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // Capitalize each word
+    .join(' ') + " - Praco"
+    : 'Praco - UK\'s Leading Packaging Supplies';
+
     const fetchProductData = async () => {
       try {
         setLoading(true);
         const productResponse = await getProductBySlug(product);
         if (!productResponse) throw new Error("Product not found");
         setProductData(productResponse);
-        setSelectedImage(productResponse.images?.[0]?.image || "/fallback-product-image.jpg");
+        setSelectedImage(productResponse.images?.[0]?.image || "");
 
         const variants = await getProductVariants(productResponse.id);
         const variantsData = await Promise.all(
@@ -62,6 +71,7 @@ const ProductDetails = () => {
     };
 
     fetchProductData();
+      
   }, [category, product]);
 
   useEffect(() => {

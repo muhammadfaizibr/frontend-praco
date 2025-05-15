@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, memo } from "react";
+import React, { useState, useEffect, useCallback, memo, useRef } from "react";
 import NavBarStyles from "assets/css/NavBarStyles.module.css";
 import {
   Calculator,
@@ -8,7 +8,7 @@ import {
   X,
 } from "lucide-react";
 import Logo from "assets/images/logo.svg";
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import SearchBarHeader from "components/SearchBarHeader";
 import UnitConversionPopup from "components/UnitConversionPopup";
 import MenuCategories from "./MenuCategories";
@@ -19,15 +19,29 @@ const Navbar = () => {
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation(); // Added to detect route changes
   const [searchMobile, setSearchMobile] = useState(false);
   const [toggleUnitConversionPopup, setToggleUnitConversionPopup] = useState(false);
   const [showAccountPopup, setShowAccountPopup] = useState(false);
+
+  // Refs for popup elements to detect outside clicks
+  const accountPopupRef = useRef(null);
+  const unitConversionRef = useRef(null);
+  const searchBarRef = useRef(null);
+
+  // Reset all popups when route changes
+  useEffect(() => {
+    setSearchMobile(false);
+    setToggleUnitConversionPopup(false);
+    setShowAccountPopup(false);
+  }, [location.pathname]);
 
   // Reset showAccountPopup when isLoggedIn changes
   useEffect(() => {
     setShowAccountPopup(false);
   }, [isLoggedIn]);
 
+  // Handle window resize to close search mobile
   const handleResize = useCallback(() => {
     if (window.innerWidth > 1200) {
       setSearchMobile(false);
@@ -39,6 +53,47 @@ const Navbar = () => {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, [handleResize]);
+
+  // Handle outside clicks
+  const handleOutsideClick = useCallback(
+    (event) => {
+      // Check for account popup
+      if (
+        showAccountPopup &&
+        accountPopupRef.current &&
+        !accountPopupRef.current.contains(event.target) &&
+        !event.target.closest(`.${NavBarStyles.actionButtonStyle}`) // Exclude account button
+      ) {
+        setShowAccountPopup(false);
+      }
+
+      // Check for unit conversion popup
+      if (
+        toggleUnitConversionPopup &&
+        unitConversionRef.current &&
+        !unitConversionRef.current.contains(event.target) &&
+        !event.target.closest(`.${NavBarStyles.actionButtonStyle}`) // Exclude unit conversion button
+      ) {
+        setToggleUnitConversionPopup(false);
+      }
+
+      // Check for mobile search
+      if (
+        searchMobile &&
+        searchBarRef.current &&
+        !searchBarRef.current.contains(event.target) &&
+        !event.target.closest(`.${NavBarStyles.searchMobileToggleBtn}`) // Exclude search toggle button
+      ) {
+        setSearchMobile(false);
+      }
+    },
+    [showAccountPopup, toggleUnitConversionPopup, searchMobile]
+  );
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, [handleOutsideClick]);
 
   const toggleSearchMobile = useCallback(() => {
     setSearchMobile((prev) => !prev);
@@ -72,17 +127,20 @@ const Navbar = () => {
               <img src={Logo} alt="Praco Logo" width="120" height="40" />
             </NavLink>
           </div>
-          
+
           <div
             className={`${NavBarStyles.searchBarWrapper} ${
               searchMobile ? NavBarStyles.searchBarMobile : ""
             }`}
+            ref={searchBarRef}
           >
             <SearchBarHeader />
           </div>
           <div className={NavBarStyles.actionButtons}>
             <button
-              className={`${NavBarStyles.actionButtonStyle} ${NavBarStyles.searchMobileToggleBtn} accent-palette ${searchMobile ? NavBarStyles.active : ""}`}
+              className={`${NavBarStyles.actionButtonStyle} ${NavBarStyles.searchMobileToggleBtn} accent-palette ${
+                searchMobile ? NavBarStyles.active : ""
+              }`}
               type="button"
               aria-label={searchMobile ? "Close Search" : "Open Search"}
               onClick={toggleSearchMobile}
@@ -115,7 +173,7 @@ const Navbar = () => {
             >
               <ShoppingBag className="icon-md icon-blue-accent-dark" aria-hidden="true" />
             </Link>
-            
+
             {isLoggedIn ? (
               <div className={NavBarStyles.accountWrapper}>
                 <button
@@ -134,6 +192,7 @@ const Navbar = () => {
                     id="account-popup"
                     role="menu"
                     aria-orientation="vertical"
+                    ref={accountPopupRef}
                   >
                     <NavLink
                       to="/track-order"
@@ -183,14 +242,20 @@ const Navbar = () => {
               </button>
             </a>
             {toggleUnitConversionPopup && (
-              <div className={NavBarStyles.unitConversionContainer}>
+              <div
+                className={NavBarStyles.unitConversionContainer}
+                ref={unitConversionRef}
+              >
                 <UnitConversionPopup />
               </div>
             )}
           </div>
         </div>
         {searchMobile && (
-          <div className={NavBarStyles.mobileSearchBarWrapper}>
+          <div
+            className={NavBarStyles.mobileSearchBarWrapper}
+            ref={searchBarRef}
+          >
             <SearchBarHeader />
           </div>
         )}

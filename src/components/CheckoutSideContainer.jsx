@@ -15,7 +15,7 @@ const normalizeUrl = (baseUrl, path) => {
 
 const CheckoutSideContainer = () => {
   const dispatch = useDispatch();
-  const cartItems = useSelector((state) => state.cart.items);
+  // const cartItems = useSelector((state) => state.cart.items);
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
   const [cartData, setCartData] = useState(null);
   const [loading, setLoading] = useState(true);

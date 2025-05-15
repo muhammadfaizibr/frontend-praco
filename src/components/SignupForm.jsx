@@ -222,7 +222,7 @@ const SignupForm = () => {
       password,
       receiveMarketing,
       noCompanyName,
-      isEmailVerified,
+      // isEmailVerified,
       validateForm,
       navigate,
       dispatch,

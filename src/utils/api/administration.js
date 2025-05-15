@@ -1,8 +1,9 @@
 import axios from "axios";
 import { CancelToken } from "axios";
+import { BASE_URL } from "utils/global";
 
 const apiClient = axios.create({
-  baseURL: "http://127.0.0.1:8000/api/administration/",
+  baseURL: `${BASE_URL}administration/`,
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",
@@ -44,7 +45,7 @@ apiClient.interceptors.response.use(
 );
 
 export const submitContactQuery = async (payload, { signal } = {}) => {
-  const cacheKey = `contact:${payload.email}`;
+  // const cacheKey = `contact:${payload.email}`;
   try {
     const source = CancelToken.source();
 

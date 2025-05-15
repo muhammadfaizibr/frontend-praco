@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, memo } from "react";
-import PropTypes from "prop-types";
 import FormStyles from "assets/css/FormStyles.module.css";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Lock } from "lucide-react";
 import { updatePassword, clearRequestCache } from "utils/api/account";
 import { useDispatch } from "react-redux";

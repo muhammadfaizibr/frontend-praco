@@ -149,8 +149,9 @@ const ProductsTable = ({ variantsWithData }) => {
 
   // Determine pricing tier for item and variant
   const determinePricingTier = useCallback(
-    (variant, itemId, units, totalUnits, currentVariantPriceType) => {
-      const packQuantity = variant.units_per_pack || 1;
+    // (variant, itemId, units, totalUnits, currentVariantPriceType) => {
+      (variant, units, totalUnits) => {
+      // const packQuantity = variant.units_per_pack || 1;
       const palletQuantity = variant.units_per_pallet || 0;
       const supportsPallets = palletQuantity > 0 && variant.show_units_per !== "pack";
       const hasPalletPricing = variant.pricing_tiers?.some((tier) => tier.tier_type === "pallet");
@@ -383,9 +384,9 @@ const ProductsTable = ({ variantsWithData }) => {
   );
 
   // Toggle display price type
-  const toggleDisplayPriceType = useCallback((variantId, priceType) => {
-    setVariantDisplayPriceType((prev) => ({ ...prev, [variantId]: priceType }));
-  }, []);
+  // const toggleDisplayPriceType = useCallback((variantId, priceType) => {
+  //   setVariantDisplayPriceType((prev) => ({ ...prev, [variantId]: priceType }));
+  // }, []);
 
   // Image preview handlers
   const openImagePreview = useCallback((images, variantName, productName) => {

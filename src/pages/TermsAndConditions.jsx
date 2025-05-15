@@ -1,7 +1,11 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useEffect } from "react";
 
 const TermsAndConditions = () => {
+        useEffect(()=>{
+          document.title = 'Terms & Conditions - Praco';
+        }, [])
   return (
     <div className="centered-layout padding-m column-content gap-m">
       <h2 className="dark">Terms of Service</h2>

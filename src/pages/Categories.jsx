@@ -93,7 +93,7 @@ const Categories = () => {
           )}
           {error && <div className={FormStyles.errorMessage}>{error}</div>}
           {!isLoading && !error && products.length === 0 && (
-            <div className="b3 clr-gray">No products found.</div>
+             <p className="b3 text-center">No products found.</p>
           )}
           {!isLoading && !error && products.length > 0 && (
             <Products title={categoryName} products={products} />

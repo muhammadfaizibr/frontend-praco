@@ -5,13 +5,11 @@ import Login from "pages/Login";
 import Signup from "pages/Signup";
 import ForgetPassword from "pages/ForgetPassword";
 import ChangePassword from "pages/ChangePassword";
-import VerifyEmail from "pages/VerifyEmail";
-import VerifyOtp from "pages/VerifyOTP";
 import Contact from "pages/Contact";
 import Categories from "pages/Categories";
 import Checkout from "pages/Checkout";
 import TrackOrders from "pages/TrackOrders";
-import OrderHistory from "pages/OrderHistory";
+// import OrderHistory from "pages/OrderHistory";
 // import Search from "pages/Search";
 import Cart from "pages/Cart";
 import SearchAdvance from "pages/SearchAdvance";
@@ -57,7 +55,7 @@ export function AppRoutes() {
       <Route path="/" element={<Home />} />
       <Route path="/contact" element={<Contact />} />
       <Route path="/category/:slug" element={<Categories />} />
-      <Route path="/order-history" element={<OrderHistory />} />
+      {/* <Route path="/order-history" element={<OrderHistory />} /> */}
       {/* <Route path="/search" element={<Search />} /> */}
       <Route path="/search" element={<Search />} />
       <Route path="/cart" element={<Cart />} />

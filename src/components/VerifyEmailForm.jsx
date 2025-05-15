@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import FormStyles from "assets/css/FormStyles.module.css";
 import { Link } from "react-router-dom";
-import { Lock, Mail } from "lucide-react";
+import { Mail } from "lucide-react";
 
 const VerifyEmailForm = () => {
   const [emailValue, setEmailValue] = useState("");

@@ -63,7 +63,7 @@ const UnitConversionPopup = () => {
       <HeadingBar
         displayType={"column"}
         headline={"Unit Conversion"}
-        headlineSize={"h6"}
+        headlineSize={"h5"}
         headlineSizeType={"tag"}
       />
 

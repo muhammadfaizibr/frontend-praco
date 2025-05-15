@@ -2,9 +2,6 @@ import React from "react";
 import VerifyOTPForm from "components/VerifyOTPForm";
 import FormsPageStyles from "assets/css/FormsPageStyles.module.css"
 
-
-
-
 const VerifyOtp = () => {
   return (
     <div className="centered-layout-wrapper layout-spacing full-width-flex-col layout-vertical-padding">

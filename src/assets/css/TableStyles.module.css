@@ -404,13 +404,13 @@
 /* ========================================================================== */
 /* Cart Summary Table */
 .cartSummaryTable {
-  width: 100%;
   max-width: 40rem;
   margin-left: auto;
   border-collapse: collapse;
   border: 1px solid var(--clr-border);
   background-color: var(--clr-white);
   font-size: var(--font-size-small);
+  min-width: 400px;
 }
 
 .cartSummaryTable th,
@@ -423,7 +423,6 @@
 }
 
 .cartSummaryTable th {
-  font-weight: 600;
   background-color: var(--clr-gray-light);
   color: var(--clr-blue-dark);
 }
@@ -570,6 +569,25 @@
 
   .stickyBar {
     min-width: 0;
+  }
+
+  .productsSummaryTable th,
+  .productsSummaryTable td {
+    min-width: 100px;
+  }
+
+}
+
+
+@media (max-width: 450px) {
+
+  .productsSummaryTable th,
+  .productsSummaryTable td {
+    min-width: 60px;
+  }
+
+  .cartSummaryTable {
+    min-width: 100%;
   }
 
 }
