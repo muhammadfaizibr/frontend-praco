@@ -69,7 +69,6 @@ const ContactForm = () => {
         subject: subjectValue,
         message: messageValue,
       };
-      console.log("Contact Query Payload:", payload); // Debugging
       const response = await submitContactQuery(payload, {
         signal: abortController.signal,
       });

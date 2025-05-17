@@ -13,14 +13,30 @@ import {
 import CustomLoading from "components/CustomLoading";
 
 // Error Boundary Component
-const ErrorBoundary = ({ children }) => {
-  const [hasError, setHasError] = useState(false);
-  if (hasError) return <div className={TableStyles.error}>Error: Something went wrong.</div>;
-  return <div onError={() => setHasError(true)}>{children}</div>;
-};
+class ErrorBoundary extends React.Component {
+  state = { hasError: false, error: null };
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("ErrorBoundary caught an error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className={TableStyles.error}>
+          Error: Something went wrong. {this.state.error?.message || ""}
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 const ProductDetails = () => {
-  
   const { category, product } = useParams();
   const [productData, setProductData] = useState(null);
   const [variantsWithData, setVariantsWithData] = useState([]);
@@ -32,13 +48,13 @@ const ProductDetails = () => {
   const [suppressObserver, setSuppressObserver] = useState(false);
 
   useEffect(() => {
-    document.title = product 
-    ? product
-    .replace(/-/g, ' ') // Replace all hyphens with spaces
-    .split(' ') // Split into words
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // Capitalize each word
-    .join(' ') + " - Praco"
-    : 'Praco - UK\'s Leading Packaging Supplies';
+    document.title = product
+      ? product
+          .replace(/-/g, " ")
+          .split(" ")
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+          .join(" ") + " - Praco"
+      : "Praco - UK's Leading Packaging Supplies";
 
     const fetchProductData = async () => {
       try {
@@ -71,7 +87,6 @@ const ProductDetails = () => {
     };
 
     fetchProductData();
-      
   }, [category, product]);
 
   useEffect(() => {
@@ -80,9 +95,8 @@ const ProductDetails = () => {
     let timeoutId;
     const observer = new IntersectionObserver(
       (entries) => {
-        if (suppressObserver) return; // Skip updates if suppressed
+        if (suppressObserver) return;
 
-        // Collect all intersecting entries
         const intersectingEntries = entries
           .filter((entry) => entry.isIntersecting)
           .map((entry) => ({
@@ -90,57 +104,48 @@ const ProductDetails = () => {
             top: entry.boundingClientRect.top,
           }));
 
-        // Debugging: Log intersecting entries
-        console.log("Intersecting variants:", intersectingEntries);
 
         if (intersectingEntries.length > 0) {
-          // Select the topmost entry (smallest top value)
           const topmostEntry = intersectingEntries.reduce((min, entry) =>
             entry.top < min.top ? entry : min
           );
-
           clearTimeout(timeoutId);
           timeoutId = setTimeout(() => {
             setActiveVariantId(topmostEntry.variantId);
-            console.log(`Active variant updated to: ${topmostEntry.variantId}`);
           }, 150);
         } else if (!activeVariantId && variantsWithData.length > 0) {
-          // Fallback to first variant if none intersecting
           setActiveVariantId(variantsWithData[0].id);
-          console.log(`Fallback active variant: ${variantsWithData[0].id}`);
         }
-
-        // Debugging: Log all entries
-        console.log("All entries:", entries.map((e) => ({
-          id: e.target.id,
-          isIntersecting: e.isIntersecting,
-          top: e.boundingClientRect.top,
-        })));
       },
       {
         root: null,
         rootMargin: "0px",
-        threshold: 0.1, // Trigger when 10% of section is visible
+        threshold: 0.1,
       }
     );
 
-    variantsWithData.forEach((variant) => {
-      const element = document.getElementById(`variant-${variant.id}`);
-      if (element) {
-        observer.observe(element);
-        // Check element height
-        const height = element.getBoundingClientRect().height;
-        if (height === 0) {
-          console.warn(`Element #variant-${variant.id} has zero height`);
+    const observeTimeout = setTimeout(() => {
+      variantsWithData.forEach((variant) => {
+        if (!variant?.id) {
+          console.warn("Invalid variant, missing id:", variant);
+          return;
         }
-      } else {
-        console.warn(`Element #variant-${variant.id} not found`);
-      }
-    });
+        const element = document.getElementById(`variant-${variant.id}`);
+        if (element) {
+          observer.observe(element);
+          const height = element.getBoundingClientRect().height;
+          if (height === 0) {
+            console.warn(`Element #variant-${variant.id} has zero height`);
+          }
+        } else {
+          console.warn(`Element #variant-${variant.id} not found`);
+        }
+      });
+    }, 100);
 
-    // Reobserve on resize
     const handleResize = () => {
       variantsWithData.forEach((variant) => {
+        if (!variant?.id) return;
         const element = document.getElementById(`variant-${variant.id}`);
         if (element) {
           observer.unobserve(element);
@@ -153,7 +158,9 @@ const ProductDetails = () => {
 
     return () => {
       clearTimeout(timeoutId);
+      clearTimeout(observeTimeout);
       variantsWithData.forEach((variant) => {
+        if (!variant?.id) return;
         const element = document.getElementById(`variant-${variant.id}`);
         if (element) {
           observer.unobserve(element);
@@ -161,7 +168,6 @@ const ProductDetails = () => {
       });
       window.removeEventListener("resize", handleResize);
       observer.disconnect();
-      console.log("IntersectionObserver cleaned up");
     };
   }, [variantsWithData, suppressObserver, activeVariantId]);
 
@@ -172,21 +178,17 @@ const ProductDetails = () => {
   const scrollToVariant = useCallback((variantId) => {
     const element = document.getElementById(`variant-${variantId}`);
     if (element) {
-      // Adjust for sticky navbar (60px)
       const offset = 60;
       const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
       window.scrollTo({
         top: elementPosition - offset,
         behavior: "smooth",
       });
-      // Set active variant and suppress observer briefly
       setActiveVariantId(variantId);
       setSuppressObserver(true);
       setTimeout(() => {
         setSuppressObserver(false);
-        console.log("Observer suppression lifted");
       }, 1000);
-      console.log(`Scrolled to variant: ${variantId}`);
     } else {
       console.warn(`Element #variant-${variantId} not found for scrolling`);
     }
@@ -246,7 +248,6 @@ const ProductDetails = () => {
               </div>
             </div>
 
-            {/* Sticky Variant Navigation Bar */}
             {variantsWithData.length > 0 && (
               <div className={TableStyles.variantNavBar}>
                 {variantsWithData.map((variant) => (
@@ -262,7 +263,6 @@ const ProductDetails = () => {
               </div>
             )}
 
-            {/* Variants Table */}
             <ProductsTable variantsWithData={variantsWithData} />
           </div>
         </div>

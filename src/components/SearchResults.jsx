@@ -15,7 +15,6 @@ const SearchResults = () => {
 
   const fetchResults = useCallback(async () => {
     if (isFetchingRef.current) {
-      console.log("Fetch already in progress, skipping...");
       return;
     }
 
@@ -64,14 +63,10 @@ const SearchResults = () => {
         return;
       }
 
-      console.log("Fetching results with params:", queryParams);
       const response = await searchItems(queryParams, abortControllerRef.current.signal);
-      console.log("Search response:", response);
       setResults(response.results || []);
-      console.log("Parsed results:", response.results);
     } catch (err) {
       if (err.name === "AbortError") {
-        console.log("Search request aborted");
         return;
       }
       console.error("Search error:", err);
@@ -90,7 +85,6 @@ const SearchResults = () => {
 
     return () => {
       if (abortControllerRef.current && !isFetchingRef.current) {
-        console.log("Cleaning up: Aborting request on unmount");
         abortControllerRef.current.abort();
       }
     };

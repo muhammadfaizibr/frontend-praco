@@ -324,10 +324,31 @@
 
 .exclusivePrice {
   color: var(--clr-primary);
+  display: flex;
+  gap: var(--gap-xxs);
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
+.percentageTag{
+  border-radius: var(--radius-l);
+  color: var(--clr-white);
+  background-color: var(--clr-primary);
+  padding: var(--padding-xxs) var(--padding-xs);
+  font-size: var(--font-size-extra-small);
+}
+
+.selectedTier .percentageTag{
+  background-color: var(--clr-accent);
+  color: var(--clr-primary);
+}
+
+.stickyBar .exclusivePrice{
+  gap: 0 !important;
+}
 .unitInput {
-  width: 5rem;
+  width: 12rem;
   padding: 0.1rem 0.3rem;
   border: 1px solid var(--clr-gray);
   text-align: center;
@@ -353,17 +374,19 @@
 }
 
 .unitButtonMinus {
-  color: var(--clr-success);
+  color: var(--clr-danger);
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
   border-right: none;
+  padding: 0 var(--padding-xxs);
 }
 
 .unitButtonPlus {
-  color: var(--clr-danger);
+  color: var(--clr-success);
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
   border-left: none;
+  padding: 0 var(--padding-xxs);
 }
 
 .unitInput:focus {
@@ -547,7 +570,7 @@
   }
 
   .unitInput {
-    width: 5rem;
+    width: 10rem;
   }
 
   .largePreviewImage {
@@ -558,14 +581,6 @@
     width: 6rem;
     height: 6rem;
   }
-
-  .cartSummaryTable,
-  .productsSummaryTable {
-    width: 100%;
-    margin: 0;
-  }
-
-
 
   .stickyBar {
     min-width: 0;
@@ -578,6 +593,13 @@
 
 }
 
+
+.tdWrapper{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
 
 @media (max-width: 450px) {
 

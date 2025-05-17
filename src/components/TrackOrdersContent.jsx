@@ -2,10 +2,10 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import TableStyles from "assets/css/TableStyles.module.css";
-import { AlertCircle, Package } from "lucide-react";
+import { AlertCircle, Info } from "lucide-react";
 // import Notification from "components/Notification";
 import { getOrders } from "utils/api/ecommerce";
-import AccentNotifier from "./AccentNotifier";
+import AccentNotifier from "components/AccentNotifier";
 
 const TrackOrderContent = () => {
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
@@ -28,7 +28,6 @@ const TrackOrderContent = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       if (!isLoggedIn) {
-        console.log("User not logged in, skipping order fetch");
         setError("Please log in to view your orders.");
         setLoading(false);
         return;
@@ -38,14 +37,11 @@ const TrackOrderContent = () => {
       try {
         setLoading(true);
         setError(null);
-        console.log("Fetching orders...");
 
         const fetchedOrders = await getOrders({ signal: abortController.signal });
-        console.log("Fetched orders:", fetchedOrders);
 
         // Set orders directly from API response
         setOrders([...fetchedOrders]);
-        console.log("Orders state updated:", fetchedOrders);
         setLoading(false);
       } catch (err) {
         if (err.name !== "AbortError") {
@@ -60,7 +56,6 @@ const TrackOrderContent = () => {
       }
 
       return () => {
-        console.log("Cleaning up fetchOrders");
         abortController.abort();
       };
     };
@@ -70,7 +65,6 @@ const TrackOrderContent = () => {
 
   // Log orders state changes
   useEffect(() => {
-    console.log("Orders state:", orders);
   }, [orders]);
 
   // Determine status color
@@ -111,6 +105,10 @@ const TrackOrderContent = () => {
           className="clr-danger"
         />
       )}
+      <AccentNotifier
+          icon={Info}
+          text="Orders with pending payments are on hold until confirmed. Our accounts team will contact you regarding this. Your patience is appreciated."
+        /> 
       {orders.length === 0 ?  <p className="b3 text-center">You have no orders.</p>: <div className={TableStyles.tableContainer}>
        
           <table className={TableStyles.table} role="grid">
@@ -136,28 +134,28 @@ const TrackOrderContent = () => {
                     {order.status}
                   </td>
                   <td className="b3 clr-text">
-                    {order.payment_status === "COMPLETED" && order.payment_verified ? (
-                      <>
+                  <span className={TableStyles.tdWrapper}> {order.payment_status === "COMPLETED" && order.payment_verified ? (
+                      <span className={TableStyles.tdWrapper}>
                         Completed{" "}
-                        <div><a href={order.invoice} target="_blank" rel="noopener noreferrer">
+                        <div><a href={order.paid_receipt} target="_blank" rel="noopener noreferrer">
                           View Paid Receipt
                         </a></div>
-                      </>
-                    ) : order.payment_status === "REFUNDED" ? (
+                      </span>
+                    ) : order.payment_status === "REFUND" ? (
                       <>
                         Refunded{" "}
-                        <a href={order.invoice} target="_blank" rel="noopener noreferrer">
+                        <a href={order.paid_receipt} target="_blank" rel="noopener noreferrer">
                           View Paid Receipt
                         </a>{" "}
-                        <a href={order.refund_receipt || order.invoice} target="_blank" rel="noopener noreferrer">
+                        <a href={order.refund_receipt} target="_blank" rel="noopener noreferrer">
                           View Refund Receipt
                         </a>
                       </>
                     ) : (
                       order.payment_status
-                    )}
+                    )}</span>
                   </td>
-                  <td className="b3 clr-text">{order.payment_method || "N/A"}</td>
+                  <td className="b3 clr-text">{order.payment_method === "manual_payment" ? "Direct Payment" : "N/A"}</td>
                   <td className="b3 clr-text">{order.payment_verified ? "Yes" : "No"}</td>
                   <td className="b3 clr-text">
                     {order.invoice ? (
@@ -181,12 +179,8 @@ const TrackOrderContent = () => {
           </table>
         
       </div>}
-      {orders.length > 0 && (
-        <AccentNotifier
-          icon={Package}
-          text="Track your order status and details here."
-        />
-      )}
+
+     
       <div className="row-content justify-content-flex-end gap-xs">
         <Link
           to="/"

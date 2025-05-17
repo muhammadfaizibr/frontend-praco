@@ -6,17 +6,12 @@ const ImagePreview = ({ images, onClose, variantName, productName }) => {
   const [selectedImage, setSelectedImage] = useState(images[0]);
   const [imageLoadFailed, setImageLoadFailed] = useState({});
 
-  console.log(
-    `ImagePreview props: variantName=${variantName}, productName=${productName}`
-  ); // Debugging
-  console.log("Applied styles:", ImagePreviewStyles); // Debugging
 
   const handleThumbnailClick = (image) => {
     setSelectedImage(image);
   };
 
   const handleImageError = (imageUrl) => {
-    console.log(`Image failed to load: ${imageUrl}`); // Debugging
     setImageLoadFailed((prev) => ({ ...prev, [imageUrl]: true }));
   };
 

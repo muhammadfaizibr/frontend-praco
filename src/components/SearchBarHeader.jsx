@@ -30,7 +30,6 @@ const SearchBarHeader = () => {
   // Handle input change with 2-second delay and cancellation
   const handleInputChange = (e) => {
     const query = e.target.value; // Preserve spaces
-    console.log("Input changed, new query:", query); // Debug
     setSearchQuery(query);
 
     // Clear previous timeout and abort controller
@@ -42,7 +41,6 @@ const SearchBarHeader = () => {
     }
 
     if (query.length < 2) {
-      console.log("Query too short, clearing suggestions"); // Debug
       setSuggestions([]);
       setShowSuggestions(false);
       setIsLoading(false);
@@ -60,16 +58,12 @@ const SearchBarHeader = () => {
 
     // Set timeout for 2-second delay
     timeoutRef.current = setTimeout(async () => {
-      console.log("Timeout triggered, calling searchProducts with query:", query); // Debug
       try {
-        console.log("Calling searchProducts with query:", query); // Debug
         const results = await searchProducts(query, abortControllerRef.current.signal);
-        console.log("API response:", results); // Debug
         setSuggestions(results); // Update suggestions only on success
         setShowSuggestions(true);
       } catch (err) {
         if (err.name === "AbortError") {
-          console.log("API call aborted for query:", query); // Debug
           return;
         }
         console.error("Search API error:", err); // Debug
@@ -84,7 +78,6 @@ const SearchBarHeader = () => {
 
   // Handle suggestion click
   const handleSuggestionClick = (product) => {
-    console.log("Suggestion clicked:", product.name); // Debug
     setSearchQuery("");
     setSuggestions([]);
     setShowSuggestions(false);
@@ -93,7 +86,6 @@ const SearchBarHeader = () => {
 
   // Handle search button click
   const handleSearch = () => {
-    console.log("Search button clicked with query:", searchQuery); // Debug
     if (searchQuery.trim()) {
       // Optionally navigate to a search results page
       setSuggestions([]);
@@ -105,7 +97,6 @@ const SearchBarHeader = () => {
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (suggestionRef.current && !suggestionRef.current.contains(event.target)) {
-        console.log("Clicked outside, closing suggestions"); // Debug
         setShowSuggestions(false);
       }
     };
@@ -116,7 +107,6 @@ const SearchBarHeader = () => {
   // Cleanup timeout and abort controller on unmount
   useEffect(() => {
     return () => {
-      console.log("Cleaning up timeout and abort controller"); // Debug
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }

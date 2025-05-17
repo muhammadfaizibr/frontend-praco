@@ -1,6 +1,6 @@
 import React from "react";
 import AboutPracoStyles from "assets/css/AboutPracoStyles.module.css";
-import HeadingBar from "./HeadingBar";
+import HeadingBar from "components/HeadingBar";
 import { CreditCard, Trophy, Truck } from "lucide-react";
 import Divider from "components/Divider";
 

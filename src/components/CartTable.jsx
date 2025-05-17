@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import TableStyles from "assets/css/TableStyles.module.css";
-import { Truck, Minus, Plus, AlertCircle } from "lucide-react";
+import { Minus, Plus, AlertCircle } from "lucide-react";
 import DOMPurify from "dompurify";
 import AccentNotifier from "components/AccentNotifier";
 import Notification from "components/Notification";
@@ -10,6 +10,7 @@ import { setCartItems } from "utils/cartSlice";
 import { getOrCreateCart } from "utils/api/ecommerce";
 import axios from "axios";
 import { BASE_URL } from "utils/global";
+import CustomLoading from "components/CustomLoading";
 
 // Cart item schema validation with fallbacks
 const validateCartItem = (item) => {
@@ -31,6 +32,7 @@ const validateCartItem = (item) => {
     "unitsPerPack",
     "trackInventory",
     "stock",
+    "discountPercentage",
   ];
   return (
     item &&
@@ -51,7 +53,8 @@ const validateCartItem = (item) => {
     typeof item.perPackPrice === "number" &&
     typeof item.unitsPerPack === "number" &&
     typeof item.trackInventory === "boolean" &&
-    typeof item.stock === "number"
+    typeof item.stock === "number" &&
+    typeof item.discountPercentage === "number"
   );
 };
 
@@ -71,7 +74,6 @@ const CartTable = () => {
   const [cartData, setCartData] = useState(null);
   const [imageErrors, setImageErrors] = useState({});
   const [editPacks, setEditPacks] = useState({});
-  const [exclusiveDiscounts, setExclusiveDiscounts] = useState({});
   const [updatingRows, setUpdatingRows] = useState({});
   const [notification, setNotification] = useState({ message: "", type: "", visible: false });
 
@@ -91,7 +93,7 @@ const CartTable = () => {
         const cart = await getOrCreateCart();
         const cartId = cart.id;
 
-        const cartUrl = normalizeUrl(BASE_URL, `carts/${cartId}/`);
+        const cartUrl = normalizeUrl(BASE_URL, `ecommerce/carts/${cartId}/`);
         const cartResponse = await axios.get(cartUrl, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
@@ -99,38 +101,6 @@ const CartTable = () => {
         });
         const cartData = cartResponse.data;
         setCartData(cartData);
-
-        const discounts = {};
-        if (isLoggedIn) {
-          const abortController = new AbortController();
-          try {
-            for (const item of cartData.items) {
-              // Check if user_exclusive_price exists and has a valid id
-              if (!item.user_exclusive_price || !item.user_exclusive_price.id) {
-                discounts[item.id] = { id: null, discount_percentage: 0 };
-                continue;
-              }
-              const exclusivePriceUrl = normalizeUrl(BASE_URL, `user-exclusive-prices/${item.user_exclusive_price.id}/`);
-              const exclusivePriceResponse = await axios.get(exclusivePriceUrl, {
-                headers: {
-                  Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-                },
-                signal: abortController.signal,
-              });
-              const exclusivePrice = exclusivePriceResponse.data;
-              discounts[item.id] = {
-                id: exclusivePrice.id,
-                discount_percentage: parseFloat(exclusivePrice.discount_percentage) || 0,
-              };
-            }
-            setExclusiveDiscounts(discounts);
-          } catch (error) {
-            if (error.name !== "AbortError") {
-              console.error("Failed to fetch exclusive prices:", error.message);
-            }
-          }
-          abortController.abort();
-        }
 
         const mappedItems = await Promise.all(
           cartData.items.map(async (item) => {
@@ -144,8 +114,7 @@ const CartTable = () => {
               const unitsPerPack = productVariant.units_per_pack || 1;
               const itemImages = itemDetails.images || [];
               const firstImage = itemImages.length > 0 ? itemImages[0].image : "";
-
-              const discountPercentage = discounts[item.id]?.discount_percentage || 0;
+              const discountPercentage = parseFloat(item.discount_percentage) || 0;
               const description = itemDetails.title || productVariant.name || `Item ${item.item.id}`;
 
               return {
@@ -187,7 +156,7 @@ const CartTable = () => {
                 perUnitPrice: parseFloat(item.price_per_unit) || 0,
                 perPackPrice: parseFloat(item.price_per_pack) || 0,
                 pricingTierId: item.pricing_tier.id,
-                discountPercentage: discounts[item.id]?.discount_percentage || 0,
+                discountPercentage: parseFloat(item.discount_percentage) || 0,
                 unitsPerPack: 1,
                 trackInventory: false,
                 stock: 0,
@@ -247,7 +216,7 @@ const CartTable = () => {
     setUpdatingRows((prev) => ({ ...prev, [itemId]: true }));
 
     try {
-      const cartItemUrl = normalizeUrl(BASE_URL, `cart-items/${itemId}/`);
+      const cartItemUrl = normalizeUrl(BASE_URL, `ecommerce/cart-items/${itemId}/`);
       const cartItemResponse = await axios.get(cartItemUrl, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
@@ -280,7 +249,7 @@ const CartTable = () => {
       let pricingTierId = currentCartItem.pricing_tier.id;
 
       if (roundedPacks > 0) {
-        const pricingTiersUrl = normalizeUrl(BASE_URL, `pricing-tiers/?product_variant=${productVariantId}`);
+        const pricingTiersUrl = normalizeUrl(BASE_URL, `ecommerce/pricing-tiers/?product_variant=${productVariantId}`);
         const pricingTiersResponse = await axios.get(pricingTiersUrl, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
@@ -315,7 +284,7 @@ const CartTable = () => {
       }
 
       if (roundedPacks === 0) {
-        const deleteUrl = normalizeUrl(BASE_URL, `cart-items/${itemId}/`);
+        const deleteUrl = normalizeUrl(BASE_URL, `ecommerce/cart-items/${itemId}/`);
         await axios.delete(deleteUrl, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
@@ -335,7 +304,7 @@ const CartTable = () => {
           total_weight: prev.total_weight - backendItem.weight,
         }));
       } else {
-        const patchUrl = normalizeUrl(BASE_URL, `cart-items/${itemId}/`);
+        const patchUrl = normalizeUrl(BASE_URL, `ecommerce/cart-items/${itemId}/`);
         const patchResponse = await axios.patch(
           patchUrl,
           {
@@ -351,7 +320,7 @@ const CartTable = () => {
         );
 
         if (patchResponse.status === 200) {
-          const cartUrl = normalizeUrl(BASE_URL, `carts/${cartData.id}/`);
+          const cartUrl = normalizeUrl(BASE_URL, `ecommerce/carts/${cartData.id}/`);
           const updatedCartResponse = await axios.get(cartUrl, {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
@@ -371,7 +340,7 @@ const CartTable = () => {
             return;
           }
 
-          const discountPercentage = exclusiveDiscounts[itemId]?.discount_percentage || 0;
+          const discountPercentage = parseFloat(updatedItem.discount_percentage) || 0;
           const description = updatedItem.item.title || updatedItem.item.product_variant?.name || `Item ${updatedItem.item.id}`;
 
           const updatedCartItem = {
@@ -446,16 +415,27 @@ const CartTable = () => {
   const handlePackInputBlur = (itemId) => {
     if (updatingRows[itemId]) return;
     const newPacks = editPacks[itemId] !== undefined ? editPacks[itemId] : cartItems.find((item) => item.id === itemId)?.packs || 0;
-    handlePackChange(itemId, newPacks);
+    const currentPacks = cartItems.find((item) => item.id === itemId)?.packs || 0;
+    
+    // Only call handlePackChange if the value has changed
+    if (newPacks !== currentPacks) {
+      handlePackChange(itemId, newPacks);
+    }
   };
-
+  
   const handlePackInputKeyPress = (itemId, e) => {
     if (updatingRows[itemId]) return;
     if (e.key === "Enter") {
       const newPacks = editPacks[itemId] !== undefined ? editPacks[itemId] : cartItems.find((item) => item.id === itemId)?.packs || 0;
-      handlePackChange(itemId, newPacks);
+      const currentPacks = cartItems.find((item) => item.id === itemId)?.packs || 0;
+      
+      // Only call handlePackChange if the value has changed
+      if (newPacks !== currentPacks) {
+        handlePackChange(itemId, newPacks);
+      }
     }
   };
+
 
   const handleImageError = (itemId) => {
     setImageErrors((prev) => ({ ...prev, [itemId]: true }));
@@ -490,20 +470,14 @@ const CartTable = () => {
   const { totalItems, totalPacks, subtotal, total, weight, vat, discount, vat_amount, discount_amount } = calculateSummary();
 
   if (loading) {
-    return (
-      <div className={TableStyles.tableContentWrapper}>
-        <div className={TableStyles.tableContainer}>
-        <p className="b3 text-center">Loading cart...</p>
-        </div>
-      </div>
-    );
+    return <CustomLoading />;
   }
 
   return (
     <div className={TableStyles.tableContentWrapper}>
       <Notification message={notification.message} type={notification.type} visible={notification.visible} />
       {error && (
-        <AccentNotifier
+        <AccentNotifier type="accent"
           icon={AlertCircle}
           text={error}
           className="clr-danger"
@@ -523,20 +497,20 @@ const CartTable = () => {
               <th className={`${TableStyles.defaultHeader} b3 clr-text`}>Total</th>
             </tr>
           </thead>
-          <tbody>
-            {cartItems.length === 0 ? (
+          {cartItems.length === 0 ? (
+            <tbody>
               <tr>
-                <td colSpan={8} className="c3 text-center">
-                  Your cart is empty.
-                </td>
+                <td colSpan="8" className="b3 text-center">You have no orders.</td>
               </tr>
-            ) : (
-              cartItems.map((cartElement) => {
+            </tbody>
+          ) : (
+            <tbody>
+              {cartItems.map((cartElement) => {
                 const sanitizedDescription = DOMPurify.sanitize(cartElement.description);
                 const hasImageError = imageErrors[cartElement.id] || !cartElement.image;
                 const currentPacks = editPacks[cartElement.id] !== undefined ? editPacks[cartElement.id] : cartElement.packs;
                 const isUpdating = updatingRows[cartElement.id] || false;
-                const discountTag = cartElement.discountPercentage > 0 ? ` (${cartElement.discountPercentage}%)` : "";
+                const discountTag = cartElement.discountPercentage > 0 ? ` ${Number(cartElement.discountPercentage).toFixed(2)}%` : "";
 
                 return (
                   <tr key={cartElement.id} className={cartElement.units > 0 ? TableStyles.selectedRow : ""}>
@@ -609,17 +583,26 @@ const CartTable = () => {
                       })}
                     </td>
                     <td className="b3 clr-text">
-                      £{cartElement.total.toLocaleString("en-GB", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
-                      {discountTag && <span className={TableStyles.discountTag}>{discountTag}</span>}
+                    <span className={TableStyles.exclusivePrice}>
+                      <span>
+                        £{cartElement.total.toLocaleString("en-GB", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </span>
+                      
+                      {discountTag && (
+                        <span className={`${TableStyles.percentageTag} b3 clr-success`} style={{ marginLeft: "8px" }}>
+                          {discountTag}
+                          </span>
+                      )}
+                      </span>
                     </td>
                   </tr>
                 );
-              })
-            )}
-          </tbody>
+              })}
+            </tbody>
+          )}
         </table>
       </div>
       {cartItems.length > 0 && (
@@ -643,17 +626,17 @@ const CartTable = () => {
                   })}
                 </td>
               </tr>
-              <tr>
-                <th className="b3 clr-text">Discount ({discount}%)</th>
+              {/* <tr>
+                <th className="b3 clr-text">Discount ({discount.toFixed(2)}%)</th>
                 <td className="b3 clr-text">
                   £{discount_amount.toLocaleString("en-GB", {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
                   })}
                 </td>
-              </tr>
+              </tr> */}
               <tr>
-                <th className="b3 clr-text">VAT ({vat}%)</th>
+                <th className="b3 clr-text">VAT ({vat.toFixed(2)}%)</th>
                 <td className="b3 clr-text">
                   £{vat_amount.toLocaleString("en-GB", {
                     minimumFractionDigits: 2,
@@ -676,12 +659,12 @@ const CartTable = () => {
               </tr>
             </tbody>
           </table>
-          {subtotal >= 600 && (
-            <AccentNotifier
+          {/* {subtotal >= 600 && (
+            <AccentNotifier type="accent"
               icon={Truck}
               text="SHOP WORTH 600£ AND GET 10% DISCOUNT ON ALL"
             />
-          )}
+          )} */}
         </>
       )}
       <div className="row-content justify-content-flex-end gap-xs">

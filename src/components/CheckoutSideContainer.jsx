@@ -27,7 +27,7 @@ const CheckoutSideContainer = () => {
         const cart = await getOrCreateCart();
         const cartId = cart.id;
 
-        const cartUrl = normalizeUrl(BASE_URL, `carts/${cartId}/`);
+        const cartUrl = normalizeUrl(BASE_URL, `ecommerce/carts/${cartId}/`);
         const cartResponse = await axios.get(cartUrl, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
@@ -110,10 +110,10 @@ const CheckoutSideContainer = () => {
         <p className="b3 dark">£{subtotal.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
       </div>
 
-      <div className={FormSideContainerStyles.row}>
+      {/* <div className={FormSideContainerStyles.row}>
         <p className="b3 dark">Discount ({discount}%)</p>
         <p className="b3 dark">£{discount_amount.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-      </div>
+      </div> */}
 
       <div className={FormSideContainerStyles.row}>
         <p className="b3 dark">VAT ({vat}%)</p>

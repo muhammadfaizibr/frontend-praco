@@ -422,14 +422,11 @@ export const createOrder = async (orderData, { signal }) => {
 
 export const getOrders = async () => {
   try {
-    console.log("Initiating API call to /orders/...");
     let allOrders = [];
     let url = "orders/";
 
     while (url) {
-      console.log("Fetching from URL:", `${BASE_URL}/${url}`);
       const response = await apiClient.get(url);
-      console.log("API response:", response.data);
       const data = response.data || {};
 
       let ordersToProcess;
@@ -455,10 +452,8 @@ export const getOrders = async () => {
       );
 
       allOrders = allOrders.concat(validOrders);
-      console.log("Fetched orders:", validOrders, "Next URL:", url);
     }
 
-    console.log("All orders fetched:", allOrders);
     return allOrders;
   } catch (error) {
     console.error("getOrders error:", error);

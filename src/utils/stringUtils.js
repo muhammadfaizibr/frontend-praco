@@ -4,6 +4,6 @@ export const transformText = (text) => {
 
 export const copyToClipboard = (text) => {
   navigator.clipboard.writeText(text)
-    .then(() => console.log("Copied:", text))
+    .then(() => {})
     .catch(err => console.error("Copy failed:", err));
 }

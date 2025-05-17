@@ -6,3 +6,8 @@
     align-items: center;
     border-radius: var(--radius-m);
 }
+
+.warning{
+    background-color: var(--clr-warning-bg-light) !important;
+    color: var(--clr-warning-dark) !important;
+}

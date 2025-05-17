@@ -130,6 +130,7 @@
   --font-size-base: 1.6rem;
   --font-size-heading: 2rem;
   --font-size-small: 1.4rem;
+  --font-size-extra-small: 1.3rem;
 
   /* Spacing */
   --spacing-sm: 1.2rem;
@@ -398,7 +399,6 @@ button:disabled:hover {
 .primary-btn:active,
 .primary-btn:focus {
   background-color: var(--clr-primary-light);
-  border-color: var(--clr-white) !important;
   box-shadow: var(--shadow-primary-pressed);
 }
 
@@ -413,7 +413,6 @@ button:disabled:hover {
 .secondary-btn:focus {
   background-color: var(--clr-black);
   color: var(--clr-white);
-  border-color: var(--clr-white) !important;
   box-shadow: var(--shadow-secondary-pressed);
 }
 
@@ -428,7 +427,6 @@ button:disabled:hover {
 .primary-outlined-btn:focus {
   background-color: var(--clr-gray-light);
   box-shadow: var(--shadow-primary-pressed);
-  border-color: var(--clr-white) !important;
 }
 
 .square-btn {
@@ -565,8 +563,7 @@ input:active,
 textarea:focus,
 textarea:active {
   box-shadow: var(--shadow-primary-pressed);
-  border-color: var(--clr-primary);
-  border-color: var(--clr-white) !important; 
+  border-color: var(--clr-primary); 
 }
 
 input::placeholder,

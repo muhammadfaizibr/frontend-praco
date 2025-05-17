@@ -11,7 +11,7 @@ import Logo from "assets/images/logo.svg";
 import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import SearchBarHeader from "components/SearchBarHeader";
 import UnitConversionPopup from "components/UnitConversionPopup";
-import MenuCategories from "./MenuCategories";
+import MenuCategories from "components/MenuCategories";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "utils/store";
 

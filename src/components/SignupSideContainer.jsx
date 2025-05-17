@@ -1,6 +1,6 @@
 import React from "react";
 import FormSideContainerStyles from "assets/css/FormSideContainer.module.css";
-import HeadingBar from "./HeadingBar";
+import HeadingBar from "components/HeadingBar";
 import { LocateFixed, Lock, SquarePercent } from "lucide-react";
 
 const LoginSideContainer = () => {
