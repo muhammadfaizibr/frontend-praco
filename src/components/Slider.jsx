@@ -100,9 +100,9 @@ const Slider = () => {
                     <img
                       src={category.slider_image}
                       alt={category.name}
-                      onError={(e) => {
-                        e.target.src = "https://via.placeholder.com/800x400?text=Image+Not+Found";
-                      }}
+                      // onError={(e) => {
+                      //   // e.target.src = "https://via.placeholder.com/800x400?text=Image+Not+Found";
+                      // }}
                     />
                   </div>
                 </Link>

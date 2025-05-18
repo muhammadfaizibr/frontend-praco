@@ -12,6 +12,7 @@ const ProductsTable = ({ variantsWithData }) => {
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
   const navigate = useNavigate();
   const [itemUnits, setItemUnits] = useState({});
+  const [inputValues, setInputValues] = useState({}); // New state for temporary input values
   const [variantPriceType, setVariantPriceType] = useState({});
   const [itemPrices, setItemPrices] = useState({});
   const [itemPackPrices, setItemPackPrices] = useState({});
@@ -30,6 +31,7 @@ const ProductsTable = ({ variantsWithData }) => {
 
   useEffect(() => {
     const initialUnits = {};
+    const initialInputValues = {};
     const initialPriceType = {};
     const initialSelectedTiers = {};
     const initialDisplayPriceType = {};
@@ -49,10 +51,12 @@ const ProductsTable = ({ variantsWithData }) => {
           return;
         }
         initialUnits[item.id] = 0;
+        initialInputValues[item.id] = "0"; // Initialize input values as strings
         initialSelectedTiers[item.id] = null;
       });
     });
     setItemUnits(initialUnits);
+    setInputValues(initialInputValues);
     setVariantPriceType(initialPriceType);
     setSelectedTiers(initialSelectedTiers);
     setVariantDisplayPriceType(initialDisplayPriceType);
@@ -206,13 +210,14 @@ const ProductsTable = ({ variantsWithData }) => {
       if (variantPriceType[variantId] !== newVariantPriceType) {
         const message =
           newVariantPriceType === "pallet"
-            ? "Switched to pallet pricing due to total quantity."
+            ? "Switched to pallet pricing due to pallet quantity."
             : "Reverted to pack pricing due to non-pallet quantity.";
         showNotification(message, "info");
       }
 
       setVariantPriceType((prev) => ({ ...prev, [variantId]: newVariantPriceType }));
       setItemUnits(updatedItemUnits);
+      setInputValues((prev) => ({ ...prev, [itemId]: adjustedUnits.toString() })); // Sync input value
 
       variant.items.forEach((item) => {
         const itemUnitsValue = updatedItemUnits[item.id] || 0;
@@ -371,17 +376,40 @@ const ProductsTable = ({ variantsWithData }) => {
     variantsWithData.forEach((variant) => {
       if (!variant?.items) return;
       const currentDisplayPriceType = variantDisplayPriceType[variant.id] || "unit";
+      const currentPriceType = variantPriceType[variant.id] || "pack";
+
       variant.items.forEach((item) => {
         const units = itemUnits[item.id] || 0;
         if (units <= 0) return;
 
         const unitsPerPack = variant.units_per_pack || 1;
         const numberOfPacks = Math.ceil(units / unitsPerPack);
-        const subtotal = itemPrices[item.id] || 0;
-        const packSubtotal = itemPackPrices[item.id] || 0;
-        const primaryImage = item.images?.[0]?.image || "/fallback-image.jpg";
+
+        // Determine the active pricing tier based on current units
+        const activeTier = findApplicableTier(variant, units, currentPriceType);
+        let price = 0;
+
+        if (activeTier) {
+          const pricingData = activeTier.pricing_data?.find((pd) => pd.item === item.id);
+          if (pricingData && isFinite(parseFloat(pricingData.price))) {
+            price = applyDiscount(parseFloat(pricingData.price), item.id);
+          } else {
+            const fallbackTier = variant.pricing_tiers?.find((tier) => tier.tier_type === currentPriceType);
+            if (fallbackTier) {
+              const fallbackPricingData = fallbackTier.pricing_data?.find((pd) => pd.item === item.id);
+              if (fallbackPricingData && isFinite(parseFloat(fallbackPricingData.price))) {
+                price = applyDiscount(parseFloat(fallbackPricingData.price), item.id);
+              }
+            }
+          }
+        }
+
+        const subtotal = price * units;
+        const packSubtotal = price * unitsPerPack * numberOfPacks;
+
         totalPrice += subtotal;
 
+        const primaryImage = item.images?.[0]?.image || "";
         items.push({
           id: item.id,
           description: item.title || "Item",
@@ -393,11 +421,12 @@ const ProductsTable = ({ variantsWithData }) => {
           variantId: variant.id,
           image: primaryImage,
           discountPercentage: exclusiveDiscounts[item.id]?.discount_percentage || 0,
+          activeTierId: activeTier?.id || null,
         });
       });
     });
     return { items, totalPrice };
-  }, [itemUnits, itemPrices, itemPackPrices, variantDisplayPriceType, variantsWithData, exclusiveDiscounts]);
+  }, [itemUnits, variantDisplayPriceType, variantPriceType, variantsWithData, exclusiveDiscounts, findApplicableTier, applyDiscount]);
 
   const handleAddToCart = useCallback(async () => {
     if (!isLoggedIn) {
@@ -424,7 +453,7 @@ const ProductsTable = ({ variantsWithData }) => {
         const variant = variantsWithData.find((v) => v.id === item.variantId);
         if (!variant) continue;
 
-        const tierId = selectedTiers[item.id];
+        const tierId = item.activeTierId; // Use active tier instead of selectedTiers
         if (!tierId) {
           showNotification(`No pricing tier selected for item ${item.description}.`, "error");
           return;
@@ -467,6 +496,11 @@ const ProductsTable = ({ variantsWithData }) => {
         const resetUnits = { ...prev };
         Object.keys(resetUnits).forEach((key) => (resetUnits[key] = 0));
         return resetUnits;
+      });
+      setInputValues((prev) => {
+        const resetInputs = { ...prev };
+        Object.keys(resetInputs).forEach((key) => (resetInputs[key] = "0"));
+        return resetInputs;
       });
       setSelectedTiers({});
       setItemPrices({});
@@ -567,7 +601,7 @@ const ProductsTable = ({ variantsWithData }) => {
                   <tbody>
                     {variant.items.map((item) => {
                       const images = item.images?.map((img) => img.image) || [];
-                      const primaryImage = imageLoadFailed[item.id] || !images.length ? "/fallback-image.jpg" : images[0];
+                      const primaryImage = imageLoadFailed[item.id] || !images.length ? "" : images[0];
 
                       return (
                         <tr key={item.id} className={itemUnits[item.id] > 0 ? TableStyles.selectedRow : ""}>
@@ -679,15 +713,31 @@ const ProductsTable = ({ variantsWithData }) => {
                               </button>
                               <input
                                 type="text"
-                                value={itemUnits[item.id] ?? 0}
+                                value={inputValues[item.id] ?? itemUnits[item.id] ?? "0"}
                                 onChange={(e) => {
                                   const value = e.target.value.replace(/[^0-9]/g, "");
-                                  setItemUnits((prev) => ({ ...prev, [item.id]: parseInt(value, 10) || 0 }));
+                                  setInputValues((prev) => ({ ...prev, [item.id]: value }));
                                 }}
-                                onBlur={(e) => handleUnitChange(item.id, variant.id, e.target.value.replace(/[^0-9]/g, ""))}
+                                onBlur={(e) => {
+                                  const value = e.target.value.replace(/[^0-9]/g, "");
+                                  const newUnits = parseInt(value, 10) || 0;
+                                  const currentUnits = itemUnits[item.id] || 0;
+                                  if (newUnits !== currentUnits) {
+                                    handleUnitChange(item.id, variant.id, value);
+                                  } else {
+                                    setInputValues((prev) => ({ ...prev, [item.id]: currentUnits.toString() }));
+                                  }
+                                }}
                                 onKeyPress={(e) => {
                                   if (e.key === "Enter") {
-                                    handleUnitChange(item.id, variant.id, e.target.value.replace(/[^0-9]/g, ""));
+                                    const value = e.target.value.replace(/[^0-9]/g, "");
+                                    const newUnits = parseInt(value, 10) || 0;
+                                    const currentUnits = itemUnits[item.id] || 0;
+                                    if (newUnits !== currentUnits) {
+                                      handleUnitChange(item.id, variant.id, value);
+                                    } else {
+                                      setInputValues((prev) => ({ ...prev, [item.id]: currentUnits.toString() }));
+                                    }
                                     e.target.blur();
                                   }
                                 }}
@@ -737,9 +787,9 @@ const ProductsTable = ({ variantsWithData }) => {
               <tbody>
                 {computeSelectedItems().items.map((item) => {
                   const displaySubtotal = item.displayPriceType === "unit" ? item.subtotal : item.packSubtotal;
-                  const originalSubtotal = item.displayPriceType === "unit" 
-                    ? item.subtotal / (1 - item.discountPercentage / 100)
-                    : item.packSubtotal / (1 - item.discountPercentage / 100);
+                  const originalSubtotal = item.discountPercentage > 0
+                    ? displaySubtotal / (1 - item.discountPercentage / 100)
+                    : displaySubtotal;
 
                   return (
                     <tr key={item.id}>
@@ -747,15 +797,18 @@ const ProductsTable = ({ variantsWithData }) => {
                       <td className="b3 clr-text">{item.packs}</td>
                       <td className="b3 clr-text">{item.units}</td>
                       <td className="b3 clr-text">
-                        
+                        {item.discountPercentage > 0 ? (
+                          <span style={{ textDecoration: "line-through" }}>£{originalSubtotal.toFixed(2)}</span>
+                        ) : (
                           <span>£{originalSubtotal.toFixed(2)}</span>
-              
+                        )}
                       </td>
                       <td className="b3 clr-text">
                         {item.discountPercentage > 0 ? (
                           <>
                             <span className={TableStyles.exclusivePrice}>
-                              {" "}£{displaySubtotal.toFixed(2)} <div className={TableStyles.percentageTag}>{item.discountPercentage}% Off</div>
+                              £{displaySubtotal.toFixed(2)}{" "}
+                              <div className={TableStyles.percentageTag}>{item.discountPercentage}% Off</div>
                             </span>
                           </>
                         ) : (

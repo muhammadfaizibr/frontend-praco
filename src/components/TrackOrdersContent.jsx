@@ -6,6 +6,7 @@ import { AlertCircle, Info } from "lucide-react";
 // import Notification from "components/Notification";
 import { getOrders } from "utils/api/ecommerce";
 import AccentNotifier from "components/AccentNotifier";
+import CustomLoading from "./CustomLoading";
 
 const TrackOrderContent = () => {
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
@@ -89,7 +90,7 @@ const TrackOrderContent = () => {
     return (
       <div className={TableStyles.tableContentWrapper}>
         <div className={TableStyles.tableContainer}>
-          <p className="c3 text-center">Loading orders...</p>
+          <CustomLoading />
         </div>
       </div>
     );

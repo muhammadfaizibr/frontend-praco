@@ -50,7 +50,7 @@ const SearchResults = () => {
       }
 
       const validUnits = ['MM', 'CM', 'IN', 'M'];
-      if (!validUnits.includes(queryParams.measurement_unit)) {
+      if (!validUnits.includes(queryParams.measurement_unit.toUpperCase())) {
         setError(`Invalid measurement unit: must be one of ${validUnits.join(', ')}`);
         setIsLoading(false);
         return;
@@ -63,7 +63,15 @@ const SearchResults = () => {
         return;
       }
 
-      const response = await searchItems(queryParams, abortControllerRef.current.signal);
+      // Ensure approx_size and minimum_size are included in the query if provided
+      const response = await searchItems(
+        {
+          ...queryParams,
+          approx_size: queryParams.approx_size || false,
+          minimum_size: queryParams.minimum_size || false,
+        },
+        abortControllerRef.current.signal
+      );
       setResults(response.results || []);
     } catch (err) {
       if (err.name === "AbortError") {
@@ -109,18 +117,18 @@ const SearchResults = () => {
             <table className={TableStyles.table}>
               <thead>
                 <tr>
-                  <th className="l3 clr-accent-dark-blue">Image</th>
-                  <th className="l3 clr-accent-dark-blue">SKU</th>
-                  <th className={`${TableStyles.colLongWidth} l3 clr-accent-dark-blue`}>Title</th>
-                  <th className="l3 clr-accent-dark-blue">Dimensions</th>
-                  <th className="l3 clr-accent-dark-blue">Details</th>
+                  <th className={`l3 clr-accent-dark-blue ${TableStyles.defaultHeader}`}>Image</th>
+                  <th className={`l3 clr-accent-dark-blue ${TableStyles.defaultHeader}`}>SKU</th>
+                  <th className={`${TableStyles.colLongWidth} ${TableStyles.defaultHeader} l3 clr-accent-dark-blue`}>Title</th>
+                  <th className={`l3 clr-accent-dark-blue ${TableStyles.defaultHeader}`}>Dimensions</th>
+                  <th className={`l3 clr-accent-dark-blue ${TableStyles.defaultHeader}`}>Details</th>
                 </tr>
               </thead>
               <tbody>
                 {results.map((item) => (
                   <tr key={item.id}>
                     <td className="c3">
-                      {item.images && item.images[0] ? (
+                      {item.images && item.images.length > 0 ? (
                         <div className={TableStyles.colImageWrapper}>
                           <div className={TableStyles.colImageContainer}>
                             <img
@@ -140,7 +148,9 @@ const SearchResults = () => {
                       {item.title || "N/A"}
                     </td>
                     <td className="c3">
-                      {item.width} × {item.length} × {item.height} {item.measurement_unit}
+                      {item.width && item.length && item.height && item.measurement_unit
+                        ? `${Number(item.width).toFixed(2)} × ${Number(item.length).toFixed(2)} × ${Number(item.height).toFixed(2)} ${item.measurement_unit}`
+                        : "N/A"}
                     </td>
                     <td className="c3">
                       {item.product_variant && item.product_variant.product && item.product_variant.product.category ? (

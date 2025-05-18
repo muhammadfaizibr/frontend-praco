@@ -207,13 +207,37 @@ export const searchItems = async (params, { signal }) => {
   try {
     let allItems = [];
     let url = "items/";
+    let count = 0;
+    let next = null;
+    let previous = null;
+
+    // Normalize query parameters
+    const normalizedParams = {
+      ...params,
+      measurement_unit: params.measurement_unit ? params.measurement_unit.toUpperCase() : undefined,
+      category: params.category ? params.category.toLowerCase() : undefined,
+      approx_size: params.approx_size === true || params.approx_size === 'true',
+      minimum_size: params.minimum_size === true || params.minimum_size === 'true',
+    };
+
+    // Fetch all pages
     while (url) {
-      const response = await apiClient.get(url, { params, signal });
+      const response = await apiClient.get(url, { params: normalizedParams, signal });
       const data = response.data || {};
       allItems = allItems.concat(data.results || []);
+      count = data.count || 0;
+      next = data.next || null;
+      previous = data.previous || null;
       url = data.next || null;
     }
-    return allItems;
+
+    // Return the full response structure
+    return {
+      count,
+      next,
+      previous,
+      results: allItems,
+    };
   } catch (error) {
     console.error("searchItems error:", error);
     throw error;

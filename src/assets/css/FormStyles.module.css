@@ -108,7 +108,7 @@
   background: var(--clr-danger-bg-light);
   color: var(--clr-danger-dark);
   padding: var(--padding-xs);
-  border-radius: var(--radius-xxs);
+  border-radius: var(--radius-s);
   text-align: center;
   width: 100%;
 }
@@ -117,7 +117,7 @@
   background: var(--clr-warning-bg-light);
   color: var(--clr-warning-dark);
   padding: var(--padding-xs);
-  border-radius: var(--radius-xxs);
+  border-radius: var(--radius-s);
   text-align: center;
   width: 100%;
 }
@@ -126,7 +126,7 @@
   background: var(--clr-success-bg-light);
   color: var(--clr-success-dark);
   padding: var(--padding-xs);
-  border-radius: var(--radius-xxs);
+  border-radius: var(--radius-s);
   text-align: center;
   width: 100%;
 }

@@ -57,7 +57,7 @@ const Categories = () => {
                 title: product.name,
                 slug: product.slug,
                 category: product.category,
-                image: product.images[0]?.image || "https://via.placeholder.com/600x400?text=Image+Not+Found",
+                image: product.images[0]?.image || "",
                 variantCount,
                 alt: product.name.toLowerCase(),
               };

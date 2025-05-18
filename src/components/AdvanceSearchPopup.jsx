@@ -27,7 +27,7 @@ const AdvanceSearchPopup = () => {
   // Parse URL parameters and set state on mount
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    
+
     const urlWidth = params.get("width");
     const urlHeight = params.get("height");
     const urlLength = params.get("length");
@@ -40,16 +40,22 @@ const AdvanceSearchPopup = () => {
     setWidth(urlWidth || "");
     setHeight(urlHeight || "");
     setLength(urlLength || "");
+
     setMeasurementUnitValue(
       urlMeasurementUnit && measurementUnits.includes(urlMeasurementUnit)
         ? urlMeasurementUnit
         : measurementUnits[0]
     );
-    setProductCategoryValue(
-      urlCategory && productCategories.map(transformText).includes(urlCategory)
-        ? urlCategory
-        : transformText(productCategories[0])
-    );
+
+    if (
+      urlCategory &&
+      productCategories.map(transformText).includes(urlCategory)
+    ) {
+      setProductCategoryValue(urlCategory);
+    } else if (!productCategoryValue) {
+      setProductCategoryValue(transformText(productCategories[0]));
+    }
+
     setProductSizeValue(
       urlApproxSize === "true"
         ? transformText("Approx Size")
@@ -63,67 +69,78 @@ const AdvanceSearchPopup = () => {
     setError(null);
   }, []);
 
-  const handleSearch = useCallback(async (e) => {
-    e.preventDefault();
+  const handleSearch = useCallback(
+    async (e) => {
+      e.preventDefault();
 
-    // Validate inputs
-    const parsedWidth = parseFloat(width);
-    const parsedHeight = parseFloat(height);
-    const parsedLength = parseFloat(length);
+      // Validate inputs
+      const parsedWidth = parseFloat(width);
+      const parsedHeight = parseFloat(height);
+      const parsedLength = parseFloat(length);
 
-    if (
-      !width ||
-      !height ||
-      !length ||
-      isNaN(parsedWidth) ||
-      isNaN(parsedHeight) ||
-      isNaN(parsedLength) ||
-      parsedWidth <= 0 ||
-      parsedHeight <= 0 ||
-      parsedLength <= 0
-    ) {
-      setError("Please provide valid dimensions (greater than 0).");
-      return;
-    }
-    if (!productCategoryValue) {
-      setError("Please select a product category.");
-      return;
-    }
-    if (!measurementUnitValue) {
-      setError("Please select a measurement unit.");
-      return;
-    }
-
-    // Cancel previous request
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    abortControllerRef.current = new AbortController();
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const params = new URLSearchParams({
-        width,
-        length,
-        height,
-        measurement_unit: measurementUnitValue,
-        category: productCategoryValue,
-        approx_size: productSizeValue === transformText("Approx Size") ? "true" : "false",
-        minimum_size: productSizeValue === transformText("Minimum Size") ? "true" : "false",
-      });
-
-      navigate(`/search?${params.toString()}`);
-    } catch (err) {
-      if (err.name === "AbortError") {
+      if (
+        !width ||
+        !height ||
+        !length ||
+        isNaN(parsedWidth) ||
+        isNaN(parsedHeight) ||
+        isNaN(parsedLength) ||
+        parsedWidth <= 0 ||
+        parsedHeight <= 0 ||
+        parsedLength <= 0
+      ) {
+        setError("Please provide valid dimensions (greater than 0).");
         return;
       }
-      setError("Failed to initiate search");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [width, height, length, productCategoryValue, measurementUnitValue, productSizeValue, navigate]);
+      if (!productCategoryValue) {
+        setError("Please select a product category.");
+        return;
+      }
+      if (!measurementUnitValue) {
+        setError("Please select a measurement unit.");
+        return;
+      }
+
+      // Cancel previous request
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      abortControllerRef.current = new AbortController();
+
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const params = new URLSearchParams({
+          width,
+          length,
+          height,
+          measurement_unit: measurementUnitValue,
+          category: productCategoryValue,
+          approx_size:
+            productSizeValue === transformText("Approx Size") ? "true" : "false",
+          minimum_size:
+            productSizeValue === transformText("Minimum Size") ? "true" : "false",
+        });
+
+        navigate(`/search?${params.toString()}`);
+      } catch (err) {
+        if (err.name === "AbortError") return;
+        setError("Failed to initiate search");
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [
+      width,
+      height,
+      length,
+      productCategoryValue,
+      measurementUnitValue,
+      productSizeValue,
+      navigate,
+    ]
+  );
 
   // Cleanup on unmount
   useEffect(() => {
@@ -164,6 +181,9 @@ const AdvanceSearchPopup = () => {
                 setHeight(e.target.value);
                 clearError();
               }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") e.preventDefault();
+              }}
               aria-describedby={error ? "search-error" : undefined}
             />
             <div style={{ display: 'flex', alignItems: 'center'}}><X style={{strokeWidth: 'var(--icon-stroke-xl)', width: '1.75rem', height: '1.75rem'}}  aria-hidden="true" /></div>
@@ -179,6 +199,9 @@ const AdvanceSearchPopup = () => {
               onChange={(e) => {
                 setWidth(e.target.value);
                 clearError();
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") e.preventDefault();
               }}
               aria-describedby={error ? "search-error" : undefined}
             />
@@ -196,10 +219,14 @@ const AdvanceSearchPopup = () => {
                 setLength(e.target.value);
                 clearError();
               }}
-              // aria-describedby={error anticafe ? "search-error" : undefined}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") e.preventDefault();
+              }}
+              aria-describedby={error ? "search-error" : undefined}
             />
           </div>
         </div>
+
         <div className={AdvanceSearchPopupStyles.attribute}>
           <label className="l1">Type</label>
           <div className={AdvanceSearchPopupStyles.options}>
@@ -224,13 +251,16 @@ const AdvanceSearchPopup = () => {
                     clearError();
                   }
                 }}
-                aria-pressed={transformText(productCategory) === productCategoryValue}
+                aria-pressed={
+                  transformText(productCategory) === productCategoryValue
+                }
               >
                 {productCategory}
               </button>
             ))}
           </div>
         </div>
+
         <div className={AdvanceSearchPopupStyles.attribute}>
           <label className="l1">Measurement</label>
           <div className={AdvanceSearchPopupStyles.options}>
@@ -263,6 +293,7 @@ const AdvanceSearchPopup = () => {
             </div>
           </div>
         </div>
+
         <div className={AdvanceSearchPopupStyles.attribute}>
           <label className="l1">Product Size</label>
           <div className={AdvanceSearchPopupStyles.options}>

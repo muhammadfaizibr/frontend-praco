@@ -1,5 +1,11 @@
 /* ========================================================================== */
 /* Product Details Layout */
+.container{
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-l);
+}
+
 .productDetailsContainer {
   display: flex;
   flex-direction: row;
@@ -173,6 +179,7 @@
 
 .table td {
   min-width: 10rem;
+  padding: var(--padding-xs);
 }
 
 .table th:last-child,

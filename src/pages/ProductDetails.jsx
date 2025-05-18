@@ -211,7 +211,7 @@ const ProductDetails = () => {
             <div className={TableStyles.productDetailsContainer}>
               <div className={TableStyles.productImagesContainer}>
                 <img
-                  src={imageErrors[selectedImage] ? "/fallback-product-image.jpg" : selectedImage}
+                  src={imageErrors[selectedImage] ? "" : selectedImage}
                   alt={`${productData.name} large preview`}
                   className={TableStyles.largePreviewImage}
                   onError={() => handleImageError(selectedImage)}
@@ -222,7 +222,7 @@ const ProductDetails = () => {
                     productData.images.map((img) => (
                       <img
                         key={img.id}
-                        src={imageErrors[img.id] ? "/fallback-product-image.jpg" : img.image}
+                        src={imageErrors[img.id] ? "" : img.image}
                         alt={`${productData.name} thumbnail ${img.id}`}
                         className={`${TableStyles.thumbnailImage} ${selectedImage === img.image ? TableStyles.selectedThumbnail : ""}`}
                         onClick={() => handleThumbnailClick(img.image)}
@@ -232,7 +232,7 @@ const ProductDetails = () => {
                     ))
                   ) : (
                     <img
-                      src="/fallback-product-image.jpg"
+                      src=""
                       alt="No product image"
                       className={TableStyles.thumbnailImage}
                     />
