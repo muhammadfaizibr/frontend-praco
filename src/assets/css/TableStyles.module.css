@@ -91,8 +91,6 @@
 /* ========================================================================== */
 /* Sticky Variant Navigation Bar */
 .variantNavBar {
-  position: sticky;
-  top: 0;
   background-color: var(--clr-white);
   backdrop-filter: blur(40px);
   z-index: 10;
@@ -417,10 +415,10 @@
 .stickyBar {
   position: fixed;
   bottom: 0;
+  right: 0;
   z-index: 1000;
-  border: 1px solid var(--clr-border);
-  background-color: var(--clr-white);
   align-self: flex-end;
+  width: 100%;
 }
 
 .stickyBarContent {
@@ -429,6 +427,7 @@
   flex-direction: column;
   gap: var(--padding-xxs);
   background-color: var(--clr-white);
+  border: 1px solid var(--clr-border);
 }
 
 /* ========================================================================== */
@@ -481,12 +480,21 @@
 /* ========================================================================== */
 /* Products Summary Table */
 .productsSummaryTable {
-  max-width: 60rem;
+  width: 100%;
   margin: 0 auto;
   border-collapse: collapse;
   border: 1px solid var(--clr-border);
   background-color: var(--clr-white);
   font-size: var(--font-size-small);
+  display: flex;
+  flex-direction: column;
+  max-height: 150px;
+    overflow: scroll;
+}
+
+.productsSummaryTable tbody{
+    max-height: 150px;
+    overflow: scroll;
 }
 
 .productsSummaryTable th,
@@ -498,12 +506,14 @@
   min-width: 120px;
 }
 
+
 .productsSummaryTable th {
   font-weight: 600;
   background-color: var(--clr-gray-light);
   color: var(--clr-black);
   text-align: right;
 }
+
 
 .productsSummaryTable td {
   text-align: right;
@@ -512,6 +522,7 @@
 .productsSummaryTable th:first-child,
 .productsSummaryTable td:first-child {
   text-align: left;
+  width: 100%;
 }
 
 .productsSummaryTable th:last-child,
@@ -571,8 +582,7 @@
 }
 
 @media (max-width: 540px) {
-  .variantNavBar,
-  .stickyBarContent {
+  .variantNavBar {
     max-width: 100%;
   }
 
@@ -593,11 +603,6 @@
     min-width: 0;
   }
 
-  .productsSummaryTable th,
-  .productsSummaryTable td {
-    min-width: 100px;
-  }
-
 }
 
 
@@ -610,10 +615,6 @@
 
 @media (max-width: 450px) {
 
-  .productsSummaryTable th,
-  .productsSummaryTable td {
-    min-width: 60px;
-  }
 
   .cartSummaryTable {
     min-width: 100%;

@@ -71,9 +71,9 @@ const CheckoutForm = () => {
     if (!address.street) errors[`${type}_street`] = "Street is required.";
     if (!address.city) errors[`${type}_city`] = "City is required.";
     if (!address.postal_code) errors[`${type}_postal_code`] = "Postal code is required.";
-    if (address.postal_code && !/^[A-Z]{1,2}[0-9R][0-9A-Z]? ?[0-9][A-Z]{2}$/i.test(address.postal_code)) {
-      errors[`${type}_postal_code`] = "Invalid UK postal code format.";
-    }
+    // if (address.postal_code && !/^[A-Z]{1,2}[0-9R][0-9A-Z]? ?[0-9][A-Z]{2}$/i.test(address.postal_code)) {
+      // errors[`${type}_postal_code`] = "Invalid UK postal code format.";
+    // }
     if (!address.telephone_number) errors[`${type}_telephone_number`] = "Telephone number is required.";
     if (address.telephone_number && !/^\+?\d{10,14}$/.test(address.telephone_number)) {
       errors[`${type}_telephone_number`] = "Invalid telephone number format.";
@@ -163,6 +163,7 @@ const CheckoutForm = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  
   const handleCreateAddress = async (type) => {
     try {
       setIsLoading(true);
@@ -172,6 +173,7 @@ const CheckoutForm = () => {
       const addressErrors = validateAddress(addressData, type);
       if (Object.keys(addressErrors).length > 0) {
         setErrors(addressErrors);
+        console.log(addressErrors, 'addressErrors')
         setApiError(`Please correct the errors in the ${type} address form.`);
         return;
       }
@@ -244,89 +246,111 @@ const CheckoutForm = () => {
       setIsLoading(false);
     }
   };
+const handleCheckout = async (e) => {
+  e.preventDefault();
+  setApiError("");
+  setSuccessMessage("");
+  setErrors({});
 
-  const handleCheckout = async (e) => {
-    e.preventDefault();
-    setApiError("");
-    setSuccessMessage("");
-    setErrors({});
+  if (!validateForm()) return;
 
-    if (!validateForm()) return;
+  setIsLoading(true);
+  try {
+    let shippingAddressId = selectedShippingAddress;
+    let billingAddressId = selectedBillingAddress;
 
-    setIsLoading(true);
-    try {
-      let shippingAddressId = selectedShippingAddress;
-      let billingAddressId = selectedBillingAddress;
-
-      if (showNewShippingForm) {
-        const response = await createShippingAddress(newShippingAddress, { signal: abortController.signal });
-        shippingAddressId = response.id;
-        setShippingAddresses([...shippingAddresses, response]);
-        setNewShippingAddress({
-          first_name: "",
-          last_name: "",
-          street: "",
-          city: "",
-          state: "",
-          postal_code: "",
-          country: "United Kingdom",
-          telephone_number: "",
-        });
-        setShowNewShippingForm(false);
-      }
-      if (showNewBillingForm) {
-        const response = await createBillingAddress(newBillingAddress, { signal: abortController.signal });
-        billingAddressId = response.id;
-        setBillingAddresses([...billingAddresses, response]);
-        setNewBillingAddress({
-          first_name: "",
-          last_name: "",
-          street: "",
-          city: "",
-          state: "",
-          postal_code: "",
-          country: "United Kingdom",
-          telephone_number: "",
-        });
-        setShowNewBillingForm(false);
-      }
-
-      const orderData = {
-        shipping_address: parseInt(shippingAddressId),
-        billing_address: parseInt(billingAddressId),
-        shipping_cost: 0.00,
-        vat: 20.00,
-        discount: 0.00,
-        status: "PENDING",
-        payment_status: "PENDING",
-        payment_method: paymentMethod,
-      };
-
-      await createOrder(orderData, { signal: abortController.signal });
-
-      dispatch(setCartItems([]));
-      setSuccessMessage("Order placed successfully! Redirecting to order tracking...");
-      setSelectedShippingAddress("");
-      setSelectedBillingAddress("");
-      setPaymentMethod("manual_payment");
-      setErrors({});
-    } catch (error) {
-      console.error("Checkout error:", error);
-      if (error.fieldErrors && Object.keys(error.fieldErrors).length > 0) {
-        setErrors((prev) => ({
-          ...prev,
-          ...error.fieldErrors,
-          shipping_address: error.fieldErrors.shipping_address || prev.shipping_address,
-          billing_address: error.fieldErrors.billing_address || prev.billing_address,
-          payment_method: error.fieldErrors.payment_method || prev.payment_method,
-          cart: error.fieldErrors.cart || prev.cart,
-        }));
-      }
-      setApiError(error.message || "Failed to place order. Please check the form.");
-    } finally {
-      setIsLoading(false);
+    if (showNewShippingForm) {
+      const response = await createShippingAddress(newShippingAddress, { signal: abortController.signal });
+      shippingAddressId = response.id;
+      setShippingAddresses([...shippingAddresses, response]);
+      setNewShippingAddress({
+        first_name: "",
+        last_name: "",
+        street: "",
+        city: "",
+        state: "",
+        postal_code: "",
+        country: "United Kingdom",
+        telephone_number: "",
+      });
+      setShowNewShippingForm(false);
     }
-  };
+
+    if (showNewBillingForm) {
+      const response = await createBillingAddress(newBillingAddress, { signal: abortController.signal });
+      billingAddressId = response.id;
+      setBillingAddresses([...billingAddresses, response]);
+      setNewBillingAddress({
+        first_name: "",
+        last_name: "",
+        street: "",
+        city: "",
+        state: "",
+        postal_code: "",
+        country: "United Kingdom",
+        telephone_number: "",
+      });
+      setShowNewBillingForm(false);
+    }
+
+    const orderData = {
+      shipping_address: parseInt(shippingAddressId),
+      billing_address: parseInt(billingAddressId),
+      shipping_cost: 0.00,
+      vat: 20.00,
+      discount: 0.00,
+      status: "PENDING",
+      payment_status: "PENDING",
+      payment_method: paymentMethod,
+    };
+
+    await createOrder(orderData, { signal: abortController.signal });
+
+    dispatch(setCartItems([]));
+    setSuccessMessage("Order placed successfully! Redirecting to order tracking...");
+    setSelectedShippingAddress("");
+    setSelectedBillingAddress("");
+    setPaymentMethod("manual_payment");
+    setErrors({});
+  } catch (error) {
+    console.error("Checkout error:", error);
+    if (error.fieldErrors && Object.keys(error.fieldErrors).length > 0) {
+      const formattedErrors = {};
+
+      // Handle errors from createShippingAddress
+      if (showNewShippingForm && error.fieldErrors) {
+        Object.keys(error.fieldErrors).forEach((key) => {
+          formattedErrors[`shipping_${key}`] = error.fieldErrors[key];
+        });
+      }
+
+      // Handle errors from createBillingAddress
+      if (showNewBillingForm && error.fieldErrors) {
+        Object.keys(error.fieldErrors).forEach((key) => {
+          formattedErrors[`billing_${key}`] = error.fieldErrors[key];
+        });
+      }
+
+      // Handle errors from createOrder
+      if (!showNewShippingForm && !showNewBillingForm) {
+        formattedErrors.shipping_address = error.fieldErrors?.shipping_address;
+        formattedErrors.billing_address = error.fieldErrors?.billing_address;
+        formattedErrors.payment_method = error.fieldErrors?.payment_method;
+        formattedErrors.cart = error.fieldErrors?.cart;
+      }
+
+      setErrors((prev) => ({
+        ...prev,
+        ...formattedErrors,
+      }));
+    }
+    setApiError(error.message || "Failed to place order. Please check the form.");
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+  console.log(errors, 'errors')
 
   const addressFields = [
     { label: "First Name", name: "first_name", type: "text", icon: <User /> },

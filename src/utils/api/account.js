@@ -169,13 +169,17 @@ export const signup = (
   );
 };
 
-export const authenticateEmail = ({ email, code }, { signal } = {}) => {
+export const authenticateEmail = ({ email, code, authentication_type }, { signal } = {}) => {
   const trimmedEmail = email.trim();
-  const cacheKey = `email-auth:${trimmedEmail}:${code}`;
+  const cacheKey = `email-auth:${trimmedEmail}:${code}:${authentication_type}`;
   return withCache(
     cacheKey,
     (cancelToken) =>
-      apiClient.post("email-authentication/", { email: trimmedEmail, code }, { cancelToken }),
+      apiClient.post(
+        "email-authentication/",
+        { email: trimmedEmail, code, authentication_type },
+        { cancelToken }
+      ),
     signal
   );
 };

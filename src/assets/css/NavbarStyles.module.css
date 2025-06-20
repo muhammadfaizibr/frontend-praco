@@ -148,6 +148,7 @@ nav {
     align-items: center;
     justify-content: center;
     gap: var(--gap-xl);
+    flex-wrap: wrap;
 }
 
 .menuCategories li {

@@ -51,7 +51,7 @@
   --clr-info-light: #4ab3e2;
   --clr-info-dark: #117a8b;
   --clr-text: #333;
-  --clr-text-light: #878c92;
+  --clr-text-light: #898D94;
   --clr-text-disabled: #999;
   --clr-link: #ff8833;
   --clr-link-hover: #b36b00;
@@ -196,7 +196,7 @@ h6 {
 
 .b1 {
   font-weight: 500;
-  font-size: clamp(1.8rem, 2vw, 2rem);
+  font-size: clamp(1.6rem, 1.8vw, 1.8rem);
   line-height: 1.4;
 }
 
@@ -349,7 +349,7 @@ a.link:focus {
 }
 
 a.link-dark {
-  color: var(--clr-gray);
+  color: var(--clr-text-light);
 }
 
 a.link-dark:hover,
@@ -869,6 +869,7 @@ label {
   width: 100%;
   text-align: center;
 }
+
 /* ========================================================================== */
 /* Search Bar */
 .search-bar {

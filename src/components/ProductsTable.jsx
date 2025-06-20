@@ -772,8 +772,8 @@ const ProductsTable = ({ variantsWithData }) => {
         />
       )}
       {showStickyBar && (
-        <div className={TableStyles.stickyBar}>
-          <div className={TableStyles.stickyBarContent}>
+        <div className={`${TableStyles.stickyBar} centered-layout-wrapper`}>
+          <div className={`${TableStyles.stickyBarContent} centered-layout page-layout`}>
             <table className={TableStyles.productsSummaryTable}>
               <thead>
                 <tr>
@@ -793,7 +793,7 @@ const ProductsTable = ({ variantsWithData }) => {
 
                   return (
                     <tr key={item.id}>
-                      <td className="b3 clr-text">{item.description}</td>
+                      <td className="b3 clr-text">{item?.description?.slice(0, 18)}{item?.description?.length > 18 ? "..." : ""}</td>
                       <td className="b3 clr-text">{item.packs}</td>
                       <td className="b3 clr-text">{item.units}</td>
                       <td className="b3 clr-text">

@@ -44,7 +44,7 @@
 
 @media (max-width: 600px) {
   .container {
-    gap: clamp(0.8rem, 1.5vw, 1.2rem);
+    gap: clamp(1.2rem, 1.5vw, 1.2rem);
   }
 
   .productGrid {

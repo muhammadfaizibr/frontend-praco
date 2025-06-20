@@ -22,7 +22,6 @@ apiClient.interceptors.request.use(
     return Promise.reject(error);
   }
 );
-
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -82,12 +81,27 @@ apiClient.interceptors.response.use(
           errorMessage = Array.isArray(data.non_field_errors)
             ? data.non_field_errors.join(" ")
             : data.non_field_errors;
+        } else if (data.errors) {
+          // Handle nested errors object
+          fieldErrors = Object.keys(data.errors).reduce((acc, key) => {
+            acc[key] = Array.isArray(data.errors[key])
+              ? data.errors[key].join(" ")
+              : data.errors[key].toString();
+            return acc;
+          }, {});
+          errorMessage = Object.keys(fieldErrors).length
+            ? "Please check the form for errors."
+            : "Invalid response from server.";
         } else {
-          Object.keys(data).forEach((key) => {
-            fieldErrors[key] = Array.isArray(data[key])
-              ? data[key].join(" ")
-              : data[key].toString();
-          });
+          // Handle other field errors directly in data
+          fieldErrors = Object.keys(data).reduce((acc, key) => {
+            if (key !== "detail" && key !== "non_field_errors") {
+              acc[key] = Array.isArray(data[key])
+                ? data[key].join(" ")
+                : data[key].toString();
+            }
+            return acc;
+          }, {});
           errorMessage = Object.keys(fieldErrors).length
             ? "Please check the form for errors."
             : "Invalid response from server.";
