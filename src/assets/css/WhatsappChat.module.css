@@ -1,0 +1,33 @@
+/* WhatsappChat.module.css */
+.whatsappBtn {
+  position: fixed;
+  bottom: 2.4rem;
+  right: 2.4rem;
+  display: flex;
+  align-items: center;
+  gap: var(--gap-xxs);
+  background-color: #075E54;
+  color: var(--clr-white);
+  padding: var(--padding-m);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 0.8rem 1.6rem rgba(0, 0, 0, 0.1);
+  font-weight: 500;
+  text-decoration: none;
+  z-index: 1000;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.whatsappBtn:hover {
+  background-color: #1ebe5d;
+  transform: translateY(-0.2rem);
+}
+
+.icon {
+  width: 2.2rem;
+  height: 2.2rem;
+  stroke-width: 2;
+}
+
+.text {
+  font-size: var(--font-size-small);
+}

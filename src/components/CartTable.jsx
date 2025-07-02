@@ -500,7 +500,7 @@ const CartTable = () => {
           {cartItems.length === 0 ? (
             <tbody>
               <tr>
-                <td colSpan="8" className="b3 text-center">You have no orders.</td>
+                <td colSpan="8" className="b3 text-center">You have no items.</td>
               </tr>
             </tbody>
           ) : (

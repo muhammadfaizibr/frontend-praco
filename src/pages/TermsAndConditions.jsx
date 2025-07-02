@@ -7,7 +7,7 @@ const TermsAndConditions = () => {
           document.title = 'Terms & Conditions - Praco';
         }, [])
   return (
-    <div className="centered-layout padding-m column-content gap-m">
+    <div className="centered-layout column-content gap-m layout-vertical-padding">
       <h2 className="dark">Terms of Service</h2>
 
       <div className="column-content gap-m">

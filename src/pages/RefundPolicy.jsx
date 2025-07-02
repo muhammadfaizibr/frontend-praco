@@ -5,7 +5,7 @@ const RefundPolicy = () => {
           document.title = 'Refund Policy - Praco';
         }, [])
   return (
-    <div className="centered-layout padding-m column-content gap-m">
+    <div className="centered-layout column-content gap-m layout-vertical-padding">
       <h2 className="dark">Refund Policy</h2>
 
       <div className="column-content gap-m">

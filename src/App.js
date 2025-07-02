@@ -6,6 +6,7 @@ import { AppRoutes } from "routes/routes";
 import Footer from "components/Footer";
 import { Provider } from "react-redux";
 import { store } from "utils/store";
+import WhatsappChat from "components/WhatsappChat";
 function App() {
   return (
       <Provider store={store}>
@@ -13,6 +14,7 @@ function App() {
           {/* <AnnouncementBar /> */}
           <Navbar />
           <AppRoutes />
+          <WhatsappChat />
           <Footer />
         </BrowserRouter>
       </Provider>
