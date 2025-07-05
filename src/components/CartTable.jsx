@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import TableStyles from "assets/css/TableStyles.module.css";
-import { Minus, Plus, AlertCircle } from "lucide-react";
+import { Minus, Plus, AlertCircle, Truck } from "lucide-react";
 import DOMPurify from "dompurify";
 import AccentNotifier from "components/AccentNotifier";
 import Notification from "components/Notification";
@@ -43,7 +43,6 @@ const validateCartItem = (item) => {
     typeof item.units === "number" &&
     typeof item.subtotal === "number" &&
     typeof item.total === "number" &&
-    ["pack"].includes(item.displayPriceType) &&
     typeof item.variantId === "string" &&
     typeof item.image === "string" &&
     typeof item.sku === "string" &&
@@ -83,118 +82,122 @@ const CartTable = () => {
     setTimeout(() => setNotification((prev) => ({ ...prev, visible: false })), 3000);
   };
 
-  // Fetch cart data on mount
-  useEffect(() => {
-    const fetchCartData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+  // Fetch cart data
+  const fetchCartData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-        const cart = await getOrCreateCart();
-        const cartId = cart.id;
+      const cart = await getOrCreateCart();
+      const cartId = cart.id;
 
-        const cartUrl = normalizeUrl(BASE_URL, `ecommerce/carts/${cartId}/`);
-        const cartResponse = await axios.get(cartUrl, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-          },
-        });
-        const cartData = cartResponse.data;
-        setCartData(cartData);
+      const cartUrl = normalizeUrl(BASE_URL, `ecommerce/carts/${cartId}/`);
+      const cartResponse = await axios.get(cartUrl, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+      });
+      const cartData = cartResponse.data;
+      setCartData(cartData);
 
-        const mappedItems = await Promise.all(
-          cartData.items.map(async (item) => {
-            try {
-              const itemDetails = item.item;
-              const productVariant = itemDetails.product_variant || {};
-              const product = productVariant.product || {};
-              const category = product.category || {};
-              const productSlug = product.slug || "unknown";
-              const categorySlug = category.slug || "unknown";
-              const unitsPerPack = productVariant.units_per_pack || 1;
-              const itemImages = itemDetails.images || [];
-              const firstImage = itemImages.length > 0 ? itemImages[0].image : "";
-              const discountPercentage = parseFloat(item.discount_percentage) || 0;
-              const description = itemDetails.title || productVariant.name || `Item ${item.item.id}`;
+      const mappedItems = await Promise.all(
+        cartData.items.map(async (item) => {
+          try {
+            const itemDetails = item.item;
+            const productVariant = itemDetails.product_variant || {};
+            const product = productVariant.product || {};
+            const category = product.category || {};
+            const productSlug = product.slug || "unknown";
+            const categorySlug = category.slug || "unknown";
+            const unitsPerPack = itemDetails.units_per_pack || 1;
+            const itemImages = itemDetails.images || [];
+            const firstImage = itemImages.length > 0 ? itemImages[0].image : "";
+            const discountPercentage = parseFloat(item.discount_percentage) || 0;
+            const description = itemDetails.title || productVariant.name || `Item ${item.item.id}`;
 
-              return {
-                id: item.id.toString(),
-                description,
-                packs: item.pack_quantity,
-                units: item.pack_quantity * unitsPerPack,
-                subtotal: parseFloat(item.subtotal) || 0,
-                total: parseFloat(item.total) || 0,
-                displayPriceType: item.unit_type,
-                variantId: productVariant.id?.toString() || "unknown",
-                image: firstImage,
-                sku: itemDetails.sku || `SKU-${item.item.id}`,
-                productSlug,
-                categorySlug,
-                perUnitPrice: parseFloat(item.price_per_unit) || 0,
-                perPackPrice: parseFloat(item.price_per_pack) || 0,
-                pricingTierId: item.pricing_tier.id,
-                discountPercentage,
-                unitsPerPack,
-                trackInventory: itemDetails.track_inventory || false,
-                stock: itemDetails.stock || 0,
-              };
-            } catch (itemErr) {
-              console.warn(`Failed to map item ${item.item.id}:`, itemErr.message);
-              return {
-                id: item.id.toString(),
-                description: `Item ${item.item.id} (Details unavailable)`,
-                packs: item.pack_quantity,
-                units: item.pack_quantity,
-                subtotal: parseFloat(item.subtotal) || 0,
-                total: parseFloat(item.total) || 0,
-                displayPriceType: item.unit_type,
-                variantId: "unknown",
-                image: "",
-                sku: `SKU-${item.item.id}`,
-                productSlug: "unknown",
-                categorySlug: "unknown",
-                perUnitPrice: parseFloat(item.price_per_unit) || 0,
-                perPackPrice: parseFloat(item.price_per_pack) || 0,
-                pricingTierId: item.pricing_tier.id,
-                discountPercentage: parseFloat(item.discount_percentage) || 0,
-                unitsPerPack: 1,
-                trackInventory: false,
-                stock: 0,
-              };
-            }
-          })
-        );
-
-        const validatedItems = mappedItems.filter(validateCartItem);
-        if (validatedItems.length !== mappedItems.length) {
-          console.warn("Invalid cart items detected. Filtering invalid entries.");
-        }
-
-        const stockAdjustedItems = validatedItems.map((item) => {
-          if (item.trackInventory && item.units > item.stock) {
-            const maxPacks = Math.floor(item.stock / item.unitsPerPack);
-            showNotification(
-              `Stock for ${item.sku} adjusted. Available: ${item.stock} units (Max ${item.stock} units). Set to ${maxPacks} packs.`,
-              "warning"
-            );
             return {
-              ...item,
-              packs: maxPacks,
-              units: maxPacks * item.unitsPerPack,
+              id: item.id.toString(),
+              description,
+              packs: item.pack_quantity,
+              units: item.pack_quantity * unitsPerPack,
+              subtotal: parseFloat(item.subtotal) || 0,
+              total: parseFloat(item.total) || 0,
+              displayPriceType: item.unit_type,
+              variantId: productVariant.id?.toString() || "unknown",
+              image: firstImage,
+              sku: itemDetails.sku || `SKU-${item.item.id}`,
+              productSlug,
+              categorySlug,
+              perUnitPrice: parseFloat(item.price_per_unit) || 0,
+              perPackPrice: parseFloat(item.price_per_pack) || 0,
+              pricingTierId: item.pricing_tier.id,
+              discountPercentage,
+              unitsPerPack,
+              trackInventory: itemDetails.track_inventory || false,
+              stock: itemDetails.stock || 0,
+            };
+          } catch (itemErr) {
+            console.warn(`Failed to map item ${item.item.id}:`, itemErr.message);
+            return {
+              id: item.id.toString(),
+              description: `Item ${item.item.id} (Details unavailable)`,
+              packs: item.pack_quantity,
+              units: item.pack_quantity,
+              subtotal: parseFloat(item.subtotal) || 0,
+              total: parseFloat(item.total) || 0,
+              displayPriceType: item.unit_type,
+              variantId: "unknown",
+              image: "",
+              sku: `SKU-${item.item.id}`,
+              productSlug: "unknown",
+              categorySlug: "unknown",
+              perUnitPrice: parseFloat(item.price_per_unit) || 0,
+              perPackPrice: parseFloat(item.price_per_pack) || 0,
+              pricingTierId: item.pricing_tier.id,
+              discountPercentage: parseFloat(item.discount_percentage) || 0,
+              unitsPerPack: 1,
+              trackInventory: false,
+              stock: 0,
             };
           }
-          return item;
-        });
+        })
+      );
 
-        dispatch(setCartItems(stockAdjustedItems));
-        setLoading(false);
-      } catch (err) {
-        console.error("Error fetching cart data:", err.message);
-        setError("Failed to load cart. Please try again.");
-        setLoading(false);
+      // Sort items by id to ensure consistent order
+      const sortedItems = mappedItems.sort((a, b) => a.id.localeCompare(b.id));
+
+      const validatedItems = sortedItems.filter(validateCartItem);
+      if (validatedItems.length !== sortedItems.length) {
+        console.warn("Invalid cart items detected. Filtering invalid entries.");
       }
-    };
 
+      const stockAdjustedItems = validatedItems.map((item) => {
+        if (item.trackInventory && item.units > item.stock) {
+          const maxPacks = Math.floor(item.stock / item.unitsPerPack);
+          showNotification(
+            `Stock for ${item.sku} adjusted. Available: ${item.stock} units (Max ${item.stock} units). Set to ${maxPacks} packs.`,
+            "warning"
+          );
+          return {
+            ...item,
+            packs: maxPacks,
+            units: maxPacks * item.unitsPerPack,
+          };
+        }
+        return item;
+      });
+
+      dispatch(setCartItems(stockAdjustedItems));
+      setLoading(false);
+    } catch (err) {
+      console.error("Error fetching cart data:", err.message);
+      setError("Failed to load cart. Please try again.");
+      setLoading(false);
+    }
+  };
+
+  // Fetch cart data on mount
+  useEffect(() => {
     fetchCartData();
   }, [dispatch, isLoggedIn]);
 
@@ -247,6 +250,7 @@ const CartTable = () => {
       }
 
       let pricingTierId = currentCartItem.pricing_tier.id;
+      let unitType = currentCartItem.unit_type;
 
       if (roundedPacks > 0) {
         const pricingTiersUrl = normalizeUrl(BASE_URL, `ecommerce/pricing-tiers/?product_variant=${productVariantId}`);
@@ -263,24 +267,32 @@ const CartTable = () => {
           return;
         }
 
-        let selectedTier = null;
-        for (const tier of pricingTiers) {
-          const withinRange =
-            roundedPacks >= tier.range_start &&
-            (tier.no_end_range || roundedPacks <= tier.range_end);
-          if (withinRange && tier.tier_type === "pack") {
-            selectedTier = tier;
-            break;
+        // Check if we should use pallet pricing
+        if (unitType === 'pallet') {
+          const palletTier = pricingTiers.find(t => t.tier_type === 'pallet');
+          if (palletTier) {
+            pricingTierId = palletTier.id;
           }
-        }
+        } else {
+          // Find appropriate pack tier
+          let selectedTier = null;
+          for (const tier of pricingTiers) {
+            const withinRange =
+              roundedPacks >= tier.range_start &&
+              (tier.no_end_range || roundedPacks <= tier.range_end);
+            if (withinRange && tier.tier_type === 'pack') {
+              selectedTier = tier;
+              break;
+            }
+          }
 
-        if (!selectedTier) {
-          console.warn(`No valid pricing tier found for quantity ${roundedPacks}`);
-          setError(`No pricing tier available for quantity ${roundedPacks}. Please adjust the quantity.`);
-          return;
+          if (!selectedTier) {
+            console.warn(`No valid pricing tier found for quantity ${roundedPacks}`);
+            setError(`No pricing tier available for quantity ${roundedPacks}. Please adjust the quantity.`);
+            return;
+          }
+          pricingTierId = selectedTier.id;
         }
-
-        pricingTierId = selectedTier.id;
       }
 
       if (roundedPacks === 0) {
@@ -291,18 +303,6 @@ const CartTable = () => {
             "Content-Type": "application/json",
           },
         });
-
-        dispatch(setCartItems(cartItems.filter((i) => i.id !== itemId)));
-
-        setCartData((prev) => ({
-          ...prev,
-          items: prev.items.filter((i) => i.id.toString() !== itemId),
-          subtotal: prev.subtotal - item.subtotal,
-          total: prev.total - item.total,
-          total_units: prev.total_units - item.units,
-          total_packs: prev.total_packs - roundedPacks,
-          total_weight: prev.total_weight - backendItem.weight,
-        }));
       } else {
         const patchUrl = normalizeUrl(BASE_URL, `ecommerce/cart-items/${itemId}/`);
         const patchResponse = await axios.patch(
@@ -310,6 +310,7 @@ const CartTable = () => {
           {
             pack_quantity: roundedPacks,
             pricing_tier: pricingTierId,
+            unit_type: unitType
           },
           {
             headers: {
@@ -319,48 +320,7 @@ const CartTable = () => {
           }
         );
 
-        if (patchResponse.status === 200) {
-          const cartUrl = normalizeUrl(BASE_URL, `ecommerce/carts/${cartData.id}/`);
-          const updatedCartResponse = await axios.get(cartUrl, {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-            },
-          });
-          const updatedCartData = updatedCartResponse.data;
-          setCartData(updatedCartData);
-
-          const updatedItem = updatedCartData.items.find((i) => i.id.toString() === itemId);
-          if (!updatedItem) {
-            console.warn(`Updated item ${itemId} not found in cart after update`);
-            dispatch(setCartItems(cartItems.filter((i) => i.id !== itemId)));
-            setCartData((prev) => ({
-              ...prev,
-              items: prev.items.filter((i) => i.id.toString() !== itemId),
-            }));
-            return;
-          }
-
-          const discountPercentage = parseFloat(updatedItem.discount_percentage) || 0;
-          const description = updatedItem.item.title || updatedItem.item.product_variant?.name || `Item ${updatedItem.item.id}`;
-
-          const updatedCartItem = {
-            ...item,
-            units: roundedPacks * unitsPerPack,
-            packs: updatedItem.pack_quantity,
-            subtotal: parseFloat(updatedItem.subtotal) || 0,
-            total: parseFloat(updatedItem.total) || 0,
-            discountPercentage,
-            perUnitPrice: parseFloat(updatedItem.price_per_unit) || 0,
-            perPackPrice: parseFloat(updatedItem.price_per_pack) || 0,
-            description,
-            pricingTierId: updatedItem.pricing_tier.id,
-          };
-
-          const updatedCartItems = cartItems.map((cartItem) =>
-            cartItem.id === itemId ? updatedCartItem : cartItem
-          );
-          dispatch(setCartItems(updatedCartItems));
-        } else if (patchResponse.status === 400) {
+        if (patchResponse.status !== 200) {
           const errorDetail = patchResponse.data.detail;
           const stockErrorMatch = errorDetail.match(/Insufficient stock for ([^\.]+)\. Available: (\d+) units, Required: (\d+) units\./);
           if (stockErrorMatch) {
@@ -376,10 +336,15 @@ const CartTable = () => {
             return;
           } else {
             setError("Failed to update pack quantity. Please try again.");
+            return;
           }
         }
       }
 
+      // Refresh the entire cart data to update all rows
+      await fetchCartData();
+
+      // Update editPacks state to reflect the new quantity
       setEditPacks((prev) => ({ ...prev, [itemId]: roundedPacks }));
     } catch (err) {
       console.error("Error updating pack quantity:", err.message);
@@ -417,7 +382,6 @@ const CartTable = () => {
     const newPacks = editPacks[itemId] !== undefined ? editPacks[itemId] : cartItems.find((item) => item.id === itemId)?.packs || 0;
     const currentPacks = cartItems.find((item) => item.id === itemId)?.packs || 0;
     
-    // Only call handlePackChange if the value has changed
     if (newPacks !== currentPacks) {
       handlePackChange(itemId, newPacks);
     }
@@ -429,13 +393,11 @@ const CartTable = () => {
       const newPacks = editPacks[itemId] !== undefined ? editPacks[itemId] : cartItems.find((item) => item.id === itemId)?.packs || 0;
       const currentPacks = cartItems.find((item) => item.id === itemId)?.packs || 0;
       
-      // Only call handlePackChange if the value has changed
       if (newPacks !== currentPacks) {
         handlePackChange(itemId, newPacks);
       }
     }
   };
-
 
   const handleImageError = (itemId) => {
     setImageErrors((prev) => ({ ...prev, [itemId]: true }));
@@ -490,9 +452,10 @@ const CartTable = () => {
               <th className={`${TableStyles.defaultHeader} b3 clr-text`}>Image</th>
               <th className={`${TableStyles.defaultHeader} b3 clr-text`}>SKU</th>
               <th className={`${TableStyles.defaultHeader} ${TableStyles.longField} b3 clr-text`}>Item</th>
+              <th className={`${TableStyles.defaultHeader} b3 clr-text`}>Type</th>
               <th className={`${TableStyles.defaultHeader} b3 clr-text`}>Packs</th>
               <th className={`${TableStyles.defaultHeader} b3 clr-text`}>Units</th>
-              <th className={`${TableStyles.defaultHeader} b3 clr-text`}>Pack Price</th>
+              <th className={`${TableStyles.defaultHeader} b3 clr-text`}>Unit Price</th>
               <th className={`${TableStyles.defaultHeader} b3 clr-text`}>Subtotal</th>
               <th className={`${TableStyles.defaultHeader} b3 clr-text`}>Total</th>
             </tr>
@@ -500,7 +463,7 @@ const CartTable = () => {
           {cartItems.length === 0 ? (
             <tbody>
               <tr>
-                <td colSpan="8" className="b3 text-center">You have no items.</td>
+                <td colSpan="9" className="b3 text-center">You have no items.</td>
               </tr>
             </tbody>
           ) : (
@@ -511,6 +474,9 @@ const CartTable = () => {
                 const currentPacks = editPacks[cartElement.id] !== undefined ? editPacks[cartElement.id] : cartElement.packs;
                 const isUpdating = updatingRows[cartElement.id] || false;
                 const discountTag = cartElement.discountPercentage > 0 ? ` ${Number(cartElement.discountPercentage).toFixed(2)}%` : "";
+                const priceToShow = cartElement.displayPriceType === 'pallet' ? 
+                  cartElement.perPackPrice : 
+                  cartElement.perPackPrice;
 
                 return (
                   <tr key={cartElement.id} className={cartElement.units > 0 ? TableStyles.selectedRow : ""}>
@@ -538,6 +504,9 @@ const CartTable = () => {
                       >
                         <div dangerouslySetInnerHTML={{ __html: sanitizedDescription }} />
                       </Link>
+                    </td>
+                    <td className="b3 clr-text">
+                      {cartElement.displayPriceType === 'pallet' ? 'Pallet' : 'Pack'}
                     </td>
                     <td className="b3 clr-text">
                       <div className={TableStyles.unitInputGroup}>
@@ -571,7 +540,7 @@ const CartTable = () => {
                     </td>
                     <td className="b3 clr-text">{cartElement.units}</td>
                     <td className="b3 clr-text">
-                      £{cartElement.perPackPrice.toLocaleString("en-GB", {
+                      £{priceToShow.toLocaleString("en-GB", {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
                       })}
@@ -583,19 +552,18 @@ const CartTable = () => {
                       })}
                     </td>
                     <td className="b3 clr-text">
-                    <span className={TableStyles.exclusivePrice}>
-                      <span>
-                        £{cartElement.total.toLocaleString("en-GB", {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
-                      </span>
-                      
-                      {discountTag && (
-                        <span className={`${TableStyles.percentageTag} b3 clr-success`} style={{ marginLeft: "8px" }}>
-                          {discountTag}
+                      <span className={TableStyles.exclusivePrice}>
+                        <span>
+                          £{cartElement.total.toLocaleString("en-GB", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
+                        </span>
+                        {discountTag && (
+                          <span className={`${TableStyles.percentageTag} b3 clr-success`} style={{ marginLeft: "8px" }}>
+                            {discountTag}
                           </span>
-                      )}
+                        )}
                       </span>
                     </td>
                   </tr>
@@ -626,15 +594,6 @@ const CartTable = () => {
                   })}
                 </td>
               </tr>
-              {/* <tr>
-                <th className="b3 clr-text">Discount ({discount.toFixed(2)}%)</th>
-                <td className="b3 clr-text">
-                  £{discount_amount.toLocaleString("en-GB", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
-                </td>
-              </tr> */}
               <tr>
                 <th className="b3 clr-text">VAT ({vat.toFixed(2)}%)</th>
                 <td className="b3 clr-text">
@@ -659,12 +618,12 @@ const CartTable = () => {
               </tr>
             </tbody>
           </table>
-          {/* {subtotal >= 600 && (
+          {subtotal >= 600 && (
             <AccentNotifier type="accent"
               icon={Truck}
-              text="SHOP WORTH 600£ AND GET 10% DISCOUNT ON ALL"
+              text="SHOP WORTH £600 AND GET 10% DISCOUNT ON ALL"
             />
-          )} */}
+          )}
         </>
       )}
       <div className="row-content justify-content-flex-end gap-xs">

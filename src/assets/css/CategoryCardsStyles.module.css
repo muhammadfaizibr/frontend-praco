@@ -43,6 +43,7 @@
 }
 
 .cardTitle {
+  color: var(--clr-primary);
   padding: var(--padding-xs);
   text-align: center;
 }

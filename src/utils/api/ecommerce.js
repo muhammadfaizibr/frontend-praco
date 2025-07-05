@@ -32,6 +32,7 @@ apiClient.interceptors.response.use(
       message: error.message,
     });
 
+    // Handle token refresh logic (keep your existing 401 handling)
     if (
       error.response?.status === 401 &&
       !originalRequest._retry &&
@@ -72,28 +73,49 @@ apiClient.interceptors.response.use(
 
     if (error.response) {
       const { data, status } = error.response;
+      
+      // Handle 401 with bad authorization header
       if (status === 401 && data.code === "bad_authorization_header") {
         errorMessage = "Invalid authorization header. Please log in again.";
-      } else if (typeof data === "object" && data !== null) {
-        if (data.detail) {
-          errorMessage = data.detail;
-        } else if (data.non_field_errors) {
+      } 
+      // Handle stock validation errors specifically
+      else if (status === 400 && data.error) {
+        // Case 1: Direct error message in data.error
+        errorMessage = data.error;
+      }
+      else if (status === 400 && data.detail) {
+        // Case 2: Try to parse the detail field for stock errors
+        try {
+          // Handle case where detail is a stringified JSON
+          const detail = typeof data.detail === 'string' ? 
+            JSON.parse(data.detail) : 
+            data.detail;
+          
+          if (detail.pack_quantity) {
+            // Handle array or single message
+            errorMessage = Array.isArray(detail.pack_quantity) ?
+              detail.pack_quantity.join(' ') :
+              detail.pack_quantity;
+          } else {
+            errorMessage = typeof detail === 'string' ? detail : JSON.stringify(detail);
+          }
+        } catch (e) {
+          // If parsing fails, use the detail as is
+          errorMessage = typeof data.detail === 'string' ? 
+            data.detail : 
+            JSON.stringify(data.detail);
+        }
+      }
+      // Handle field errors
+      else if (typeof data === "object" && data !== null) {
+        // First check for non_field_errors
+        if (data.non_field_errors) {
           errorMessage = Array.isArray(data.non_field_errors)
             ? data.non_field_errors.join(" ")
             : data.non_field_errors;
-        } else if (data.errors) {
-          // Handle nested errors object
-          fieldErrors = Object.keys(data.errors).reduce((acc, key) => {
-            acc[key] = Array.isArray(data.errors[key])
-              ? data.errors[key].join(" ")
-              : data.errors[key].toString();
-            return acc;
-          }, {});
-          errorMessage = Object.keys(fieldErrors).length
-            ? "Please check the form for errors."
-            : "Invalid response from server.";
-        } else {
-          // Handle other field errors directly in data
+        } 
+        // Then check for specific field errors
+        else {
           fieldErrors = Object.keys(data).reduce((acc, key) => {
             if (key !== "detail" && key !== "non_field_errors") {
               acc[key] = Array.isArray(data[key])
@@ -102,16 +124,30 @@ apiClient.interceptors.response.use(
             }
             return acc;
           }, {});
-          errorMessage = Object.keys(fieldErrors).length
-            ? "Please check the form for errors."
-            : "Invalid response from server.";
+
+          // Special handling for stock validation errors
+          if (data.pack_quantity) {
+            errorMessage = Array.isArray(data.pack_quantity)
+              ? data.pack_quantity.join(" ")
+              : data.pack_quantity;
+          } 
+          // Default message if we have field errors but no specific message
+          else if (Object.keys(fieldErrors).length > 0) {
+            errorMessage = "Please check the form for errors.";
+          }
         }
-      } else if (typeof data === "string") {
+      }
+      // Handle string responses
+      else if (typeof data === "string") {
         errorMessage = data;
-      } else {
+      }
+      // Fallback
+      else {
         errorMessage = `Error ${status}: Unable to process request.`;
       }
-    } else if (error.code === "ECONNABORTED") {
+    } 
+    // Handle network errors
+    else if (error.code === "ECONNABORTED") {
       errorMessage = "Request timed out. Please check your connection and try again.";
     } else if (error.message === "Network Error") {
       errorMessage = "Network error. Please check your internet connection.";
@@ -119,7 +155,18 @@ apiClient.interceptors.response.use(
       errorMessage = error.message || "An unexpected error occurred.";
     }
 
-    return Promise.reject({ message: errorMessage, fieldErrors, status: error.response?.status });
+    // Clean up the error message by removing any JSON artifacts
+    errorMessage = errorMessage
+      .replace(/^{['"]?/, '')
+      .replace(/['"]?}$/, '')
+      .replace(/^\{.*\}/, '')
+      .trim();
+
+    return Promise.reject({ 
+      message: errorMessage, 
+      fieldErrors, 
+      status: error.response?.status 
+    });
   }
 );
 
