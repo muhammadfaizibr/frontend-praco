@@ -5,6 +5,8 @@ import RequestQuote from "components/RequestQuote";
 import IndustriesSection from "components/Industries";
 import WhyChooseUs from "components/WhyChooseUs";
 import Testimonials from "components/Testimonials";
+import Categories from "./Categories";
+import ProductList from "components/ProductsList";
 
 const Home = () => {
   useEffect(() => {
@@ -13,8 +15,12 @@ const Home = () => {
   return (
     <>
       <div className="centered-layout-wrapper full-width-flex-col">
-        <div className="centered-layout page-layout layout-vertical-padding full-width">
           <CategoryCards />
+          
+        <div className="centered-layout page-layout layout-vertical-padding full-width layout-spacing">
+
+          <ProductList/>
+          
         </div>
 
         <IndustriesSection />
@@ -29,6 +35,7 @@ const Home = () => {
 
         <div className="centered-layout page-layout layout-vertical-padding">
           <RequestQuote />
+          
         </div>
       </div>
     </>

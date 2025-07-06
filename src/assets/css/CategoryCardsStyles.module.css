@@ -2,7 +2,7 @@
   width: 100%;
   margin: 0 auto;
   padding: 2rem 1rem;
-  background-color: var(--clr-white);
+  background-color: var(--clr-secondary-light);
   overflow-x: auto;
 }
 
@@ -46,6 +46,7 @@
   color: var(--clr-primary);
   padding: var(--padding-xs);
   text-align: center;
+  background-color: var(--clr-white);
 }
 
 .errorMessage {

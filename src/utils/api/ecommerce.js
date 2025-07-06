@@ -354,6 +354,17 @@ export const getProductsByCategory = async (categorySlug, nextUrl = null) => {
   }
 };
 
+export const getProducts = async (nextUrl = null) => {
+  try {
+    const url = nextUrl || `products/`;
+    const response = await apiClient.get(url);
+    return response.data || {};
+  } catch (error) {
+    console.error("getProducts error:", error);
+    throw error;
+  }
+};
+
 export const getProductVariants = async (productId) => {
   try {
     let allVariants = [];
