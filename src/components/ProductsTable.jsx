@@ -582,39 +582,43 @@ const ProductsTable = ({ variantsWithData }) => {
         return;
       }
 
-      const cartItems = items
-        .map((item) => {
-            const variant = memoizedVariants.find((v) => v.id === item.variantId);
-            if (!variant) return null;
+      // In the handleAddToCart function, modify the cartItems mapping to include unit_type based on pricing tier
+const cartItems = items
+  .map((item) => {
+    const variant = memoizedVariants.find((v) => v.id === item.variantId);
+    if (!variant) return null;
 
-            const tier = variant.pricing_tiers?.find(
-                (t) => t.id === item.activeTierId
-            );
-            if (!tier) {
-                showNotification(
-                    `Invalid pricing tier for item ${item.description}.`,
-                    "error"
-                );
-                return null;
-            }
+    const tier = variant.pricing_tiers?.find(
+      (t) => t.id === item.activeTierId
+    );
+    if (!tier) {
+      showNotification(
+        `Invalid pricing tier for item ${item.description}.`,
+        "error"
+      );
+      return null;
+    }
 
-            const itemObj = variant.items.find((i) => i.id === item.id);
-            const unitsPerPack = itemObj?.units_per_pack || 1;
-            
-            // Fix: Get just the ID from exclusiveDiscounts
-            const exclusivePrice = state.exclusiveDiscounts[item.id];
-            const userExclusivePriceId = exclusivePrice?.id?.[0]?.id || null;
+    const itemObj = variant.items.find((i) => i.id === item.id);
+    const unitsPerPack = itemObj?.units_per_pack || 1;
+    
+    // Fix: Get just the ID from exclusiveDiscounts
+    const exclusivePrice = state.exclusiveDiscounts[item.id];
+    const userExclusivePriceId = exclusivePrice?.id?.[0]?.id || null;
 
-            return {
-                cart: cart.id,
-                item: item.id,
-                pricing_tier: tier.id,
-                pack_quantity: Math.ceil(item.units / unitsPerPack),
-                unit_type: "pack",
-                user_exclusive_price: userExclusivePriceId, // Send just the ID
-            };
-        })
-        .filter(Boolean);
+    // Determine unit_type based on tier type
+    const unitType = tier.tier_type === "pallet" ? "pallet" : "pack";
+
+    return {
+      cart: cart.id,
+      item: item.id,
+      pricing_tier: tier.id,
+      pack_quantity: Math.ceil(item.units / unitsPerPack),
+      unit_type: unitType, // This will be "pallet" or "pack" based on tier type
+      user_exclusive_price: userExclusivePriceId,
+    };
+  })
+  .filter(Boolean);
 
       if (!cartItems.length) return;
 

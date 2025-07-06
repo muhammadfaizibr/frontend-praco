@@ -27,17 +27,17 @@ const features = [
   },
   {
     icon: <Sparkles className={styles.icon} />, 
-    title: "Premium Design",
-    description: "Crafted with creativity and precision to boost your visual appeal."
+    title: "Premium Quality",
+    description: "Quality that speaks for itself, enhancing your brand's image."
   },
   {
     icon: <Truck className={styles.icon} />, 
-    title: "Global Shipping",
+    title: "Regional Shipping",
     description: "Reliable delivery solutions, no matter where you are."
   },
   {
     icon: <BadgeCheck className={styles.icon} />, 
-    title: "Certified & Compliant",
+    title: "Security & Compliance",
     description: "We follow industry standards ensuring safety and compliance."
   },
 ];
