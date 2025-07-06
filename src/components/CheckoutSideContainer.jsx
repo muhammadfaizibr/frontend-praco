@@ -65,14 +65,14 @@ const CheckoutSideContainer = () => {
     const vat = parseFloat(cartData.vat) || 0;
 
     const discount_amount = (subtotal * discount) / 100;
-    const discounted_subtotal = subtotal - discount_amount;
-    const vat_amount = (discounted_subtotal * vat) / 100;
+    const vat_amount = (subtotal * vat) / 100;
+    const total = subtotal + vat_amount;
 
     return {
       totalItems: parseInt(cartData.total_units) || 0,
       totalPacks: parseInt(cartData.total_packs) || 0,
       subtotal: subtotal,
-      total: parseFloat(cartData.total) || 0,
+      total: total,
       weight: parseFloat(cartData.total_weight) || 0,
       vat: vat,
       discount: discount,
@@ -81,13 +81,23 @@ const CheckoutSideContainer = () => {
     };
   };
 
-  const { totalItems, totalPacks, subtotal, total, weight, vat, discount, vat_amount, discount_amount } = calculateSummary();
+  const {
+    totalItems,
+    totalPacks,
+    subtotal,
+    total,
+    weight,
+    vat,
+    discount,
+    vat_amount,
+    discount_amount,
+  } = calculateSummary();
 
   if (loading) {
     return (
       <div className={FormSideContainerStyles.container}>
         <div className={FormSideContainerStyles.row}>
-        <CustomLoading/>
+          <CustomLoading />
         </div>
       </div>
     );
@@ -107,7 +117,13 @@ const CheckoutSideContainer = () => {
 
       <div className={FormSideContainerStyles.row}>
         <p className="b3 dark">Subtotal</p>
-        <p className="b3 dark">£{subtotal.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+        <p className="b3 dark">
+          £
+          {subtotal.toLocaleString("en-GB", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}
+        </p>
       </div>
 
       {/* <div className={FormSideContainerStyles.row}>
@@ -117,7 +133,13 @@ const CheckoutSideContainer = () => {
 
       <div className={FormSideContainerStyles.row}>
         <p className="b3 dark">VAT ({vat}%)</p>
-        <p className="b3 dark">£{vat_amount.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+        <p className="b3 dark">
+          £
+          {vat_amount.toLocaleString("en-GB", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}
+        </p>
       </div>
 
       <div className={FormSideContainerStyles.row}>
@@ -127,7 +149,13 @@ const CheckoutSideContainer = () => {
 
       <div className={FormSideContainerStyles.row}>
         <h4 className="dark">Total</h4>
-        <h4 className="dark">£{total.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h4>
+        <h4 className="dark">
+          £
+          {total.toLocaleString("en-GB", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}
+        </h4>
       </div>
     </div>
   );

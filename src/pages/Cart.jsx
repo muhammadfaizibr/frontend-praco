@@ -13,7 +13,7 @@ const Cart = () => {
         <div className="centered-layout page-layout full-width-flex-col gap-m">
           <HeadingBar
             displayType={"row"}
-            headline={"My Cart"}
+            headline={"Cart"}
             headlineSize={"h3"}
             headlineSizeType={"tag"}
             theme={"light"}

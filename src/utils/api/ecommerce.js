@@ -22,6 +22,7 @@ apiClient.interceptors.request.use(
     return Promise.reject(error);
   }
 );
+
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -62,37 +63,38 @@ apiClient.interceptors.response.use(
         localStorage.removeItem("refreshToken");
         return Promise.reject({
           message: "Session expired. Please log in again.",
-          fieldErrors: {},
+          errors: {},
           status: 401,
         });
       }
     }
 
     let errorMessage = "An unexpected error occurred";
-    let fieldErrors = {};
+    let errors = {};
 
     if (error.response) {
       const { data, status } = error.response;
       
+      // Handle the specific errors format {"errors": {"field": ["message"]}}
+      if (status === 400 && data.errors && typeof data.errors === 'object') {
+        errors = data.errors; // Keep the original errors structure
+        errorMessage = "Please check the form for errors.";
+      }
       // Handle 401 with bad authorization header
-      if (status === 401 && data.code === "bad_authorization_header") {
+      else if (status === 401 && data.code === "bad_authorization_header") {
         errorMessage = "Invalid authorization header. Please log in again.";
       } 
       // Handle stock validation errors specifically
       else if (status === 400 && data.error) {
-        // Case 1: Direct error message in data.error
         errorMessage = data.error;
       }
       else if (status === 400 && data.detail) {
-        // Case 2: Try to parse the detail field for stock errors
         try {
-          // Handle case where detail is a stringified JSON
           const detail = typeof data.detail === 'string' ? 
             JSON.parse(data.detail) : 
             data.detail;
           
           if (detail.pack_quantity) {
-            // Handle array or single message
             errorMessage = Array.isArray(detail.pack_quantity) ?
               detail.pack_quantity.join(' ') :
               detail.pack_quantity;
@@ -100,13 +102,12 @@ apiClient.interceptors.response.use(
             errorMessage = typeof detail === 'string' ? detail : JSON.stringify(detail);
           }
         } catch (e) {
-          // If parsing fails, use the detail as is
           errorMessage = typeof data.detail === 'string' ? 
             data.detail : 
             JSON.stringify(data.detail);
         }
       }
-      // Handle field errors
+      // Handle field errors in standard Django format
       else if (typeof data === "object" && data !== null) {
         // First check for non_field_errors
         if (data.non_field_errors) {
@@ -116,23 +117,21 @@ apiClient.interceptors.response.use(
         } 
         // Then check for specific field errors
         else {
-          fieldErrors = Object.keys(data).reduce((acc, key) => {
-            if (key !== "detail" && key !== "non_field_errors") {
+          errors = Object.keys(data).reduce((acc, key) => {
+            if (key !== "detail" && key !== "non_field_errors" && key !== "errors") {
               acc[key] = Array.isArray(data[key])
-                ? data[key].join(" ")
-                : data[key].toString();
+                ? data[key] // Keep as array to be consistent
+                : [data[key].toString()]; // Convert to array for consistency
             }
             return acc;
           }, {});
 
-          // Special handling for stock validation errors
           if (data.pack_quantity) {
             errorMessage = Array.isArray(data.pack_quantity)
               ? data.pack_quantity.join(" ")
               : data.pack_quantity;
           } 
-          // Default message if we have field errors but no specific message
-          else if (Object.keys(fieldErrors).length > 0) {
+          else if (Object.keys(errors).length > 0) {
             errorMessage = "Please check the form for errors.";
           }
         }
@@ -155,7 +154,7 @@ apiClient.interceptors.response.use(
       errorMessage = error.message || "An unexpected error occurred.";
     }
 
-    // Clean up the error message by removing any JSON artifacts
+    // Clean up the error message
     errorMessage = errorMessage
       .replace(/^{['"]?/, '')
       .replace(/['"]?}$/, '')
@@ -164,8 +163,9 @@ apiClient.interceptors.response.use(
 
     return Promise.reject({ 
       message: errorMessage, 
-      fieldErrors, 
-      status: error.response?.status 
+      errors, // Changed from fieldErrors to errors
+      status: error.response?.status,
+      originalError: error
     });
   }
 );
@@ -224,13 +224,19 @@ export const getBillingAddresses = async () => {
   }
 };
 
+
 export const createShippingAddress = async (addressData, { signal }) => {
   try {
     const response = await apiClient.post("shipping-addresses/", addressData, { signal });
     return response.data;
   } catch (error) {
     console.error("createShippingAddress error:", error);
-    throw error;
+    // Re-throw the error with the proper structure
+    throw {
+      message: error.message,
+      errors: error.errors || {},
+      status: error.status
+    };
   }
 };
 
@@ -240,7 +246,12 @@ export const createBillingAddress = async (addressData, { signal }) => {
     return response.data;
   } catch (error) {
     console.error("createBillingAddress error:", error);
-    throw error;
+    // Re-throw the error with the proper structure
+    throw {
+      message: error.message,
+      errors: error.errors || {},
+      status: error.status
+    };
   }
 };
 

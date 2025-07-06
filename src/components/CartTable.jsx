@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import TableStyles from "assets/css/TableStyles.module.css";
-import { Minus, Plus, AlertCircle, Truck } from "lucide-react";
+import { Minus, Plus, AlertCircle } from "lucide-react";
 import DOMPurify from "dompurify";
 import AccentNotifier from "components/AccentNotifier";
 import Notification from "components/Notification";
@@ -403,31 +403,46 @@ const CartTable = () => {
     setImageErrors((prev) => ({ ...prev, [itemId]: true }));
   };
 
-  const calculateSummary = () => {
-    if (!cartData) {
-      return { totalItems: 0, totalPacks: 0, subtotal: 0, total: 0, weight: 0, vat: 0, discount: 0, vat_amount: 0, discount_amount: 0 };
-    }
-
-    const subtotal = parseFloat(cartData.subtotal) || 0;
-    const discount = parseFloat(cartData.discount) || 0;
-    const vat = parseFloat(cartData.vat) || 0;
-
-    const discount_amount = (subtotal * discount) / 100;
-    const discounted_subtotal = subtotal - discount_amount;
-    const vat_amount = (discounted_subtotal * vat) / 100;
-
-    return {
-      totalItems: parseInt(cartData.total_units) || 0,
-      totalPacks: parseInt(cartData.total_packs) || 0,
-      subtotal: subtotal,
-      total: parseFloat(cartData.total) || 0,
-      weight: parseFloat(cartData.total_weight) || 0,
-      vat: vat,
-      discount: discount,
-      vat_amount: Number(vat_amount.toFixed(2)),
-      discount_amount: Number(discount_amount.toFixed(2)),
+const calculateSummary = () => {
+  if (!cartData) {
+    return { 
+      totalItems: 0, 
+      totalPacks: 0, 
+      subtotal: 0, 
+      total: 0, 
+      weight: 0, 
+      vat: 0, 
+      discount: 0, 
+      vat_amount: 0, 
+      discount_amount: 0 
     };
+  }
+
+  const subtotal = parseFloat(cartData.subtotal) || 0;
+  const discount = parseFloat(cartData.discount) || 0;
+  const vat = parseFloat(cartData.vat) || 0;
+
+  // Calculate discount amount (if any)
+  const discount_amount = (subtotal * discount) / 100;
+  
+  // Calculate VAT on the discounted subtotal (standard UK VAT practice)
+  const vat_amount = ((subtotal - discount_amount) * vat) / 100;
+  
+  // Calculate total as: (subtotal - discount) + VAT
+  const total = (subtotal - discount_amount) + vat_amount;
+
+  return {
+    totalItems: parseInt(cartData.total_units) || 0,
+    totalPacks: parseInt(cartData.total_packs) || 0,
+    subtotal: subtotal,
+    total: Number(total.toFixed(2)), // Explicitly calculated total
+    weight: parseFloat(cartData.total_weight) || 0,
+    vat: vat,
+    discount: discount,
+    vat_amount: Number(vat_amount.toFixed(2)),
+    discount_amount: Number(discount_amount.toFixed(2)),
   };
+};
 
   const { totalItems, totalPacks, subtotal, total, weight, vat, discount, vat_amount, discount_amount } = calculateSummary();
 
@@ -452,7 +467,6 @@ const CartTable = () => {
               <th className={`${TableStyles.defaultHeader} b3 clr-text`}>Image</th>
               <th className={`${TableStyles.defaultHeader} b3 clr-text`}>SKU</th>
               <th className={`${TableStyles.defaultHeader} ${TableStyles.longField} b3 clr-text`}>Item</th>
-              <th className={`${TableStyles.defaultHeader} b3 clr-text`}>Type</th>
               <th className={`${TableStyles.defaultHeader} b3 clr-text`}>Packs</th>
               <th className={`${TableStyles.defaultHeader} b3 clr-text`}>Units</th>
               <th className={`${TableStyles.defaultHeader} b3 clr-text`}>Unit Price</th>
@@ -463,7 +477,7 @@ const CartTable = () => {
           {cartItems.length === 0 ? (
             <tbody>
               <tr>
-                <td colSpan="9" className="b3 text-center">You have no items.</td>
+                <td colSpan="8" className="b3 text-center">You have no items.</td>
               </tr>
             </tbody>
           ) : (
@@ -504,9 +518,6 @@ const CartTable = () => {
                       >
                         <div dangerouslySetInnerHTML={{ __html: sanitizedDescription }} />
                       </Link>
-                    </td>
-                    <td className="b3 clr-text">
-                      {cartElement.displayPriceType === 'pallet' ? 'Pallet' : 'Pack'}
                     </td>
                     <td className="b3 clr-text">
                       <div className={TableStyles.unitInputGroup}>
@@ -574,57 +585,49 @@ const CartTable = () => {
         </table>
       </div>
       {cartItems.length > 0 && (
-        <>
-          <table className={TableStyles.cartSummaryTable}>
-            <tbody>
-              <tr>
-                <th className="b3 clr-text">Total Items</th>
-                <td className="b3 clr-text">{totalItems}</td>
-              </tr>
-              <tr>
-                <th className="b3 clr-text">Total Packs</th>
-                <td className="b3 clr-text">{totalPacks}</td>
-              </tr>
-              <tr>
-                <th className="b3 clr-text">Subtotal</th>
-                <td className="b3 clr-text">
-                  £{subtotal.toLocaleString("en-GB", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
-                </td>
-              </tr>
-              <tr>
-                <th className="b3 clr-text">VAT ({vat.toFixed(2)}%)</th>
-                <td className="b3 clr-text">
-                  £{vat_amount.toLocaleString("en-GB", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
-                </td>
-              </tr>
-              <tr className={TableStyles.totalRow}>
-                <th className="b3 clr-text">Total</th>
-                <td className="b3 clr-text">
-                  £{total.toLocaleString("en-GB", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
-                </td>
-              </tr>
-              <tr>
-                <th className="b3 clr-text">Weight</th>
-                <td className="b3 clr-text">{weight.toFixed(1)}kg</td>
-              </tr>
-            </tbody>
-          </table>
-          {subtotal >= 600 && (
-            <AccentNotifier type="accent"
-              icon={Truck}
-              text="SHOP WORTH £600 AND GET 10% DISCOUNT ON ALL"
-            />
-          )}
-        </>
+        <table className={TableStyles.cartSummaryTable}>
+          <tbody>
+            <tr>
+              <th className="b3 clr-text">Total Items</th>
+              <td className="b3 clr-text">{totalItems}</td>
+            </tr>
+            <tr>
+              <th className="b3 clr-text">Total Packs</th>
+              <td className="b3 clr-text">{totalPacks}</td>
+            </tr>
+            <tr>
+              <th className="b3 clr-text">Subtotal</th>
+              <td className="b3 clr-text">
+                £{subtotal.toLocaleString("en-GB", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </td>
+            </tr>
+            <tr>
+              <th className="b3 clr-text">VAT ({vat.toFixed(2)}%)</th>
+              <td className="b3 clr-text">
+                £{vat_amount.toLocaleString("en-GB", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </td>
+            </tr>
+            <tr className={TableStyles.totalRow}>
+              <th className="b3 clr-text">Total</th>
+              <td className="b3 clr-text">
+                £{total.toLocaleString("en-GB", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </td>
+            </tr>
+            <tr>
+              <th className="b3 clr-text">Weight</th>
+              <td className="b3 clr-text">{weight.toFixed(1)}kg</td>
+            </tr>
+          </tbody>
+        </table>
       )}
       <div className="row-content justify-content-flex-end gap-xs">
         <Link
