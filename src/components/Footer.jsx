@@ -4,12 +4,14 @@ import DarkLogo from "assets/images/logo-dark.svg";
 import { Link } from "react-router-dom";
 import { Facebook, Instagram, Twitter, Youtube } from "lucide-react";
 import NewsLetterInput from "components/NewsLetterInput";
-import { getCategories } from "utils/api/ecommerce";
+import { menuItems } from "components/SideMenu"; 
 
 const Footer = () => {
   const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  console.log(categories, 'categories')
 
   const menu = [
     { label: "Contact", link: "contact" },
@@ -19,17 +21,9 @@ const Footer = () => {
   ];
 
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const data = await getCategories();
-        setCategories(data.results || data);
-        setLoading(false);
-      } catch (err) {
-        setError(err.message);
-        setLoading(false);
-      }
-    };
-    fetchCategories();
+    // Filter menuItems to get only top-level categories (those with an icon)
+    setCategories(menuItems);
+    setLoading(false);
   }, []);
 
   return (
@@ -45,16 +39,16 @@ const Footer = () => {
             <p className="b2 clr-white">Call: 0116 365 3008</p>
           </div>
           <div className="row-content space-1vw">
-            <a href="praco-social" className={`square-btn ${FooterStyles.socialIcon}`}>
+            <a className={`square-btn ${FooterStyles.socialIcon}`}>
               <Facebook />
             </a>
-            <a href="praco-social" className={`square-btn ${FooterStyles.socialIcon}`}>
+            <a className={`square-btn ${FooterStyles.socialIcon}`}>
               <Instagram />
             </a>
-            <a href="praco-social" className={`square-btn ${FooterStyles.socialIcon}`}>
+            <a className={`square-btn ${FooterStyles.socialIcon}`}>
               <Twitter />
             </a>
-            <a href="praco-social" className={`square-btn ${FooterStyles.socialIcon}`}>
+            <a className={`square-btn ${FooterStyles.socialIcon}`}>
               <Youtube />
             </a>
           </div>
@@ -78,19 +72,14 @@ const Footer = () => {
         <div className={FooterStyles.childWrapper}>
           <h5 className="light">Categories</h5>
           <div className="column-content space-1vw">
-            {loading && (
-              <p className="b2 clr-white">Loading categories...</p>
-            )}
-            {error && (
-              <p className="b2 clr-danger">{error}</p>
-            )}
-            {!loading && !error && categories.map((category, index) => (
+        
+            {categories.map((category, index) => (
               <Link
                 key={`footerCategories_${index}`}
-                to={`/category/${category.slug}`}
+                to={category.href}
                 className="b2 link-dark"
               >
-                {category.name || category.title}
+                {category.label}
               </Link>
             ))}
           </div>

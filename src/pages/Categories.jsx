@@ -85,7 +85,7 @@ const Categories = () => {
 
   return (
     <>
-      <BreadCrumb navigationArray={["Home", categoryName]} />
+      {/* <BreadCrumb navigationArray={["Home", categoryName]} /> */}
       <div className="centered-layout-wrapper layout-spacing full-width-flex-col layout-vertical-padding">
         <div className="centered-layout page-layout layout-spacing full-width-flex-col">
           {isLoading && (

@@ -2,7 +2,8 @@
 /* Content Wrapper */
 .contentWrapper {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
+    flex-direction: column-reverse;
     justify-content: center;
     width: 100%;
     gap: var(--layout-spacing);

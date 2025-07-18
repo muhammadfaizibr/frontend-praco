@@ -53,7 +53,7 @@ const CategoryCards = () => {
               <div className={CardStyles.imageContainer}>
                 <img
                   src={
-                    "https://images.unsplash.com/photo-1748392029321-58793571f850?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwyfHx8ZW58MHx8fHx8"
+                    category.image
                   }
                   alt={category.name}
                 />

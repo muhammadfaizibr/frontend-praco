@@ -11,12 +11,12 @@ const Shop = () => {
         price: "$20.00"
       });
 
-const navigationArray = [
-    "Home", "Mailing Bags", "Red Mailing Bags"
-]
+// const navigationArray = [
+//     "Home", "Mailing Bags", "Red Mailing Bags"
+// ]
   return (
     <>
-    <BreadCrumb navigationArray={navigationArray} />
+    {/* <BreadCrumb navigationArray={navigationArray} /> */}
     <div className="centered-layout-wrapper layout-spacing full-width-flex-col layout-vertical-padding">
       <div className="centered-layout page-layout layout-spacing full-width-flex-col">
         <Products title="Pallet Wraps" products={products}/>

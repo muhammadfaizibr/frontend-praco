@@ -89,6 +89,7 @@ const CartTable = () => {
       setError(null);
 
       const cart = await getOrCreateCart();
+      console.log(cart)
       const cartId = cart.id;
 
       const cartUrl = normalizeUrl(BASE_URL, `ecommerce/carts/${cartId}/`);
@@ -191,7 +192,7 @@ const CartTable = () => {
       setLoading(false);
     } catch (err) {
       console.error("Error fetching cart data:", err.message);
-      setError("Failed to load cart. Please try again.");
+      setError("Please login to see your items in the cart.");
       setLoading(false);
     }
   };
@@ -467,9 +468,9 @@ const calculateSummary = () => {
               <th className={`${TableStyles.defaultHeader} b3 clr-text`}>Image</th>
               <th className={`${TableStyles.defaultHeader} b3 clr-text`}>SKU</th>
               <th className={`${TableStyles.defaultHeader} ${TableStyles.longField} b3 clr-text`}>Item</th>
-              <th className={`${TableStyles.defaultHeader} b3 clr-text`}>Packs</th>
+              <th className={`${TableStyles.defaultHeader} b3 clr-text`}>Boxes</th>
               <th className={`${TableStyles.defaultHeader} b3 clr-text`}>Units</th>
-              <th className={`${TableStyles.defaultHeader} b3 clr-text`}>Unit Price</th>
+              <th className={`${TableStyles.defaultHeader} b3 clr-text`}>Box Price</th>
               <th className={`${TableStyles.defaultHeader} b3 clr-text`}>Subtotal</th>
               <th className={`${TableStyles.defaultHeader} b3 clr-text`}>Total</th>
             </tr>
@@ -570,11 +571,11 @@ const calculateSummary = () => {
                             maximumFractionDigits: 2,
                           })}
                         </span>
-                        {discountTag && (
+                        {/* {discountTag && (
                           <span className={`${TableStyles.percentageTag} b3 clr-success`} style={{ marginLeft: "8px" }}>
                             {discountTag}
                           </span>
-                        )}
+                        )} */}
                       </span>
                     </td>
                   </tr>
@@ -592,7 +593,7 @@ const calculateSummary = () => {
               <td className="b3 clr-text">{totalItems}</td>
             </tr>
             <tr>
-              <th className="b3 clr-text">Total Packs</th>
+              <th className="b3 clr-text">Total Boxes</th>
               <td className="b3 clr-text">{totalPacks}</td>
             </tr>
             <tr>

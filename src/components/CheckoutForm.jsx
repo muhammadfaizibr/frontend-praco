@@ -46,7 +46,7 @@ const CheckoutForm = () => {
   const dispatch = useDispatch();
 
   const paymentMethodOptions = [
-    { value: "manual_payment", label: "Manual Payment" }
+    { value: "manual_payment", label: "Direct Payment" }
   ];
 
   const validateAddresses = (addresses) => {

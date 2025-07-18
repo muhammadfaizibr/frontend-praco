@@ -10,7 +10,7 @@
 /* Marquee */
 .marquee {
   height: 2.8rem;
-  max-width: min(90%, 75vw);
+  max-width: min(90%, 1000vw);
   overflow-x: hidden;
   position: relative;
   margin: 0 auto;

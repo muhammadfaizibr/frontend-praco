@@ -46,6 +46,7 @@ apiClient.interceptors.response.use(
         }
         const response = await axios.post(
           "http://127.0.0.1:8000/api/account/token/refresh/",
+          // "https://api.praco.co.uk/api/account/token/refresh/",
           { refresh: refreshToken },
           { timeout: 5000 }
         );
@@ -236,6 +237,7 @@ export const refreshToken = ({ refresh }, { signal } = {}) => {
     (cancelToken) =>
       axios.post(
         "http://127.0.0.1:8000/api/account/token/refresh/",
+        // "https://api.praco.co.uk/api/account/token/refresh/",
         { refresh },
         { cancelToken, timeout: 5000 }
       ),

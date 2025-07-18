@@ -111,8 +111,8 @@ const CheckoutSideContainer = () => {
       </div>
 
       <div className={FormSideContainerStyles.row}>
-        <p className="b3 dark">Total Packs</p>
-        <p className="b3 dark">{totalPacks} Packs</p>
+        <p className="b3 dark">Total Boxes</p>
+        <p className="b3 dark">{totalPacks} Boxes</p>
       </div>
 
       <div className={FormSideContainerStyles.row}>

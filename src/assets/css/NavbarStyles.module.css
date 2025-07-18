@@ -4,12 +4,15 @@ nav {
     border-bottom: 1px solid var(--clr-border);
     width: 100%;
     background-color: var(--clr-white);
+    z-index: 10000;
+    position: sticky;
+    top: 0;
 }
 
 .navbarContentWrapper {
     display: flex;
     flex-direction: column;
-    max-width: min(90%, 75vw);
+    max-width: min(96%, 1000vw);
     margin: 0 auto;
     padding-block: var(--padding-l);
     gap: var(--gap-l);
@@ -29,7 +32,7 @@ nav {
 }
 
 .navbarContentWrapper .childWrapper .logo img {
-    width: clamp(14rem, 10vw, 14rem);
+    width: clamp(14rem, 12vw, 14rem);
     height: auto;
 }
 
@@ -40,6 +43,10 @@ nav {
     flex-grow: 1;
     display: flex;
     align-items: stretch;
+}
+
+.searchBarWrapper .searchBar{
+    background-color: red;
 }
 
 .searchMobileToggleBtn {
@@ -65,6 +72,10 @@ nav {
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.toggleMenuBtn {
+    display: none !important;
 }
 
 .actionButtons .callBtn {
@@ -189,4 +200,23 @@ nav {
     .unitConversionContainer {
         width: 100%;
     }
+
+    .navbarContentWrapper .childWrapper .logo img {
+    width: clamp(12rem, 12vw, 12rem);
+}
+    
+}
+
+
+@media (max-width: 400px) {
+    .navbarContentWrapper .childWrapper .logo img {
+    width: clamp(10rem, 10vw, 10rem);
+}
+    
+}
+@media (max-width: 1440px) {
+    .toggleMenuBtn{
+        display: flex !important;
+    }
+    
 }

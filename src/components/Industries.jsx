@@ -3,9 +3,8 @@ import IndustriesStyles from "assets/css/IndustriesStyles.module.css";
 import {
   PackageCheck,
   Utensils,
-  Pill,
-  Shirt,
-  MonitorSmartphone,
+  ShoppingBag,
+  Truck,
 } from "lucide-react";
 
 const industries = [
@@ -22,16 +21,16 @@ const industries = [
     icon: <Utensils className={IndustriesStyles.icon} />,
   },
   {
-    title: "Fashion & Apparel",
+    title: "Retail Packaging",
     description:
-      "Elegant packaging solutions that reflect brand identity and enhance unboxing.",
-    icon: <Shirt className={IndustriesStyles.icon} />,
+      "Versatile bags, wraps, and labels designed for praco.co.uk to enhance retail branding and customer experience.",
+    icon: <ShoppingBag className={IndustriesStyles.icon} />,
   },
   {
-    title: "Electronics",
+    title: "Logistics & Shipping",
     description:
-      "Impact-resistant packaging to protect sensitive gadgets and devices.",
-    icon: <MonitorSmartphone className={IndustriesStyles.icon} />,
+      "Durable wraps, tapes, and pallet covers from praco.co.uk to ensure secure and efficient transportation.",
+    icon: <Truck className={IndustriesStyles.icon} />,
   },
 ];
 

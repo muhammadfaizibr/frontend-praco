@@ -1,13 +1,14 @@
 /* ========================================================================== */
 /* Search Bar */
 .searchBar {
-    background-color: var(--clr-white);
+    background-color: var(--clr-gray-light);
     border: 1px solid var(--clr-border);
     display: flex;
     gap: clamp(0.8rem, 1vw, 1rem);
     align-items: stretch;
     width: 100%;
     border-radius: var(--radius-s);
+    
   }
   
   .searchBar input {
@@ -17,6 +18,8 @@
     outline: none;
     color: var(--clr-text);
     font-size: var(--font-size-base);
+    background-color: var(--clr-gray-light);
+
   }
   
   .searchBar button {
@@ -35,7 +38,7 @@
   
   .searchButton {
     color: var(--clr-white);
-    background-color: var(--clr-primary);
+    background-color: var(--clr-gray-dark);
   }
   
   /* ========================================================================== */

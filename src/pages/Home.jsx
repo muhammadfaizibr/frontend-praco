@@ -7,6 +7,8 @@ import WhyChooseUs from "components/WhyChooseUs";
 import Testimonials from "components/Testimonials";
 import Categories from "./Categories";
 import ProductList from "components/ProductsList";
+import ImageSlider from "components/ImageSlider";
+import Branding from "components/Branding";
 
 const Home = () => {
   useEffect(() => {
@@ -14,6 +16,7 @@ const Home = () => {
   }, []);
   return (
     <>
+    <ImageSlider/>
       <div className="centered-layout-wrapper full-width-flex-col">
           <CategoryCards />
           
@@ -22,16 +25,16 @@ const Home = () => {
           <ProductList/>
           
         </div>
-
         <IndustriesSection />
 
         <div className="centered-layout page-layout layout-vertical-padding full-width">
           <WhyChooseUs />
         </div>
-        <Testimonials />
+        {/* <Testimonials /> */}
       </div>
       <div className="centered-layout-wrapper full-width-flex-col">
-        <AboutPraco />
+        {/* <AboutPraco /> */}
+    <Branding />
 
         <div className="centered-layout page-layout layout-vertical-padding">
           <RequestQuote />

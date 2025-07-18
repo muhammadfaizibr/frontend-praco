@@ -1,7 +1,6 @@
 .cardGridContainer {
   width: 100%;
   margin: 0 auto;
-  padding: 2rem 1rem;
   background-color: var(--clr-secondary-light);
   overflow-x: auto;
 }

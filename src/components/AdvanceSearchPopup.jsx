@@ -28,18 +28,18 @@ const AdvanceSearchPopup = () => {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
 
-    const urlWidth = params.get("width");
-    const urlHeight = params.get("height");
-    const urlLength = params.get("length");
+    const urlWidth = params.get("width") || "";
+    const urlHeight = params.get("height") || "";
+    const urlLength = params.get("length") || "";
     const urlMeasurementUnit = params.get("measurement_unit");
     const urlCategory = params.get("category");
     const urlApproxSize = params.get("approx_size");
     const urlMinimumSize = params.get("minimum_size");
 
     // Set form field values from URL parameters
-    setWidth(urlWidth || "");
-    setHeight(urlHeight || "");
-    setLength(urlLength || "");
+    setWidth(urlWidth);
+    setHeight(urlHeight);
+    setLength(urlLength);
 
     setMeasurementUnitValue(
       urlMeasurementUnit && measurementUnits.includes(urlMeasurementUnit)
@@ -73,31 +73,34 @@ const AdvanceSearchPopup = () => {
     async (e) => {
       e.preventDefault();
 
+      // Set empty dimensions to 0
+      const finalWidth = width || "0";
+      const finalHeight = height || "0";
+      const finalLength = length || "0";
+
       // Validate inputs
-      const parsedWidth = parseFloat(width);
-      const parsedHeight = parseFloat(height);
-      const parsedLength = parseFloat(length);
+      const parsedWidth = parseFloat(finalWidth);
+      const parsedHeight = parseFloat(finalHeight);
+      const parsedLength = parseFloat(finalLength);
 
       if (
-        !width ||
-        !height ||
-        !length ||
-        isNaN(parsedWidth) ||
-        isNaN(parsedHeight) ||
-        isNaN(parsedLength) ||
-        parsedWidth <= 0 ||
-        parsedHeight <= 0 ||
-        parsedLength <= 0
+        (!finalWidth && finalHeight && finalLength && !isNaN(parsedHeight) && !isNaN(parsedLength) && parsedHeight > 0 && parsedLength > 0) ||
+        (!finalHeight && finalWidth && finalLength && !isNaN(parsedWidth) && !isNaN(parsedLength) && parsedWidth > 0 && parsedLength > 0) ||
+        (!finalLength && finalWidth && finalHeight && !isNaN(parsedWidth) && !isNaN(parsedHeight) && parsedWidth > 0 && parsedHeight > 0) ||
+        (!finalWidth && !finalHeight && !finalLength) ||
+        (isNaN(parsedWidth) || isNaN(parsedHeight) || isNaN(parsedLength)) ||
+        (parsedWidth < 0 || parsedHeight < 0 || parsedLength < 0)
       ) {
-        setError("Please provide valid dimensions (greater than 0).");
+        setError("Two dimensions must be positive.");
         return;
       }
+
       if (!productCategoryValue) {
-        setError("Please select a product category.");
+        setError("Select a category.");
         return;
       }
       if (!measurementUnitValue) {
-        setError("Please select a measurement unit.");
+        setError("Select a unit.");
         return;
       }
 
@@ -112,9 +115,9 @@ const AdvanceSearchPopup = () => {
 
       try {
         const params = new URLSearchParams({
-          width,
-          length,
-          height,
+          width: finalWidth,
+          length: finalLength,
+          height: finalHeight,
           measurement_unit: measurementUnitValue,
           category: productCategoryValue,
           approx_size:
@@ -126,7 +129,7 @@ const AdvanceSearchPopup = () => {
         navigate(`/search?${params.toString()}`);
       } catch (err) {
         if (err.name === "AbortError") return;
-        setError("Failed to initiate search");
+        setError("Search failed.");
       } finally {
         setIsLoading(false);
       }

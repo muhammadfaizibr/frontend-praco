@@ -31,39 +31,50 @@ const SearchResults = () => {
       const params = new URLSearchParams(location.search);
       const queryParams = Object.fromEntries(params.entries());
 
-      const requiredParams = ['width', 'length', 'height', 'measurement_unit', 'category'];
+      const requiredParams = ['measurement_unit', 'category'];
       const missingParams = requiredParams.filter(param => !queryParams[param]);
       if (missingParams.length > 0) {
-        setError(`Missing required parameters: ${missingParams.join(', ')}`);
+        setError(`Missing: ${missingParams.join(', ')}`);
         setIsLoading(false);
         return;
       }
 
-      const dimensions = ['width', 'length', 'height'];
-      for (const dim of dimensions) {
-        const value = parseFloat(queryParams[dim]);
-        if (isNaN(value) || value <= 0) {
-          setError(`Invalid ${dim}: must be a positive number`);
-          setIsLoading(false);
-          return;
-        }
+      // Set empty dimensions to 0
+      queryParams.width = queryParams.width || "0";
+      queryParams.height = queryParams.height || "0";
+      queryParams.length = queryParams.length || "0";
+
+      const parsedWidth = parseFloat(queryParams.width);
+      const parsedHeight = parseFloat(queryParams.height);
+      const parsedLength = parseFloat(queryParams.length);
+
+      if (
+        (!queryParams.width && queryParams.height && queryParams.length && !isNaN(parsedHeight) && !isNaN(parsedLength) && parsedHeight > 0 && parsedLength > 0) ||
+        (!queryParams.height && queryParams.width && queryParams.length && !isNaN(parsedWidth) && !isNaN(parsedLength) && parsedWidth > 0 && parsedLength > 0) ||
+        (!queryParams.length && queryParams.width && queryParams.height && !isNaN(parsedWidth) && !isNaN(parsedHeight) && parsedWidth > 0 && parsedHeight > 0) ||
+        (!queryParams.width && !queryParams.height && !queryParams.length) ||
+        (isNaN(parsedWidth) || isNaN(parsedHeight) || isNaN(parsedLength)) ||
+        (parsedWidth < 0 || parsedHeight < 0 || parsedLength < 0)
+      ) {
+        setError("Two dimensions must be positive.");
+        setIsLoading(false);
+        return;
       }
 
       const validUnits = ['MM', 'CM', 'IN', 'M'];
       if (!validUnits.includes(queryParams.measurement_unit.toUpperCase())) {
-        setError(`Invalid measurement unit: must be one of ${validUnits.join(', ')}`);
+        setError("Invalid unit.");
         setIsLoading(false);
         return;
       }
 
       const validCategories = ['box', 'boxes', 'bag', 'bags', 'postal', 'postals'];
       if (!validCategories.includes(queryParams.category.toLowerCase())) {
-        setError(`Invalid category: must be one of ${validCategories.join(', ')}`);
+        setError("Invalid category.");
         setIsLoading(false);
         return;
       }
 
-      // Ensure approx_size and minimum_size are included in the query if provided
       const response = await searchItems(
         {
           ...queryParams,
@@ -78,7 +89,7 @@ const SearchResults = () => {
         return;
       }
       console.error("Search error:", err);
-      setError(err.message || "Failed to fetch search results");
+      setError("Search failed.");
       setResults([]);
     } finally {
       setIsLoading(false);

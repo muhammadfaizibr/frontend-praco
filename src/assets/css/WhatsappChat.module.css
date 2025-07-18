@@ -31,3 +31,11 @@
 .text {
   font-size: var(--font-size-small);
 }
+
+
+@media (max-width: 768px) {
+  .whatsappBtn{
+    display: none;
+  }
+  
+}

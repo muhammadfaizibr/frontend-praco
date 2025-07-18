@@ -1,0 +1,137 @@
+.sideMenu {
+  position: sticky;
+  top: 94px; /* Adjusted to account for nav height */
+  left: 0;
+  height: calc(100vh - 94px); /* Ensure height accounts for nav */
+  border-right: 1px solid var(--clr-border);
+  z-index: 1000;
+  background-color: var(--clr-white);
+  display: block; /* Visible by default above 1440px */
+}
+
+.sideMenu.open {
+  display: block;
+}
+
+.toggleButton {
+  position: absolute;
+  top: var(--padding-m);
+  right: -4.8rem;
+  background-color: var(--clr-primary);
+  color: var(--clr-white);
+  border-radius: var(--radius-s);
+  z-index: 1001;
+  display: none; /* Hidden by default above 1440px */
+}
+
+.menuContent {
+  height: 100%;
+  overflow-y: auto;
+  background-color: transparent;
+}
+
+.menuList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background-color: transparent;
+}
+
+.menuItem {
+  position: relative;
+  width: 100%;
+  padding-left: var(--padding-xs);
+  padding-right: var(--padding-xs);
+}
+
+.hasIcon {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--clr-border);
+}
+
+.hasIcon:nth-child(1) {
+  padding-top: 0;
+  border-top: none;
+}
+
+.menuLink {
+  display: flex;
+  align-items: center;
+  padding: clamp(0.6rem, 0.6vw, .6rem) var(--padding-m);
+  color: var(--clr-text);
+  text-decoration: none;
+  transition: color 0.2s ease, background-color 0.2s ease;
+  border-radius: var(--radius-s);
+}
+
+.menuLink:hover,
+.menuLink:focus,
+.menuLink:active {
+  color: var(--clr-primary);
+  background-color: var(--clr-secondary-light);
+}
+
+.icon {
+  margin-right: var(--gap-xs);
+  stroke: var(--clr-text);
+  transition: stroke 0.2s ease;
+}
+
+.icon.rotate {
+  transform: rotate(180deg);
+}
+
+.menuLink:hover .icon,
+.menuLink:focus .icon,
+.menuLink:active .icon {
+  stroke: var(--clr-primary);
+}
+
+.subMenu {
+  list-style: none;
+  display: none;
+  padding-left: var(--padding-l);
+  padding-block: var(--padding-xs);
+}
+
+.subMenu.open {
+  display: block;
+}
+
+.subMenuItem {
+  width: 100%;
+}
+
+@media (max-width: 1440px) {
+  .sideMenu {
+    width: 20rem;
+    display: none;
+  }
+
+  .toggleButton {
+    display: block; /* Show toggle button below 1440px */
+  }
+
+  .sideMenu.open {
+    display: block;
+    position: fixed; /* Visible when open below 1440px */
+    z-index: 10000;
+    width: 34rem;
+  }
+
+  .sideMenu.open .menuContent {
+    padding: var(--padding-xxl) 0;
+  }
+}
+
+@media (max-width: 360px) {
+  .sideMenu {
+    width: 18rem;
+  }
+
+  .toggleButton {
+    right: -3.6rem;
+  }
+}

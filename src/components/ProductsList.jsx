@@ -71,7 +71,7 @@ const ProductList = () => {
         <p className="b3 text-center">No products found.</p>
       )}
       {!isLoading && !error && products.length > 0 && (
-        <Products title="Explore Our" highlightedText={"Packing Solutions"} products={products} />
+        <Products title="Find Your Perfect" highlightedText={"Packing Solutions"} products={products} />
       )}
     </div>
   );

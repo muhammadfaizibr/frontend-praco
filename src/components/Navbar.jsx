@@ -6,22 +6,24 @@ import {
   CircleUserRound,
   Search,
   X,
+  Menu,
 } from "lucide-react";
 import Logo from "assets/images/logo.svg";
 import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import SearchBarHeader from "components/SearchBarHeader";
 import UnitConversionPopup from "components/UnitConversionPopup";
-import MenuCategories from "components/MenuCategories";
+// import MenuCategories from "components/MenuCategories";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "utils/store";
 
-const Navbar = () => {
+const Navbar = ({setIsOpen, isOpen}) => {
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation(); // Added to detect route changes
   const [searchMobile, setSearchMobile] = useState(false);
-  const [toggleUnitConversionPopup, setToggleUnitConversionPopup] = useState(false);
+  const [toggleUnitConversionPopup, setToggleUnitConversionPopup] =
+    useState(false);
   const [showAccountPopup, setShowAccountPopup] = useState(false);
 
   // Refs for popup elements to detect outside clicks
@@ -118,6 +120,13 @@ const Navbar = () => {
     navigate("/", { replace: true });
   }, [dispatch, navigate]);
 
+
+    const toggleMenu = () => {
+    if (window.innerWidth <= 1440) {
+      setIsOpen((prev) => !prev); // Only toggle below 840px
+    }
+
+  };
   return (
     <nav aria-label="Main navigation">
       <div className={NavBarStyles.navbarContentWrapper}>
@@ -138,17 +147,23 @@ const Navbar = () => {
           </div>
           <div className={NavBarStyles.actionButtons}>
             <button
-              className={`${NavBarStyles.actionButtonStyle} ${NavBarStyles.searchMobileToggleBtn} accent-palette ${
-                searchMobile ? NavBarStyles.active : ""
-              }`}
+              className={`${NavBarStyles.actionButtonStyle} ${
+                NavBarStyles.searchMobileToggleBtn
+              } accent-palette ${searchMobile ? NavBarStyles.active : ""}`}
               type="button"
               aria-label={searchMobile ? "Close Search" : "Open Search"}
               onClick={toggleSearchMobile}
             >
               {searchMobile ? (
-                <X className="icon-md icon-blue-accent-dark" aria-hidden="true" />
+                <X
+                  className="icon-md icon-blue-accent-dark"
+                  aria-hidden="true"
+                />
               ) : (
-                <Search className="icon-md icon-blue-accent-dark" aria-hidden="true" />
+                <Search
+                  className="icon-md icon-blue-accent-dark"
+                  aria-hidden="true"
+                />
               )}
             </button>
             <button
@@ -161,7 +176,9 @@ const Navbar = () => {
             >
               <Calculator
                 className={`icon-md ${
-                  toggleUnitConversionPopup ? "clr-white" : "icon-blue-accent-dark"
+                  toggleUnitConversionPopup
+                    ? "clr-white"
+                    : "icon-blue-accent-dark"
                 }`}
                 aria-hidden="true"
               />
@@ -171,7 +188,10 @@ const Navbar = () => {
               to="/cart"
               aria-label="View Cart"
             >
-              <ShoppingBag className="icon-md icon-blue-accent-dark" aria-hidden="true" />
+              <ShoppingBag
+                className="icon-md icon-blue-accent-dark"
+                aria-hidden="true"
+              />
             </Link>
 
             {isLoggedIn ? (
@@ -184,7 +204,10 @@ const Navbar = () => {
                   aria-controls="account-popup"
                   onClick={toggleAccountPopup}
                 >
-                  <CircleUserRound className="icon-md icon-blue-accent-dark" aria-hidden="true" />
+                  <CircleUserRound
+                    className="icon-md icon-blue-accent-dark"
+                    aria-hidden="true"
+                  />
                 </button>
                 {showAccountPopup && (
                   <div
@@ -223,16 +246,16 @@ const Navbar = () => {
                 )}
               </div>
             ) : (
-              <NavLink to="/login" aria-label="Login">
+              <div><NavLink to="/login" aria-label="Login">
                 <button
                   className={`${NavBarStyles.actionButtonStyle} primary-btn b2`}
                   type="button"
                 >
                   Login
                 </button>
-              </NavLink>
+              </NavLink></div>
             )}
-
+            <div>
             <a href="tel:01162607078" aria-label="Call 0116 365 3008">
               <button
                 className={`${NavBarStyles.callBtn} primary-btn b2`}
@@ -241,6 +264,16 @@ const Navbar = () => {
                 0116 365 3008
               </button>
             </a>
+</div>
+            <button
+              className={`${NavBarStyles.actionButtonStyle} ${NavBarStyles.toggleMenuBtn} primary-btn b2`}
+              type="button"
+              onClick={toggleMenu}
+              aria-label="Toggle Menu"
+            >
+              <Menu />
+            </button>
+
             {toggleUnitConversionPopup && (
               <div
                 className={NavBarStyles.unitConversionContainer}
@@ -259,7 +292,7 @@ const Navbar = () => {
             <SearchBarHeader />
           </div>
         )}
-        <MenuCategories />
+        {/* <MenuCategories /> */}
       </div>
     </nav>
   );

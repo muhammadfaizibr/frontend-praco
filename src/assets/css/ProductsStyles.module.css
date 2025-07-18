@@ -5,7 +5,6 @@
   flex-direction: column;
   gap: var(--padding-xl);
   width: 100%;
-  padding-inline: var(--padding-s);
 }
 
 /* ========================================================================== */
@@ -22,7 +21,6 @@
 @media (max-width: 1200px) {
   .container {
     gap: clamp(1.6rem, 2.5vw, 2rem);
-    padding-inline: var(--padding-xs);
   }
 
   .productGrid {
