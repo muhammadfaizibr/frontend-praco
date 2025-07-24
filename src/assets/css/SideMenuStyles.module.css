@@ -2,11 +2,15 @@
   position: sticky;
   top: 94px; /* Adjusted to account for nav height */
   left: 0;
-  height: calc(100vh - 94px); /* Ensure height accounts for nav */
+  height: calc(100vh - 94px); /* Full viewport height minus nav height */
   border-right: 1px solid var(--clr-border);
   z-index: 1000;
   background-color: var(--clr-white);
   display: block; /* Visible by default above 1440px */
+}
+
+.sideMenu nav {
+  border-bottom: none;
 }
 
 .sideMenu.open {
@@ -26,7 +30,7 @@
 
 .menuContent {
   height: 100%;
-  overflow-y: auto;
+  overflow-y: auto; /* Scroll only when needed */
   background-color: transparent;
 }
 
@@ -108,6 +112,8 @@
   .sideMenu {
     width: 20rem;
     display: none;
+    height: 100vh; /* Full height for mobile */
+    top: 0;
   }
 
   .toggleButton {

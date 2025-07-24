@@ -36,6 +36,23 @@ class ErrorBoundary extends React.Component {
   }
 }
 
+// Retry utility function
+const retry = async (fn, retries = 3, delay = 500) => {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const result = await fn();
+      if (!result && i < retries - 1) {
+        await new Promise((resolve) => setTimeout(resolve, delay));
+        continue;
+      }
+      return result;
+    } catch (err) {
+      if (i === retries - 1) throw err;
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+};
+
 const ProductDetails = () => {
   const { category, product } = useParams();
   const [productData, setProductData] = useState(null);
@@ -48,6 +65,12 @@ const ProductDetails = () => {
   const [suppressObserver, setSuppressObserver] = useState(false);
 
   useEffect(() => {
+    if (!product) {
+      setError("Invalid product slug");
+      setLoading(false);
+      return;
+    }
+
     document.title = product
       ? product
           .replace(/-/g, " ")
@@ -56,15 +79,26 @@ const ProductDetails = () => {
           .join(" ") + " - Praco"
       : "Praco - UK's Leading Packaging Supplies";
 
+    let isMounted = true;
+
     const fetchProductData = async () => {
       try {
         setLoading(true);
-        const productResponse = await getProductBySlug(product);
-        if (!productResponse) throw new Error("Product not found");
+        setError(null);
+
+        // Retry getProductBySlug up to 3 times
+        const productResponse = await retry(() => getProductBySlug(product));
+        if (!productResponse) {
+          throw new Error("Product not found");
+        }
+        if (!isMounted) return;
+
         setProductData(productResponse);
         setSelectedImage(productResponse.images?.[0]?.image || "");
 
         const variants = await getProductVariants(productResponse.id);
+        if (!isMounted) return;
+
         const variantsData = await Promise.all(
           variants.map(async (variant) => {
             const items = await getItemsByProductVariant(variant.id);
@@ -78,16 +112,27 @@ const ProductDetails = () => {
             return { ...variant, items: itemsWithPricing, tableFields };
           })
         );
-        setVariantsWithData(variantsData);
+
+        if (isMounted) {
+          setVariantsWithData(variantsData);
+        }
       } catch (err) {
-        setError(err.message || "Failed to fetch product data");
+        if (isMounted) {
+          setError(err.message || "Failed to fetch product data");
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchProductData();
-  }, [category, product]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [product, category]);
 
   useEffect(() => {
     if (variantsWithData.length === 0) return;
@@ -103,7 +148,6 @@ const ProductDetails = () => {
             variantId: parseInt(entry.target.id.replace("variant-", ""), 10),
             top: entry.boundingClientRect.top,
           }));
-
 
         if (intersectingEntries.length > 0) {
           const topmostEntry = intersectingEntries.reduce((min, entry) =>
@@ -199,7 +243,7 @@ const ProductDetails = () => {
   }, []);
 
   if (loading) return <CustomLoading />;
-  if (error) return <div className={TableStyles.error}>Error: {error}</div>;
+  if (error) return <div className={TableStyles.error}>{error}</div>;
 
   const sanitizedDescription = DOMPurify.sanitize(productData.description || "");
 
@@ -263,7 +307,7 @@ const ProductDetails = () => {
               </div>
             )}
 
-            <ProductsTable variantsWithData={variantsWithData} />
+            <ProductsTable style={{ textAlign: 'center', verticalAlign: 'top' }} variantsWithData={variantsWithData} />
           </div>
         </div>
       </div>

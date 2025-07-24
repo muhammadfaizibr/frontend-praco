@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
-import PropTypes from "prop-types";
 import Products from "components/Products";
 import FormStyles from "assets/css/FormStyles.module.css";
-import { getProducts, getProductVariants } from "utils/api/ecommerce";
+import { getProducts } from "utils/api/ecommerce";
 import CustomLoading from "components/CustomLoading";
 
 const ProductList = () => {
@@ -23,27 +22,15 @@ const ProductList = () => {
       try {
         const productResponse = await getProducts();
         if (!productResponse.errors && isMounted) {
-          const productsWithVariants = await Promise.all(
-            (productResponse.results || []).map(async (product) => {
-              let variantCount = 0;
-              try {
-                const variantResponse = await getProductVariants(product.id);
-                variantCount = Array.isArray(variantResponse) ? variantResponse.length : 0;
-              } catch (err) {
-                console.error(`Failed to fetch variants for product ${product.id}:`, err);
-              }
-              return {
-                id: product.id,
-                title: product.name,
-                slug: product.slug,
-                category: product.category,
-                image: product.images[0]?.image || "",
-                variantCount,
-                alt: product.name.toLowerCase(),
-              };
-            })
-          );
-          setProducts(productsWithVariants);
+          const formattedProducts = (productResponse.results || []).map((product) => ({
+            id: product.id,
+            title: product.name,
+            slug: product.slug,
+            category: product.category,
+            image: product.images[0]?.image || "",
+            alt: product.name.toLowerCase(),
+          }));
+          setProducts(formattedProducts);
         } else if (isMounted) {
           setError(productResponse.message || "Failed to load products.");
         }

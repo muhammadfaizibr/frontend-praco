@@ -6,4 +6,15 @@
     width: 100%;
     background: var(--clr-white);
     gap: var(--gap-m) !important;
+      max-width: clamp(58rem, 64vw, 64rem);
+      padding: var(--padding-m);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius-m);
+      
+
+}
+
+form.container{
+    border: none;
+    /* padding: 0; */
 }

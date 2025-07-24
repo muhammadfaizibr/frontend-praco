@@ -829,7 +829,7 @@
 //                         key={tier.id}
 //                         className={`${TableStyles.pricingTierHeader} b6 clr-text`}
 //                       >
-                        
+
 //                         {tier.range_start === tier.range_end
 //                           ? `Single ${tier.tier_type === "pack" ? "Box" : "Pallet"}`
 //                           : `${tier.tier_type === "pack" ? "Boxes" : "Pallets"} ${tier.range_start}${
@@ -1747,7 +1747,6 @@
 
 // export default memo(ProductsTable);
 
-
 import React, { useState, useEffect, useCallback, memo, useMemo } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -1786,6 +1785,8 @@ const ProductsTable = ({ variantsWithData }) => {
     unitsDisplayType: {},
     cartWeight: 0,
     cartItems: [], // Initialize as empty array
+    dimensionDisplayType: {},
+    isAddingToCart: false,
   });
 
   // Memoized variants data
@@ -1845,89 +1846,64 @@ const ProductsTable = ({ variantsWithData }) => {
     fetchCartData();
   }, [isLoggedIn]);
 
-  // Initialize states when variantsWithData or cartItems changes
-  useEffect(() => {
-    const initialUnits = {};
-    const initialInputValues = {};
-    const initialPriceType = {};
-    const initialSelectedTiers = {};
-    const initialDisplayPriceType = {};
-    const initialUnitsDisplayType = {};
+useEffect(() => {
+  const initialUnits = {};
+  const initialInputValues = {};
+  const initialPriceType = {};
+  const initialSelectedTiers = {};
+  const initialDisplayPriceType = {};
+  const initialUnitsDisplayType = {};
+  const initialDimensionDisplayType = {};
+const cartItemUnits = {};
+const cartItemTiers = {};
+const cartItems = Array.isArray(state.cartItems) ? state.cartItems : [];
+cartItems.forEach((cartItem) => {
+  const itemId = cartItem.item;
+  const packQuantity = cartItem.pack_quantity || 1;
+  const unitsPerPack =
+    memoizedVariants.flatMap((v) => v.items).find((i) => i.id === itemId)
+      ?.units_per_pack || 1;
+  const units = packQuantity * unitsPerPack;
+  cartItemUnits[itemId] = (cartItemUnits[itemId] || 0) + units;
+  cartItemTiers[itemId] = cartItem.pricing_tier;
+});
 
-    // Calculate total units per item from cart - safe array handling
-    const cartItemUnits = {};
-    const cartItemTiers = {};
-    (state.cartItems || []).forEach((cartItem) => {
-      const itemId = cartItem.item;
-      const packQuantity = cartItem.pack_quantity || 1;
-      const unitsPerPack =
-        memoizedVariants.flatMap((v) => v.items).find((i) => i.id === itemId)
-          ?.units_per_pack || 1;
-      const units = packQuantity * unitsPerPack;
-      cartItemUnits[itemId] = (cartItemUnits[itemId] || 0) + units;
-      cartItemTiers[itemId] = cartItem.pricing_tier; // Store the pricing tier from cart
+  memoizedVariants.forEach((variant) => {
+    if (!variant?.id || !Array.isArray(variant.items)) return;
+
+    const supportsPallets = variant.units_per_pallet > 0;
+    initialPriceType[variant.id] =
+      (supportsPallets && state.cartWeight >= 750) ||
+      (supportsPallets && variant.show_units_per === "pallet")
+        ? "pallet"
+        : "pack";
+
+    initialDisplayPriceType[variant.id] = "pack";
+    initialUnitsDisplayType[variant.id] = "pack";
+    initialDimensionDisplayType[variant.id] = "in"; // Default to inches for dimension display
+
+    variant.items.forEach((item) => {
+      if (!item?.id) return;
+
+      const cartUnits = cartItemUnits[item.id] || 0;
+      initialUnits[item.id] = cartUnits;
+      initialInputValues[item.id] = cartUnits.toString();
+      initialSelectedTiers[item.id] = cartItemTiers[item.id] || null;
     });
+  });
 
-    memoizedVariants.forEach((variant) => {
-      if (!variant?.id || !Array.isArray(variant.items)) return;
-
-      const supportsPallets = variant.units_per_pallet > 0;
-      initialPriceType[variant.id] =
-        (supportsPallets && state.cartWeight >= 750) ||
-        (supportsPallets && variant.show_units_per === "pallet")
-          ? "pallet"
-          : "pack";
-
-      initialDisplayPriceType[variant.id] = "pack";
-      initialUnitsDisplayType[variant.id] = "pack";
-
-      variant.items.forEach((item) => {
-        if (!item?.id) return;
-
-        // Initialize with cart quantity if exists
-        const cartUnits = cartItemUnits[item.id] || 0;
-        initialUnits[item.id] = cartUnits;
-        initialInputValues[item.id] = cartUnits.toString();
-
-        // Use the cart item's pricing tier if available, otherwise find appropriate tier
-        if (cartUnits > 0) {
-          if (cartItemTiers[item.id]) {
-            // Use the tier from cart if available
-            initialSelectedTiers[item.id] = cartItemTiers[item.id];
-          } else {
-            // Fallback to finding applicable tier
-            const applicableTier = findApplicableTier(
-              variant,
-              item,
-              cartUnits,
-              initialPriceType[variant.id]
-            );
-            initialSelectedTiers[item.id] = applicableTier?.id || null;
-          }
-        } else {
-          initialSelectedTiers[item.id] = null;
-        }
-      });
-    });
-
-    setState((prev) => ({
-      ...prev,
-      itemUnits: initialUnits,
-      inputValues: initialInputValues,
-      variantPriceType: initialPriceType,
-      selectedTiers: initialSelectedTiers,
-      variantDisplayPriceType: initialDisplayPriceType,
-      unitsDisplayType: initialUnitsDisplayType,
-      showStickyBar: Object.values(initialUnits).some((units) => units > 0),
-    }));
-
-    // Calculate initial prices based on cart items
-    if (Object.keys(initialUnits).length > 0) {
-      updateAllVariantPricingTiers(initialUnits, state.cartWeight);
-    }
-  }, [memoizedVariants, state.cartWeight, state.cartItems]);
-
-  // Show sticky bar when items are selected
+  setState((prev) => ({
+    ...prev,
+    itemUnits: initialUnits,
+    inputValues: initialInputValues,
+    variantPriceType: initialPriceType,
+    selectedTiers: initialSelectedTiers,
+    variantDisplayPriceType: initialDisplayPriceType,
+    unitsDisplayType: initialUnitsDisplayType,
+    dimensionDisplayType: initialDimensionDisplayType,
+    showStickyBar: Object.values(initialUnits).some((units) => units > 0),
+  }));
+}, [memoizedVariants, state.cartWeight, state.cartItems]);  // Show sticky bar when items are selected
   useEffect(() => {
     const hasSelectedItems = Object.values(state.itemUnits).some(
       (units) => units > 0
@@ -2074,12 +2050,12 @@ const ProductsTable = ({ variantsWithData }) => {
       const selectedItemsWeight =
         calculateTotalWeightWithUnits(currentItemUnits);
       const totalWeight = newCartWeight + selectedItemsWeight;
+      const usePalletPricing = totalWeight >= 750;
 
-      // Determine the new price type for each variant
       const newVariantPriceTypes = {};
       const newSelectedTiers = { ...state.selectedTiers };
       const newItemPrices = { ...state.itemPrices };
-      const newItemPackPrices = { ...state.itemPackPrices };
+      const newItemPackPrices = { ...state.itemPackPrices }; // Fixed: changed from prev to state
 
       memoizedVariants.forEach((variant) => {
         if (!variant?.id || !variant.items) return;
@@ -2087,29 +2063,28 @@ const ProductsTable = ({ variantsWithData }) => {
         const hasPalletPricing = variant.pricing_tiers?.some(
           (tier) => tier.tier_type === "pallet"
         );
-        const currentPriceType = state.variantPriceType[variant.id] || "pack";
 
-        // Determine new price type based on total weight
-        let newPriceType = currentPriceType;
-        if (totalWeight >= 750 && hasPalletPricing) {
+        // Determine new price type based on total weight and pallet availability
+        let newPriceType = "pack";
+        if (usePalletPricing && hasPalletPricing) {
           newPriceType = "pallet";
-        } else {
-          newPriceType = "pack";
         }
 
         newVariantPriceTypes[variant.id] = newPriceType;
 
-        // Update pricing for all items in this variant
         variant.items.forEach((item) => {
           const units = currentItemUnits[item.id] || 0;
           if (units > 0) {
-            // Find applicable tier (try determined type first, fall back to pack)
+            // First try to find a tier in the new price type
             let applicableTier = findApplicableTier(
               variant,
               item,
               units,
               newPriceType
             );
+
+            // If no tier found in new price type and we're switching to pallet,
+            // try to find an equivalent pack tier
             if (!applicableTier && newPriceType === "pallet") {
               applicableTier = findApplicableTier(variant, item, units, "pack");
             }
@@ -2124,7 +2099,6 @@ const ProductsTable = ({ variantsWithData }) => {
                   item.id
                 );
                 const totalPrice = price * units;
-
                 newItemPrices[item.id] = totalPrice;
                 newSelectedTiers[item.id] = applicableTier.id;
 
@@ -2147,13 +2121,6 @@ const ProductsTable = ({ variantsWithData }) => {
         });
       });
 
-      // Show notification if pricing tier changed
-      const changedVariants = Object.keys(newVariantPriceTypes).filter(
-        (variantId) =>
-          state.variantPriceType[variantId] !== newVariantPriceTypes[variantId]
-      );
-
-      // Update the state with all changes
       setState((prev) => ({
         ...prev,
         variantPriceType: newVariantPriceTypes,
@@ -2164,7 +2131,6 @@ const ProductsTable = ({ variantsWithData }) => {
     },
     [
       state.cartWeight,
-      state.variantPriceType,
       state.selectedTiers,
       state.itemPrices,
       state.itemPackPrices,
@@ -2172,7 +2138,6 @@ const ProductsTable = ({ variantsWithData }) => {
       calculateTotalWeightWithUnits,
       findApplicableTier,
       applyDiscount,
-      showNotification,
     ]
   );
 
@@ -2314,6 +2279,8 @@ const ProductsTable = ({ variantsWithData }) => {
 
   // Handle add to cart
   const handleAddToCart = useCallback(async () => {
+    setState((prev) => ({ ...prev, isAddingToCart: true }));
+
     if (!isLoggedIn) {
       showNotification("Please log in to add items to cart.", "error");
       navigate("/login");
@@ -2388,6 +2355,7 @@ const ProductsTable = ({ variantsWithData }) => {
         itemPrices: {},
         itemPackPrices: {},
         showStickyBar: false,
+        isAddingToCart: false,
       }));
 
       // Update cart weight and items
@@ -2448,6 +2416,7 @@ const ProductsTable = ({ variantsWithData }) => {
         .replace(/^{.*['"]/, "")
         .replace(/['"].*}$/, "");
       showNotification(errorMessage, "error");
+      setState((prev) => ({ ...prev, isAddingToCart: false }));
 
       if (error.response?.data?.pack_quantity) {
         setState((prev) => {
@@ -2509,724 +2478,474 @@ const ProductsTable = ({ variantsWithData }) => {
     }));
   }, []);
 
+const convertDimensions = useCallback((item, unit) => {
+  const width = Number(item.width_in_inches) || 0;
+  const height = Number(item.height_in_inches) || 0;
+  const length = Number(item.length_in_inches) || 0;
+
+  if (unit === "cm") {
+    return {
+      width: (width * 2.54).toFixed(2),
+      height: (height * 2.54).toFixed(2),
+      length: (length * 2.54).toFixed(2),
+    };
+  } else if (unit === "mm") {
+    return {
+      width: (width * 25.4).toFixed(2),
+      height: (height * 25.4).toFixed(2),
+      length: (length * 25.4).toFixed(2),
+    };
+  }
+  return {
+    width: width.toFixed(2),
+    height: height.toFixed(2),
+    length: length.toFixed(2),
+  };
+}, []);
+
   // Memoized table rendering
-  const renderTable = useMemo(() => {
-    if (!memoizedVariants.length) {
-      return (
-        <div className={`${TableStyles.noVariants} b6 clr-text`}>
-          No product variants available.
-        </div>
-      );
-    }
+const renderTable = useMemo(() => {
+  if (!memoizedVariants.length) {
+    return (
+      <div className={`${TableStyles.noVariants} b6 clr-text`}>
+        No product variants available.
+      </div>
+    );
+  }
 
-    return memoizedVariants.map((variant) => {
-      if (!variant?.id || !variant.items) return null;
+  return memoizedVariants.map((variant) => {
+    if (!variant?.id || !variant.items) return null;
 
-      const pricingTiers = (variant.pricing_tiers || []).sort((a, b) =>
-        a.tier_type === b.tier_type
-          ? a.range_start - b.range_start
-          : a.tier_type === "pack"
-          ? -1
-          : 1
-      );
+    const pricingTiers = (variant.pricing_tiers || []).sort((a, b) =>
+      a.tier_type === b.tier_type
+        ? a.range_start - b.range_start
+        : a.tier_type === "pack"
+        ? -1
+        : 1
+    );
 
-      const currentPriceType = state.variantPriceType[variant.id] || "pack";
-      const currentDisplayPriceType =
-        state.variantDisplayPriceType[variant.id] || "pack";
-      const currentUnitsDisplayType =
-        state.unitsDisplayType[variant.id] || "pack";
+    const currentPriceType = state.variantPriceType[variant.id] || "pack";
+    const currentDisplayPriceType =
+      state.variantDisplayPriceType[variant.id] || "pack";
+    const currentUnitsDisplayType =
+      state.unitsDisplayType[variant.id] || "pack";
+    const currentDimensionDisplayType =
+      state.dimensionDisplayType[variant.id] || "in";
 
-      return (
-        <div
-          key={variant.id}
-          id={`variant-${variant.id}`}
-          className={TableStyles.variantSection}
-        >
-          <h4 className={`${TableStyles.variantHeading} clr-text`}>
-            {variant.name || "Unnamed Variant"}
-          </h4>
+    const isBagsCategory = variant.product.category.slug === "bags";
 
-          {variant.tableFields?.length > 0 &&
-            variant.items.every((item) => !item.data_entries?.length) && (
-              <div className={`${TableStyles.warning} b6 clr-danger`}>
-                No ItemData entries found for this variant's items.
-              </div>
-            )}
+    return (
+      <div
+        key={variant.id}
+        id={`variant-${variant.id}`}
+        className={TableStyles.variantSection}
+      >
+        <h4 className={`${TableStyles.variantHeading} clr-text`}>
+          {variant.name || "Unnamed Variant"}
+        </h4>
 
-          <div className={TableStyles.tableContainer}>
-            <div className={TableStyles.tableWrapper}>
-              <table className={TableStyles.table}>
-                <thead>
-                  <tr>
-                    <th className={`${TableStyles.defaultHeader} b6 clr-text`}>
-                      Image
+        {variant.tableFields?.length > 0 &&
+          variant.items.every((item) => !item.data_entries?.length) && (
+            <div className={`${TableStyles.warning} b6 clr-danger`}>
+              No ItemData entries found for this variant's items.
+            </div>
+          )}
+
+        <div className={TableStyles.tableContainer}>
+          <div className={TableStyles.tableWrapper}>
+            <table className={TableStyles.table}>
+              <thead>
+                <tr>
+                  <th className={`${TableStyles.defaultHeader} b6 clr-text`}>
+                    Image
+                  </th>
+                  <th className={`${TableStyles.defaultHeader} b6 clr-text`}>
+                    SKU
+                  </th>
+                  {variant.tableFields?.map((field) => (
+                    <th
+                      key={field.id}
+                      className={`${TableStyles.defaultHeader} b6 clr-text ${
+                        field.long_field ? TableStyles.longField : ""
+                      }`}
+                    >
+                      {field.name}
                     </th>
+                  ))}
+                  {isBagsCategory && (
                     <th className={`${TableStyles.defaultHeader} b6 clr-text`}>
-                      SKU
-                    </th>
-                    {variant.tableFields?.map((field) => (
-                      <th
-                        key={field.id}
-                        className={`${TableStyles.defaultHeader} b6 clr-text ${
-                          field.long_field ? TableStyles.longField : ""
-                        }`}
-                      >
-                        {field.name}
-                      </th>
-                    ))}
-                    {pricingTiers.map((tier) => (
-                      <th
-                        key={tier.id}
-                        className={`${TableStyles.pricingTierHeader} b6 clr-text`}
-                      >
-                        
-                        {tier.range_start === tier.range_end
-                          ? `Single ${tier.tier_type === "pack" ? "Box" : "Pallet"}`
-                          : `${tier.tier_type === "pack" ? "Boxes" : "Pallets"} ${tier.range_start}${
-                              tier.no_end_range ? "+" : `-${tier.range_end}`
-                            }`}
-                      </th>
-                    ))}
-                    <th className={`${TableStyles.unitsPerHeader} b6 clr-text`}>
                       <div className={TableStyles.thWithButtons}>
-                        Units per
+                        Dimension
                         <span className={TableStyles.thButtonsWrapper}>
                           <button
                             className={`${TableStyles.thButton} b6 clr-text ${
-                              currentUnitsDisplayType === "pack"
+                              currentDimensionDisplayType === "in"
                                 ? TableStyles.active
                                 : ""
                             }`}
                             onClick={() =>
                               setState((prev) => ({
                                 ...prev,
-                                unitsDisplayType: {
-                                  ...prev.unitsDisplayType,
-                                  [variant.id]: "pack",
+                                dimensionDisplayType: {
+                                  ...prev.dimensionDisplayType,
+                                  [variant.id]: "in",
                                 },
                               }))
                             }
-                            aria-label="Show units per pack"
+                            aria-label="Show dimensions in inches"
                           >
-                            <Package className="icon-xms" /> Box
+                            in
                           </button>
-                          {variant.show_units_per !== "pack" &&
-                            variant.units_per_pallet && (
-                              <button
-                                className={`${
-                                  TableStyles.thButton
-                                } b6 clr-text ${
-                                  currentUnitsDisplayType === "pallet"
-                                    ? TableStyles.active
-                                    : ""
-                                }`}
-                                onClick={() =>
-                                  setState((prev) => ({
-                                    ...prev,
-                                    unitsDisplayType: {
-                                      ...prev.unitsDisplayType,
-                                      [variant.id]: "pallet",
-                                    },
-                                  }))
-                                }
-                                aria-label="Show units per pallet"
-                              >
-                                <Archive className="icon-xms" /> Pallet
-                              </button>
-                            )}
+                          <button
+                            className={`${TableStyles.thButton} b6 clr-text ${
+                              currentDimensionDisplayType === "cm"
+                                ? TableStyles.active
+                                : ""
+                            }`}
+                            onClick={() =>
+                              setState((prev) => ({
+                                ...prev,
+                                dimensionDisplayType: {
+                                  ...prev.dimensionDisplayType,
+                                  [variant.id]: "cm",
+                                },
+                              }))
+                            }
+                            aria-label="Show dimensions in centimeters"
+                          >
+                            cm
+                          </button>
+                          <button
+                            className={`${TableStyles.thButton} b6 clr-text ${
+                              currentDimensionDisplayType === "mm"
+                                ? TableStyles.active
+                                : ""
+                            }`}
+                            onClick={() =>
+                              setState((prev) => ({
+                                ...prev,
+                                dimensionDisplayType: {
+                                  ...prev.dimensionDisplayType,
+                                  [variant.id]: "mm",
+                                },
+                              }))
+                            }
+                            aria-label="Show dimensions in millimeters"
+                          >
+                            mm
+                          </button>
                         </span>
                       </div>
                     </th>
+                  )}
+                  {pricingTiers.map((tier) => (
                     <th
-                      className={`${TableStyles.unitsInputHeader} b6 clr-text`}
+                      key={tier.id}
+                      className={`${TableStyles.pricingTierHeader} b6 clr-text`}
                     >
-                      No. of Units
+                      {tier.range_start === tier.range_end
+                        ? `Single ${tier.tier_type === "pack" ? "Box" : "Pallet"}`
+                        : `${tier.tier_type === "pack" ? "Boxes" : "Pallets"} ${
+                            tier.range_start
+                          }${tier.no_end_range ? "+" : `-${tier.range_end}`}`}
                     </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {variant.items
-                    .sort((a, b) => a.id - b.id) // Sort items by ID
-                    .map((item) => {
-                      const images = item.images?.map((img) => img.image) || [];
-                      const primaryImage =
-                        state.imageLoadFailed[item.id] || !images.length
-                          ? ""
-                          : images[0];
-                      const unitsToShow =
-                        currentUnitsDisplayType === "pack"
-                          ? item.units_per_pack || 1
-                          : variant.units_per_pallet || 1;
-
-                      return (
-                        <tr
-                          key={item.id}
-                          className={
-                            state.itemUnits[item.id] > 0
-                              ? TableStyles.selectedRow
+                  ))}
+                  <th className={`${TableStyles.unitsPerHeader} b6 clr-text`}>
+                    <div className={TableStyles.thWithButtons}>
+                      Units per
+                      <span className={TableStyles.thButtonsWrapper}>
+                        <button
+                          className={`${TableStyles.thButton} b6 clr-text ${
+                            currentUnitsDisplayType === "pack"
+                              ? TableStyles.active
                               : ""
+                          }`}
+                          onClick={() =>
+                            setState((prev) => ({
+                              ...prev,
+                              unitsDisplayType: {
+                                ...prev.unitsDisplayType,
+                                [variant.id]: "pack",
+                              },
+                            }))
                           }
+                          aria-label="Show units per pack"
                         >
-                          <td className={`${TableStyles.imageColTd} b6 clr-text`}>
-                            {state.imageLoadFailed[item.id] || !images.length ? (
-                              <span className="b6 clr-gray">
-                                Image Not Available
-                              </span>
-                            ) : (
-                              <img
-                                src={primaryImage}
-                                alt={`${item.sku || "item"} primary image`}
-                                className={TableStyles.colImageContainer}
-                                onClick={() =>
-                                  images.length > 0 &&
-                                  openImagePreview(
-                                    images,
-                                    variant.name,
-                                    item.title || "Item"
-                                  )
-                                }
-                                style={{
-                                  cursor:
-                                    images.length > 0 ? "pointer" : "default",
-                                }}
-                                onError={() => handleImageError(item.id)}
-                                loading="lazy"
-                              />
-                            )}
-                          </td>
-                          <td className="b6 clr-text">{item.sku || "-"}</td>
-                          {variant.tableFields?.map((field) => {
-                            const itemData = item.data_entries?.find(
-                              (data) =>
-                                Number(data.field?.id) === Number(field.id)
-                            );
-                            if (!itemData)
-                              return (
-                                <td key={field.id} className="b6 clr-text">
-                                  -
-                                </td>
-                              );
+                          <Package className="icon-xms" /> Box
+                        </button>
+                        {variant.show_units_per !== "pack" &&
+                          variant.units_per_pallet && (
+                            <button
+                              className={`${TableStyles.thButton} b6 clr-text ${
+                                currentUnitsDisplayType === "pallet"
+                                  ? TableStyles.active
+                                  : ""
+                              }`}
+                              onClick={() =>
+                                setState((prev) => ({
+                                  ...prev,
+                                  unitsDisplayType: {
+                                    ...prev.unitsDisplayType,
+                                    [variant.id]: "pallet",
+                                  },
+                                }))
+                              }
+                              aria-label="Show units per pallet"
+                            >
+                              <Archive className="icon-xms" /> Pallet
+                            </button>
+                          )}
+                      </span>
+                    </div>
+                  </th>
+                  <th
+                    className={`${TableStyles.unitsInputHeader} b6 clr-text`}
+                  >
+                    No. of Units
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {variant.items
+                  .sort((a, b) => a.id - b.id)
+                  .map((item) => {
+                    const images = item.images?.map((img) => img.image) || [];
+                    const primaryImage =
+                      state.imageLoadFailed[item.id] || !images.length
+                        ? ""
+                        : images[0];
+                    const unitsToShow =
+                      currentUnitsDisplayType === "pack"
+                        ? item.units_per_pack || 1
+                        : variant.units_per_pallet || 1;
+                    const dimensions = convertDimensions(item, currentDimensionDisplayType);
+                    const hasValidDimensions =
+                      item.length_in_inches != null &&
+                      item.height_in_inches != null &&
+                      item.width_in_inches != null &&
+                      (item.length_in_inches > 0 ||
+                        item.height_in_inches > 0 ||
+                        item.width_in_inches > 0);
 
+                    return (
+                      <tr
+                        key={item.id}
+                        className={
+                          state.itemUnits[item.id] > 0
+                            ? TableStyles.selectedRow
+                            : ""
+                        }
+                      >
+                        <td
+                          className={`${TableStyles.imageColTd} b6 clr-text`}
+                        >
+                          {state.imageLoadFailed[item.id] ||
+                          !images.length ? (
+                            <span className="b6 clr-gray">
+                              Image Not Available
+                            </span>
+                          ) : (
+                            <img
+                              src={primaryImage}
+                              alt={`${item.sku || "item"} primary image`}
+                              className={TableStyles.colImageContainer}
+                              onClick={() =>
+                                images.length > 0 &&
+                                openImagePreview(
+                                  images,
+                                  variant.name,
+                                  item.title || "Item"
+                                )
+                              }
+                              style={{
+                                cursor:
+                                  images.length > 0 ? "pointer" : "default",
+                              }}
+                              onError={() => handleImageError(item.id)}
+                              loading="lazy"
+                            />
+                          )}
+                        </td>
+                        <td className="b6 clr-text">{item.sku || "-"}</td>
+                        {variant.tableFields?.map((field) => {
+                          const itemData = item.data_entries?.find(
+                            (data) =>
+                              Number(data.field?.id) === Number(field.id)
+                          );
+                          if (!itemData)
                             return (
                               <td key={field.id} className="b6 clr-text">
-                                {field.field_type === "image" &&
-                                itemData.value_image ? (
-                                  state.imageLoadFailed[item.id] ? (
-                                    <span className="b6 clr-gray">
-                                      Image Not Available
-                                    </span>
-                                  ) : (
-                                    <img
-                                      src={itemData.value_image}
-                                      alt={field.name}
-                                      className={TableStyles.colImageContainer}
-                                      onError={() => handleImageError(item.id)}
-                                      loading="lazy"
-                                    />
-                                  )
-                                ) : field.field_type === "price" &&
-                                  itemData.value_number != null ? (
-                                  `£${Number(itemData.value_number).toFixed(2)}`
-                                ) : field.field_type === "number" &&
-                                  itemData.value_number != null ? (
-                                  itemData.value_number
-                                ) : itemData.value_text ? (
-                                  itemData.value_text.replace(/\r\n/g, " ")
-                                ) : (
-                                  "-"
-                                )}
+                                -
                               </td>
                             );
-                          })}
-                          {pricingTiers.map((tier) => {
-                            const pricingData = tier.pricing_data?.find(
-                              (pd) => pd.item === item.id
-                            );
-                            if (!pricingData)
-                              return (
-                                <td key={tier.id} className="b6 clr-gray">
-                                  -
-                                </td>
-                              );
 
-                            const price = parseFloat(pricingData.price);
-                            const hasDiscount =
-                              state.exclusiveDiscounts[item.id]
-                                ?.discount_percentage > 0;
-                            const exclusivePrice = hasDiscount
-                              ? applyDiscount(price, item.id)
-                              : null;
-                            const unitsPerPack = item.units_per_pack || 1;
-                            const packPrice = price * unitsPerPack;
-                            const exclusivePackPrice = hasDiscount
-                              ? exclusivePrice * unitsPerPack
-                              : null;
+                          return (
+                            <td key={field.id} className="b6 clr-text">
+                              {field.field_type === "image" &&
+                              itemData.value_image ? (
+                                state.imageLoadFailed[item.id] ? (
+                                  <span className="b6 clr-gray">
+                                    Image Not Available
+                                  </span>
+                                ) : (
+                                  <img
+                                    src={itemData.value_image}
+                                    alt={field.name}
+                                    className={TableStyles.colImageContainer}
+                                    onError={() => handleImageError(item.id)}
+                                    loading="lazy"
+                                  />
+                                )
+                              ) : field.field_type === "price" &&
+                                itemData.value_number != null ? (
+                                `£${Number(itemData.value_number).toFixed(2)}`
+                              ) : field.field_type === "number" &&
+                                itemData.value_number != null ? (
+                                itemData.value_number
+                              ) : itemData.value_text ? (
+                                itemData.value_text.replace(/\r\n/g, " ")
+                              ) : (
+                                "-"
+                              )}
+                            </td>
+                          );
+                        })}
+                        {isBagsCategory && (
+                          <td className="b6 clr-text">
+                            {hasValidDimensions
+  ? `${
+      dimensions.width !== "0.00" ? dimensions.width : ""
+    }${
+      dimensions.width !== "0.00" && dimensions.height !== "0.00" ? "x" : ""
+    }${
+      dimensions.height !== "0.00" ? dimensions.height : ""
+    }${
+      (dimensions.width !== "0.00" || dimensions.height !== "0.00") &&
+      dimensions.length !== "0.00"
+        ? "x"
+        : ""
+    }${
+      dimensions.length !== "0.00" ? dimensions.length : ""
+    } ${currentDimensionDisplayType}`.trim()
+  : "-"}
 
-                            const displayPrice = hasDiscount ? (
-                              <>
-                                <span style={{ textDecoration: "line-through" }}>
-                                  £{packPrice.toFixed(2)}
-                                </span>
-                                <span className={TableStyles.exclusivePrice}>
-                                  {" "}
-                                  £{exclusivePackPrice.toFixed(2)}{" "}
-                                  {/* <div className={TableStyles.percentageTag}>
-                                    {
-                                      state.exclusiveDiscounts[item.id]
-                                        .discount_percentage
-                                    }
-                                    % Off
-                                  </div> */}
-                                </span>
-                              </>
-                            ) : (
-                              <span>£{packPrice.toFixed(2)}</span>
-                            );
-
+                          </td>
+                        )}
+                        {pricingTiers.map((tier) => {
+                          const pricingData = tier.pricing_data?.find(
+                            (pd) => pd.item === item.id
+                          );
+                          if (!pricingData)
                             return (
-                              <td key={tier.id} className="b6 clr-text">
-                                <button
-                                  className={`${TableStyles.priceButton} ${
-                                    state.selectedTiers[item.id] === tier.id
-                                      ? TableStyles.selectedTier
-                                      : ""
-                                  } b6`}
-                                  onClick={() => {
-                                    const variantObj = memoizedVariants.find(
-                                      (v) => v?.id === variant.id
-                                    );
-                                    const itemObj = variantObj?.items.find(
-                                      (i) => i.id === item.id
-                                    );
-                                    if (!variantObj || !itemObj) return;
+                              <td key={tier.id} className="b6 clr-gray">
+                                -
+                              </td>
+                            );
 
-                                    const unitsPerPack =
-                                      itemObj.units_per_pack || 1;
-                                    const unitsPerPallet =
-                                      variantObj.units_per_pallet || 0;
-                                    let newUnits =
-                                      tier.range_start *
-                                      (tier.tier_type === "pack"
-                                        ? unitsPerPack
-                                        : unitsPerPallet);
+                          const price = parseFloat(pricingData.price);
+                          const hasDiscount =
+                            state.exclusiveDiscounts[item.id]
+                              ?.discount_percentage > 0;
+                          const exclusivePrice = hasDiscount
+                            ? applyDiscount(price, item.id)
+                            : null;
+                          const unitsPerPack = item.units_per_pack || 1;
+                          const packPrice = price * unitsPerPack;
+                          const exclusivePackPrice = hasDiscount
+                            ? exclusivePrice * unitsPerPack
+                            : null;
 
-                                    if (tier.tier_type === "pallet") {
+                          const displayPrice = hasDiscount ? (
+                            <>
+                              <span
+                                style={{ textDecoration: "line-through" }}
+                              >
+                                £{packPrice.toFixed(2)}
+                              </span>
+                              <span className={TableStyles.exclusivePrice}>
+                                £{exclusivePackPrice.toFixed(2)}
+                              </span>
+                            </>
+                          ) : (
+                            <span>£{packPrice.toFixed(2)}</span>
+                          );
+
+                          return (
+                            <td key={tier.id} className="b6 clr-text">
+                              <button
+                                className={`${TableStyles.priceButton} ${
+                                  state.selectedTiers[item.id] === tier.id
+                                    ? TableStyles.selectedTier
+                                    : ""
+                                } b6`}
+                                onClick={() => {
+                                  const variantObj = memoizedVariants.find(
+                                    (v) => v?.id === variant.id
+                                  );
+                                  const itemObj = variantObj?.items.find(
+                                    (i) => i.id === item.id
+                                  );
+                                  if (!variantObj || !itemObj) return;
+
+                                  const unitsPerPack =
+                                    itemObj.units_per_pack || 1;
+                                  const unitsPerPallet =
+                                    variantObj.units_per_pallet || 0;
+                                  let newUnits =
+                                    tier.range_start *
+                                    (tier.tier_type === "pack"
+                                      ? unitsPerPack
+                                      : unitsPerPallet);
+
+                                  if (tier.tier_type === "pallet") {
+                                    if (newUnits % unitsPerPack !== 0) {
+                                      newUnits =
+                                        Math.ceil(newUnits / unitsPerPack) *
+                                        unitsPerPack;
+                                    }
+
+                                    const itemWeight = itemObj.weight || 0;
+                                    const itemWeightUnit =
+                                      itemObj.weight_unit || "kg";
+                                    const conversionFactor =
+                                      itemWeightUnit === "lb"
+                                        ? 0.453592
+                                        : itemWeightUnit === "oz"
+                                        ? 0.0283495
+                                        : itemWeightUnit === "g"
+                                        ? 0.001
+                                        : 1;
+                                    const weightPerUnit =
+                                      itemWeight * conversionFactor;
+
+                                    if (weightPerUnit > 0) {
+                                      const requiredUnits = Math.ceil(
+                                        750 / weightPerUnit
+                                      );
+                                      newUnits = Math.max(
+                                        newUnits,
+                                        requiredUnits
+                                      );
                                       if (newUnits % unitsPerPack !== 0) {
                                         newUnits =
                                           Math.ceil(newUnits / unitsPerPack) *
                                           unitsPerPack;
                                       }
-
-                                      const itemWeight = itemObj.weight || 0;
-                                      const itemWeightUnit =
-                                        itemObj.weight_unit || "kg";
-                                      const conversionFactor =
-                                        itemWeightUnit === "lb"
-                                          ? 0.453592
-                                          : itemWeightUnit === "oz"
-                                          ? 0.0283495
-                                          : itemWeightUnit === "g"
-                                          ? 0.001
-                                          : 1;
-                                      const weightPerUnit =
-                                        itemWeight * conversionFactor;
-
-                                      if (weightPerUnit > 0) {
-                                        const requiredUnits = Math.ceil(
-                                          750 / weightPerUnit
-                                        );
-                                        newUnits = Math.max(
-                                          newUnits,
-                                          requiredUnits
-                                        );
-                                        if (newUnits % unitsPerPack !== 0) {
-                                          newUnits =
-                                            Math.ceil(newUnits / unitsPerPack) *
-                                            unitsPerPack;
-                                        }
-                                      }
-                                    }
-
-                                    if (
-                                      itemObj.track_inventory &&
-                                      newUnits > itemObj.stock
-                                    ) {
-                                      newUnits =
-                                        Math.floor(itemObj.stock / unitsPerPack) *
-                                        unitsPerPack;
-                                      showNotification(
-                                        `Cannot exceed available stock of ${itemObj.stock} units for ${itemObj.title}.`,
-                                        "warning"
-                                      );
-                                    }
-
-                                    setState((prev) => {
-                                      const updatedItemUnits = {
-                                        ...prev.itemUnits,
-                                        [item.id]: newUnits,
-                                      };
-                                      const newSelectedWeight =
-                                        calculateTotalWeightWithUnits(
-                                          updatedItemUnits
-                                        );
-                                      const totalWeight =
-                                        prev.cartWeight + newSelectedWeight;
-
-                                      // Update all variant pricing tiers based on new total weight
-                                      const newVariantPriceTypes = {
-                                        ...prev.variantPriceType,
-                                      };
-                                      const newSelectedTiers = {
-                                        ...prev.selectedTiers,
-                                      };
-                                      const newItemPrices = {
-                                        ...prev.itemPrices,
-                                      };
-                                      const newItemPackPrices = {
-                                        ...prev.itemPackPrices,
-                                      };
-
-                                      memoizedVariants.forEach((v) => {
-                                        if (!v?.id || !v.items) return;
-
-                                        const hasPalletPricing =
-                                          v.pricing_tiers?.some(
-                                            (t) => t.tier_type === "pallet"
-                                          );
-                                        const newPriceType =
-                                          totalWeight >= 750 && hasPalletPricing
-                                            ? "pallet"
-                                            : "pack";
-
-                                        newVariantPriceTypes[v.id] = newPriceType;
-
-                                        v.items.forEach((i) => {
-                                          const u = updatedItemUnits[i.id] || 0;
-                                          if (u > 0) {
-                                            let applicableTier =
-                                              findApplicableTier(
-                                                v,
-                                                i,
-                                                u,
-                                                newPriceType
-                                              );
-                                            if (
-                                              !applicableTier &&
-                                              newPriceType === "pallet"
-                                            ) {
-                                              applicableTier = findApplicableTier(
-                                                v,
-                                                i,
-                                                u,
-                                                "pack"
-                                              );
-                                            }
-
-                                            if (applicableTier) {
-                                              const pricingData =
-                                                applicableTier.pricing_data?.find(
-                                                  (pd) => pd.item === i.id
-                                                );
-                                              if (pricingData) {
-                                                const p = applyDiscount(
-                                                  parseFloat(pricingData.price),
-                                                  i.id
-                                                );
-                                                newItemPrices[i.id] = p * u;
-                                                newSelectedTiers[i.id] =
-                                                  applicableTier.id;
-
-                                                const numberOfPacks = Math.ceil(
-                                                  u / (i.units_per_pack || 1)
-                                                );
-                                                newItemPackPrices[i.id] =
-                                                  p *
-                                                  (i.units_per_pack || 1) *
-                                                  numberOfPacks;
-                                              }
-                                            } else {
-                                              newItemPrices[i.id] = 0;
-                                              newItemPackPrices[i.id] = 0;
-                                              newSelectedTiers[i.id] = null;
-                                            }
-                                          } else {
-                                            newItemPrices[i.id] = 0;
-                                            newItemPackPrices[i.id] = 0;
-                                            newSelectedTiers[i.id] = null;
-                                          }
-                                        });
-                                      });
-
-                                      return {
-                                        ...prev,
-                                        itemUnits: updatedItemUnits,
-                                        inputValues: {
-                                          ...prev.inputValues,
-                                          [item.id]: newUnits.toString(),
-                                        },
-                                        variantPriceType: newVariantPriceTypes,
-                                        selectedTiers: newSelectedTiers,
-                                        itemPrices: newItemPrices,
-                                        itemPackPrices: newItemPackPrices,
-                                        showStickyBar: true,
-                                      };
-                                    });
-                                  }}
-                                  aria-current={
-                                    state.selectedTiers[item.id] === tier.id
-                                  }
-                                  aria-label={`Select ${tier.tier_type} tier ${
-                                    tier.range_start
-                                  }${
-                                    tier.no_end_range ? "+" : `-${tier.range_end}`
-                                  } for £${
-                                    hasDiscount
-                                      ? exclusivePrice.toFixed(2)
-                                      : price.toFixed(2)
-                                  }`}
-                                >
-                                  {displayPrice}
-                                </button>
-                              </td>
-                            );
-                          })}
-                          <td className="b6 clr-text">{unitsToShow || "-"}</td>
-                          <td className="b6 clr-text">
-                            <div className={TableStyles.unitInputGroup}>
-                              <button
-                                className={`${TableStyles.unitButton} ${TableStyles.unitButtonMinus}`}
-                                onClick={() => {
-                                  const variantObj = memoizedVariants.find(
-                                    (v) => v?.id === variant.id
-                                  );
-                                  if (!variantObj?.items) return;
-
-                                  const itemObj = variantObj.items.find(
-                                    (i) => i.id === item.id
-                                  );
-                                  if (!itemObj) return;
-
-                                  const packQuantity =
-                                    itemObj.units_per_pack || 1;
-                                  const palletQuantity =
-                                    variantObj.units_per_pallet || 0;
-                                  const currentUnits =
-                                    state.itemUnits[item.id] || 0;
-
-                                  let newUnits = Math.max(
-                                    0,
-                                    currentUnits - packQuantity
-                                  );
-
-                                  if (palletQuantity > 0) {
-                                    if (currentUnits === palletQuantity) {
-                                      newUnits = currentUnits - packQuantity;
-                                    } else if (
-                                      currentUnits > palletQuantity &&
-                                      currentUnits % palletQuantity === 0
-                                    ) {
-                                      newUnits = currentUnits - palletQuantity;
-                                    }
-                                  }
-
-                                  setState((prev) => {
-                                    const updatedItemUnits = {
-                                      ...prev.itemUnits,
-                                      [item.id]: newUnits,
-                                    };
-                                    const newSelectedWeight =
-                                      calculateTotalWeightWithUnits(
-                                        updatedItemUnits
-                                      );
-                                    const totalWeight =
-                                      prev.cartWeight + newSelectedWeight;
-
-                                    // Update all variant pricing tiers based on new total weight
-                                    const newVariantPriceTypes = {
-                                      ...prev.variantPriceType,
-                                    };
-                                    const newSelectedTiers = {
-                                      ...prev.selectedTiers,
-                                    };
-                                    const newItemPrices = {
-                                      ...prev.itemPrices,
-                                    };
-                                    const newItemPackPrices = {
-                                      ...prev.itemPackPrices,
-                                    };
-
-                                    memoizedVariants.forEach((v) => {
-                                      if (!v?.id || !v.items) return;
-
-                                      const hasPalletPricing =
-                                        v.pricing_tiers?.some(
-                                          (t) => t.tier_type === "pallet"
-                                        );
-                                      const newPriceType =
-                                        totalWeight >= 750 && hasPalletPricing
-                                          ? "pallet"
-                                          : "pack";
-
-                                      newVariantPriceTypes[v.id] = newPriceType;
-
-                                      v.items.forEach((i) => {
-                                        const u = updatedItemUnits[i.id] || 0;
-                                        if (u > 0) {
-                                          let applicableTier = findApplicableTier(
-                                            v,
-                                            i,
-                                            u,
-                                            newPriceType
-                                          );
-                                          if (
-                                            !applicableTier &&
-                                            newPriceType === "pallet"
-                                          ) {
-                                            applicableTier = findApplicableTier(
-                                              v,
-                                              i,
-                                              u,
-                                              "pack"
-                                            );
-                                          }
-
-                                          if (applicableTier) {
-                                            const pricingData =
-                                              applicableTier.pricing_data?.find(
-                                                (pd) => pd.item === i.id
-                                              );
-                                            if (pricingData) {
-                                              const p = applyDiscount(
-                                                parseFloat(pricingData.price),
-                                                i.id
-                                              );
-                                              newItemPrices[i.id] = p * u;
-                                              newSelectedTiers[i.id] =
-                                                applicableTier.id;
-
-                                              const numberOfPacks = Math.ceil(
-                                                u / (i.units_per_pack || 1)
-                                              );
-                                              newItemPackPrices[i.id] =
-                                                p *
-                                                (i.units_per_pack || 1) *
-                                                numberOfPacks;
-                                            }
-                                          } else {
-                                            newItemPrices[i.id] = 0;
-                                            newItemPackPrices[i.id] = 0;
-                                            newSelectedTiers[i.id] = null;
-                                          }
-                                        } else {
-                                          newItemPrices[i.id] = 0;
-                                          newItemPackPrices[i.id] = 0;
-                                          newSelectedTiers[i.id] = null;
-                                        }
-                                      });
-                                    });
-
-                                    return {
-                                      ...prev,
-                                      inputValues: {
-                                        ...prev.inputValues,
-                                        [item.id]: newUnits.toString(),
-                                      },
-                                      itemUnits: updatedItemUnits,
-                                      variantPriceType: newVariantPriceTypes,
-                                      selectedTiers: newSelectedTiers,
-                                      itemPrices: newItemPrices,
-                                      itemPackPrices: newItemPackPrices,
-                                    };
-                                  });
-                                }}
-                                aria-label={`Decrement units for ${
-                                  item.sku || "item"
-                                }`}
-                              >
-                                <Minus className="icon-s" />
-                              </button>
-                              <input
-                                type="text"
-                                value={
-                                  state.inputValues[item.id] ??
-                                  state.itemUnits[item.id] ??
-                                  "0"
-                                }
-                                onChange={(e) => {
-                                  const value = e.target.value.replace(
-                                    /[^0-9]/g,
-                                    ""
-                                  );
-                                  setState((prev) => ({
-                                    ...prev,
-                                    inputValues: {
-                                      ...prev.inputValues,
-                                      [item.id]: value,
-                                    },
-                                  }));
-                                }}
-                                onBlur={(e) => {
-                                  const value = e.target.value.replace(
-                                    /[^0-9]/g,
-                                    ""
-                                  );
-                                  handleUnitChange(item.id, variant.id, value);
-                                }}
-                                onKeyPress={(e) => {
-                                  if (e.key === "Enter") {
-                                    const value = e.target.value.replace(
-                                      /[^0-9]/g,
-                                      ""
-                                    );
-                                    handleUnitChange(item.id, variant.id, value);
-                                    e.target.blur();
-                                  }
-                                }}
-                                className={TableStyles.unitInput}
-                                aria-label={`Enter units for ${
-                                  item.sku || "item"
-                                }`}
-                              />
-                              <button
-                                className={`${TableStyles.unitButton} ${TableStyles.unitButtonPlus}`}
-                                onClick={() => {
-                                  const variantObj = memoizedVariants.find(
-                                    (v) => v?.id === variant.id
-                                  );
-                                  if (!variantObj?.items) return;
-
-                                  const itemObj = variantObj.items.find(
-                                    (i) => i.id === item.id
-                                  );
-                                  if (!itemObj) return;
-
-                                  const packQuantity =
-                                    itemObj.units_per_pack || 1;
-                                  const palletQuantity =
-                                    variantObj.units_per_pallet || 0;
-                                  const currentUnits =
-                                    state.itemUnits[item.id] || 0;
-
-                                  let newUnits = currentUnits + packQuantity;
-
-                                  if (palletQuantity > 0 && currentUnits > 0) {
-                                    if (
-                                      currentUnits >= palletQuantity &&
-                                      currentUnits % palletQuantity === 0
-                                    ) {
-                                      newUnits = currentUnits + palletQuantity;
                                     }
                                   }
 
                                   if (
                                     itemObj.track_inventory &&
-                                    newUnits > itemObj.stock
+                                    newUnits > (itemObj.stock || 0)
                                   ) {
                                     newUnits =
-                                      Math.floor(itemObj.stock / packQuantity) *
-                                      packQuantity;
+                                      Math.floor(
+                                        (itemObj.stock || 0) / unitsPerPack
+                                      ) * unitsPerPack;
                                     showNotification(
-                                      `Cannot exceed available stock of ${itemObj.stock} units for ${itemObj.title}.`,
+                                      `Cannot exceed available stock of ${
+                                        itemObj.stock || 0
+                                      } units for ${itemObj.title || "item"}.`,
                                       "warning"
                                     );
                                   }
@@ -3243,7 +2962,6 @@ const ProductsTable = ({ variantsWithData }) => {
                                     const totalWeight =
                                       prev.cartWeight + newSelectedWeight;
 
-                                    // Update all variant pricing tiers based on new total weight
                                     const newVariantPriceTypes = {
                                       ...prev.variantPriceType,
                                     };
@@ -3269,27 +2987,30 @@ const ProductsTable = ({ variantsWithData }) => {
                                           ? "pallet"
                                           : "pack";
 
-                                      newVariantPriceTypes[v.id] = newPriceType;
+                                      newVariantPriceTypes[v.id] =
+                                        newPriceType;
 
                                       v.items.forEach((i) => {
                                         const u = updatedItemUnits[i.id] || 0;
                                         if (u > 0) {
-                                          let applicableTier = findApplicableTier(
-                                            v,
-                                            i,
-                                            u,
-                                            newPriceType
-                                          );
+                                          let applicableTier =
+                                            findApplicableTier(
+                                              v,
+                                              i,
+                                              u,
+                                              newPriceType
+                                            );
                                           if (
                                             !applicableTier &&
                                             newPriceType === "pallet"
                                           ) {
-                                            applicableTier = findApplicableTier(
-                                              v,
-                                              i,
-                                              u,
-                                              "pack"
-                                            );
+                                            applicableTier =
+                                              findApplicableTier(
+                                                v,
+                                                i,
+                                                u,
+                                                "pack"
+                                              );
                                           }
 
                                           if (applicableTier) {
@@ -3329,47 +3050,425 @@ const ProductsTable = ({ variantsWithData }) => {
 
                                     return {
                                       ...prev,
+                                      itemUnits: updatedItemUnits,
                                       inputValues: {
                                         ...prev.inputValues,
                                         [item.id]: newUnits.toString(),
                                       },
-                                      itemUnits: updatedItemUnits,
                                       variantPriceType: newVariantPriceTypes,
                                       selectedTiers: newSelectedTiers,
                                       itemPrices: newItemPrices,
                                       itemPackPrices: newItemPackPrices,
+                                      showStickyBar: true,
                                     };
                                   });
                                 }}
-                                aria-label={`Increment units for ${
-                                  item.sku || "item"
+                                aria-current={
+                                  state.selectedTiers[item.id] === tier.id
+                                }
+                                aria-label={`Select ${tier.tier_type} tier ${
+                                  tier.range_start
+                                }${
+                                  tier.no_end_range
+                                    ? "+"
+                                    : `-${tier.range_end}`
+                                } for £${
+                                  hasDiscount
+                                    ? exclusivePrice.toFixed(2)
+                                    : price.toFixed(2)
                                 }`}
                               >
-                                <Plus className="icon-s" />
+                                {displayPrice}
                               </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                </tbody>
-              </table>
-            </div>
+                            </td>
+                          );
+                        })}
+                        <td className="b6 clr-text">{unitsToShow || "-"}</td>
+                        <td className="b6 clr-text">
+                          <div className={TableStyles.unitInputGroup}>
+                            <button
+                              className={`${TableStyles.unitButton} ${TableStyles.unitButtonMinus}`}
+                              onClick={() => {
+                                const variantObj = memoizedVariants.find(
+                                  (v) => v?.id === variant.id
+                                );
+                                if (!variantObj?.items) return;
+
+                                const itemObj = variantObj.items.find(
+                                  (i) => i.id === item.id
+                                );
+                                if (!itemObj) return;
+
+                                const packQuantity =
+                                  itemObj.units_per_pack || 1;
+                                const palletQuantity =
+                                  variantObj.units_per_pallet || 0;
+                                const currentUnits =
+                                  state.itemUnits[item.id] || 0;
+
+                                let newUnits = Math.max(
+                                  0,
+                                  currentUnits - packQuantity
+                                );
+
+                                if (palletQuantity > 0) {
+                                  if (currentUnits === palletQuantity) {
+                                    newUnits = currentUnits - packQuantity;
+                                  } else if (
+                                    currentUnits > palletQuantity &&
+                                    currentUnits % palletQuantity === 0
+                                  ) {
+                                    newUnits = currentUnits - palletQuantity;
+                                  }
+                                }
+
+                                setState((prev) => {
+                                  const updatedItemUnits = {
+                                    ...prev.itemUnits,
+                                    [item.id]: newUnits,
+                                  };
+                                  const newSelectedWeight =
+                                    calculateTotalWeightWithUnits(
+                                      updatedItemUnits
+                                    );
+                                  const totalWeight =
+                                    prev.cartWeight + newSelectedWeight;
+
+                                  const newVariantPriceTypes = {
+                                    ...prev.variantPriceType,
+                                  };
+                                  const newSelectedTiers = {
+                                    ...prev.selectedTiers,
+                                  };
+                                  const newItemPrices = {
+                                    ...prev.itemPrices,
+                                  };
+                                  const newItemPackPrices = {
+                                    ...prev.itemPackPrices,
+                                  };
+
+                                  memoizedVariants.forEach((v) => {
+                                    if (!v?.id || !v.items) return;
+
+                                    const hasPalletPricing =
+                                      v.pricing_tiers?.some(
+                                        (t) => t.tier_type === "pallet"
+                                      );
+                                    const newPriceType =
+                                      totalWeight >= 750 && hasPalletPricing
+                                        ? "pallet"
+                                        : "pack";
+
+                                    newVariantPriceTypes[v.id] = newPriceType;
+
+                                    v.items.forEach((i) => {
+                                      const u = updatedItemUnits[i.id] || 0;
+                                      if (u > 0) {
+                                        let applicableTier = findApplicableTier(
+                                          v,
+                                          i,
+                                          u,
+                                          newPriceType
+                                        );
+                                        if (
+                                          !applicableTier &&
+                                          newPriceType === "pallet"
+                                        ) {
+                                          applicableTier = findApplicableTier(
+                                            v,
+                                            i,
+                                            u,
+                                            "pack"
+                                          );
+                                        }
+
+                                        if (applicableTier) {
+                                          const pricingData =
+                                            applicableTier.pricing_data?.find(
+                                              (pd) => pd.item === i.id
+                                            );
+                                          if (pricingData) {
+                                            const p = applyDiscount(
+                                              parseFloat(pricingData.price),
+                                              i.id
+                                            );
+                                            newItemPrices[i.id] = p * u;
+                                            newSelectedTiers[i.id] =
+                                              applicableTier.id;
+
+                                            const numberOfPacks = Math.ceil(
+                                              u / (i.units_per_pack || 1)
+                                            );
+                                            newItemPackPrices[i.id] =
+                                              p *
+                                              (i.units_per_pack || 1) *
+                                              numberOfPacks;
+                                          }
+                                        } else {
+                                          newItemPrices[i.id] = 0;
+                                          newItemPackPrices[i.id] = 0;
+                                          newSelectedTiers[i.id] = null;
+                                        }
+                                      } else {
+                                        newItemPrices[i.id] = 0;
+                                        newItemPackPrices[i.id] = 0;
+                                        newSelectedTiers[i.id] = null;
+                                      }
+                                    });
+                                  });
+
+                                  return {
+                                    ...prev,
+                                    inputValues: {
+                                      ...prev.inputValues,
+                                      [item.id]: newUnits.toString(),
+                                    },
+                                    itemUnits: updatedItemUnits,
+                                    variantPriceType: newVariantPriceTypes,
+                                    selectedTiers: newSelectedTiers,
+                                    itemPrices: newItemPrices,
+                                    itemPackPrices: newItemPackPrices,
+                                  };
+                                });
+                              }}
+                              aria-label={`Decrement units for ${
+                                item.sku || "item"
+                              }`}
+                            >
+                              <Minus className="icon-s" />
+                            </button>
+                            <input
+                              type="text"
+                              value={
+                                state.inputValues[item.id] ??
+                                state.itemUnits[item.id] ??
+                                "0"
+                              }
+                              onChange={(e) => {
+                                const value = e.target.value.replace(
+                                  /[^0-9]/g,
+                                  ""
+                                );
+                                setState((prev) => ({
+                                  ...prev,
+                                  inputValues: {
+                                    ...prev.inputValues,
+                                    [item.id]: value,
+                                  },
+                                }));
+                              }}
+                              onBlur={(e) => {
+                                const value = e.target.value.replace(
+                                  /[^0-9]/g,
+                                  ""
+                                );
+                                handleUnitChange(item.id, variant.id, value);
+                              }}
+                              onKeyPress={(e) => {
+                                if (e.key === "Enter") {
+                                  const value = e.target.value.replace(
+                                    /[^0-9]/g,
+                                    ""
+                                  );
+                                  handleUnitChange(
+                                    item.id,
+                                    variant.id,
+                                    value
+                                  );
+                                  e.target.blur();
+                                }
+                              }}
+                              className={TableStyles.unitInput}
+                              aria-label={`Enter units for ${
+                                item.sku || "item"
+                              }`}
+                            />
+                            <button
+                              className={`${TableStyles.unitButton} ${TableStyles.unitButtonPlus}`}
+                              onClick={() => {
+                                const variantObj = memoizedVariants.find(
+                                  (v) => v?.id === variant.id
+                                );
+                                if (!variantObj?.items) return;
+
+                                const itemObj = variantObj.items.find(
+                                  (i) => i.id === item.id
+                                );
+                                if (!itemObj) return;
+
+                                const packQuantity =
+                                  itemObj.units_per_pack || 1;
+                                const palletQuantity =
+                                  variantObj.units_per_pallet || 0;
+                                const currentUnits =
+                                  state.itemUnits[item.id] || 0;
+
+                                let newUnits = currentUnits + packQuantity;
+
+                                if (palletQuantity > 0 && currentUnits > 0) {
+                                  if (
+                                    currentUnits >= palletQuantity &&
+                                    currentUnits % palletQuantity === 0
+                                  ) {
+                                    newUnits = currentUnits + palletQuantity;
+                                  }
+                                }
+
+                                if (
+                                  itemObj.track_inventory &&
+                                  newUnits > (itemObj.stock || 0)
+                                ) {
+                                  newUnits =
+                                    Math.floor(
+                                      (itemObj.stock || 0) / packQuantity
+                                    ) * packQuantity;
+                                  showNotification(
+                                    `Cannot exceed available stock of ${
+                                      itemObj.stock || 0
+                                    } units for ${itemObj.title || "item"}.`,
+                                    "warning"
+                                  );
+                                }
+
+                                setState((prev) => {
+                                  const updatedItemUnits = {
+                                    ...prev.itemUnits,
+                                    [item.id]: newUnits,
+                                  };
+                                  const newSelectedWeight =
+                                    calculateTotalWeightWithUnits(
+                                      updatedItemUnits
+                                    );
+                                  const totalWeight =
+                                    prev.cartWeight + newSelectedWeight;
+
+                                  const newVariantPriceTypes = {
+                                    ...prev.variantPriceType,
+                                  };
+                                  const newSelectedTiers = {
+                                    ...prev.selectedTiers,
+                                  };
+                                  const newItemPrices = {
+                                    ...prev.itemPrices,
+                                  };
+                                  const newItemPackPrices = {
+                                    ...prev.itemPackPrices,
+                                  };
+
+                                  memoizedVariants.forEach((v) => {
+                                    if (!v?.id || !v.items) return;
+
+                                    const hasPalletPricing =
+                                      v.pricing_tiers?.some(
+                                        (t) => t.tier_type === "pallet"
+                                      );
+                                    const newPriceType =
+                                      totalWeight >= 750 && hasPalletPricing
+                                        ? "pallet"
+                                        : "pack";
+
+                                    newVariantPriceTypes[v.id] = newPriceType;
+
+                                    v.items.forEach((i) => {
+                                      const u = updatedItemUnits[i.id] || 0;
+                                      if (u > 0) {
+                                        let applicableTier = findApplicableTier(
+                                          v,
+                                          i,
+                                          u,
+                                          newPriceType
+                                        );
+                                        if (
+                                          !applicableTier &&
+                                          newPriceType === "pallet"
+                                        ) {
+                                          applicableTier = findApplicableTier(
+                                            v,
+                                            i,
+                                            u,
+                                            "pack"
+                                          );
+                                        }
+
+                                        if (applicableTier) {
+                                          const pricingData =
+                                            applicableTier.pricing_data?.find(
+                                              (pd) => pd.item === i.id
+                                            );
+                                          if (pricingData) {
+                                            const p = applyDiscount(
+                                              parseFloat(pricingData.price),
+                                              i.id
+                                            );
+                                            newItemPrices[i.id] = p * u;
+                                            newSelectedTiers[i.id] =
+                                              applicableTier.id;
+
+                                            const numberOfPacks = Math.ceil(
+                                              u / (i.units_per_pack || 1)
+                                            );
+                                            newItemPackPrices[i.id] =
+                                              p *
+                                              (i.units_per_pack || 1) *
+                                              numberOfPacks;
+                                          }
+                                        } else {
+                                          newItemPrices[i.id] = 0;
+                                          newItemPackPrices[i.id] = 0;
+                                          newSelectedTiers[i.id] = null;
+                                        }
+                                      } else {
+                                        newItemPrices[i.id] = 0;
+                                        newItemPackPrices[i.id] = 0;
+                                        newSelectedTiers[i.id] = null;
+                                      }
+                                    });
+                                  });
+
+                                  return {
+                                    ...prev,
+                                    inputValues: {
+                                      ...prev.inputValues,
+                                      [item.id]: newUnits.toString(),
+                                    },
+                                    itemUnits: updatedItemUnits,
+                                    variantPriceType: newVariantPriceTypes,
+                                    selectedTiers: newSelectedTiers,
+                                    itemPrices: newItemPrices,
+                                    itemPackPrices: newItemPackPrices,
+                                  };
+                                });
+                              }}
+                              aria-label={`Increment units for ${
+                                item.sku || "item"
+                              }`}
+                            >
+                              <Plus className="icon-s" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+              </tbody>
+            </table>
           </div>
         </div>
-      );
-    });
-  }, [
-    memoizedVariants,
-    state,
-    handleUnitChange,
-    showNotification,
-    calculateTotalWeightWithUnits,
-    applyDiscount,
-    findApplicableTier,
-    openImagePreview,
-    handleImageError,
-  ]);
+      </div>
+    );
+  });
+}, [
+  memoizedVariants,
+  state,
+  handleUnitChange,
+  showNotification,
+  calculateTotalWeightWithUnits,
+  applyDiscount,
+  findApplicableTier,
+  openImagePreview,
+  handleImageError,
+  convertDimensions,
+]);
 
   return (
     <div className={TableStyles.tableContentWrapper}>
@@ -3458,13 +3557,15 @@ const ProductsTable = ({ variantsWithData }) => {
             </table>
             <div className={TableStyles.stickyBarActions}>
               <div className={TableStyles.actionButtons}>
-                <button
-                  className="primary-btn text-large"
-                  onClick={handleAddToCart}
-                  aria-label="Add selected items to cart"
-                >
-                  Add to Cart
-                </button>
+                  <button
+    className={`primary-btn text-large`}
+    onClick={handleAddToCart}
+    disabled={state.isAddingToCart}
+    aria-busy={state.isAddingToCart}
+    aria-label="Add selected items to cart"
+  >
+    {state.isAddingToCart ? "Cart Upadting..." : "Add to Cart"}
+  </button>
               </div>
               <div className={TableStyles.totalPrice}>
                 TOTAL £{computeSelectedItems().totalPrice.toFixed(2)}
@@ -3481,12 +3582,16 @@ ProductsTable.propTypes = {
   variantsWithData: PropTypes.arrayOf(
     PropTypes.shape({
       id: PropTypes.number.isRequired,
+      category_type: PropTypes.string,
       items: PropTypes.arrayOf(
         PropTypes.shape({
           id: PropTypes.number.isRequired,
           weight: PropTypes.number,
           weight_unit: PropTypes.string,
           units_per_pack: PropTypes.number,
+          width_in_inches: PropTypes.number, // Added
+          height_in_inches: PropTypes.number, // Added
+          length_in_inches: PropTypes.number, // Added
         })
       ).isRequired,
     })

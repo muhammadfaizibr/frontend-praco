@@ -8,10 +8,8 @@ import { menuItems } from "components/SideMenu";
 
 const Footer = () => {
   const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-
-  console.log(categories, 'categories')
+  // const [loading, setLoading] = useState(false);
+  // const [error, setError] = useState(null);
 
   const menu = [
     { label: "Contact", link: "contact" },
@@ -23,7 +21,7 @@ const Footer = () => {
   useEffect(() => {
     // Filter menuItems to get only top-level categories (those with an icon)
     setCategories(menuItems);
-    setLoading(false);
+    // setLoading(false);
   }, []);
 
   return (
@@ -39,18 +37,18 @@ const Footer = () => {
             <p className="b2 clr-white">Call: 0116 365 3008</p>
           </div>
           <div className="row-content space-1vw">
-            <a className={`square-btn ${FooterStyles.socialIcon}`}>
+            <Link className={`square-btn ${FooterStyles.socialIcon}`}>
               <Facebook />
-            </a>
-            <a className={`square-btn ${FooterStyles.socialIcon}`}>
+            </Link>
+            <Link className={`square-btn ${FooterStyles.socialIcon}`}>
               <Instagram />
-            </a>
-            <a className={`square-btn ${FooterStyles.socialIcon}`}>
+            </Link>
+            <Link className={`square-btn ${FooterStyles.socialIcon}`}>
               <Twitter />
-            </a>
-            <a className={`square-btn ${FooterStyles.socialIcon}`}>
+            </Link>
+            <Link className={`square-btn ${FooterStyles.socialIcon}`}>
               <Youtube />
-            </a>
+            </Link>
           </div>
         </div>
 

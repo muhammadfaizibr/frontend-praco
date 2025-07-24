@@ -170,10 +170,10 @@ apiClient.interceptors.response.use(
   }
 );
 
-export const getShippingAddresses = async () => {
+export const getAddresses = async () => {
   try {
     let allAddresses = [];
-    let url = "shipping-addresses/";
+    let url = "addresses/";
     while (url) {
       const response = await apiClient.get(url);
       const data = response.data || {};
@@ -192,45 +192,17 @@ export const getShippingAddresses = async () => {
     }
     return allAddresses;
   } catch (error) {
-    console.error("getShippingAddresses error:", error);
+    console.error("getAddresses error:", error);
     throw error;
   }
 };
 
-export const getBillingAddresses = async () => {
+export const createAddress = async (addressData, { signal }) => {
   try {
-    let allAddresses = [];
-    let url = "billing-addresses/";
-    while (url) {
-      const response = await apiClient.get(url);
-      const data = response.data || {};
-      const validAddresses = (data.results || []).filter((addr) =>
-        addr &&
-        typeof addr === 'object' &&
-        addr.id &&
-        addr.street &&
-        addr.city &&
-        addr.postal_code &&
-        addr.country &&
-        addr.telephone_number
-      );
-      allAddresses = allAddresses.concat(validAddresses);
-      url = data.next || null;
-    }
-    return allAddresses;
-  } catch (error) {
-    console.error("getBillingAddresses error:", error);
-    throw error;
-  }
-};
-
-
-export const createShippingAddress = async (addressData, { signal }) => {
-  try {
-    const response = await apiClient.post("shipping-addresses/", addressData, { signal });
+    const response = await apiClient.post("addresses/", addressData, { signal });
     return response.data;
   } catch (error) {
-    console.error("createShippingAddress error:", error);
+    console.error("createAddress error:", error);
     // Re-throw the error with the proper structure
     throw {
       message: error.message,
@@ -240,24 +212,9 @@ export const createShippingAddress = async (addressData, { signal }) => {
   }
 };
 
-export const createBillingAddress = async (addressData, { signal }) => {
+export const deleteAddress = async (addressId, { signal }) => {
   try {
-    const response = await apiClient.post("billing-addresses/", addressData, { signal });
-    return response.data;
-  } catch (error) {
-    console.error("createBillingAddress error:", error);
-    // Re-throw the error with the proper structure
-    throw {
-      message: error.message,
-      errors: error.errors || {},
-      status: error.status
-    };
-  }
-};
-
-export const deleteShippingAddress = async (addressId, { signal }) => {
-  try {
-    const response = await apiClient.delete(`shipping-addresses/${addressId}/`, { signal });
+    const response = await apiClient.delete(`addresses/${addressId}/`, { signal });
     return response.data;
   } catch (error) {
     console.error("deleteShippingAddress error:", error);
@@ -265,15 +222,6 @@ export const deleteShippingAddress = async (addressId, { signal }) => {
   }
 };
 
-export const deleteBillingAddress = async (addressId, { signal }) => {
-  try {
-    const response = await apiClient.delete(`billing-addresses/${addressId}/`, { signal });
-    return response.data;
-  } catch (error) {
-    console.error("deleteBillingAddress error:", error);
-    throw error;
-  }
-};
 
 export const searchItems = async (params, { signal }) => {
   try {
@@ -588,5 +536,20 @@ export const getOrderItems = async (orderId, { signal }) => {
   } catch (error) {
     console.error("getOrderItems error:", error);
     throw error;
+  }
+};
+
+
+export const createPaymentIntent = async (paymentData, { signal }) => {
+  try {
+    const response = await apiClient.post("create-payment-intent/", paymentData, { signal });
+    return response.data;
+  } catch (error) {
+    console.error("createPaymentIntent error:", error);
+    throw {
+      message: error.message || "Failed to create payment intent.",
+      errors: error.errors || {},
+      status: error.status
+    };
   }
 };

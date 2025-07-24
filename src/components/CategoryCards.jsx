@@ -3,7 +3,6 @@ import CardStyles from "assets/css/CategoryCardsStyles.module.css";
 import { Link } from "react-router-dom";
 import { getCategories } from "utils/api/ecommerce";
 import CustomLoading from "components/CustomLoading";
-import HeadingBar from "components/HeadingBar";
 
 const CategoryCards = () => {
   const [categories, setCategories] = useState([]);

@@ -79,7 +79,7 @@ const NewsLetterInput = () => {
             disabled={isLoading}
           />
           <button
-            className={`secondary-btn ${isLoading ? "loading" : ""}`}
+            className={`clr-white ${isLoading ? "loading" : ""}`}
             type="submit"
             disabled={isLoading}
           >

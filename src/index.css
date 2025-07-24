@@ -51,6 +51,7 @@
   --clr-info-light: #4ab3e2;
   --clr-info-dark: #117a8b;
   --clr-text: #333;
+  --clr-text-dark: #888;
   --clr-text-light: #898D94;
   --clr-text-disabled: #999;
   --clr-link: #ff8833;
@@ -128,15 +129,15 @@
   --icon-stroke-xxl: 1.6px;
 
   /* Font sizes */
-  --font-size-base: 1.5rem;
-  --font-size-heading: 1.8rem;
-  --font-size-small: 1.3rem;
-  --font-size-extra-small: 1.2rem;
+  --font-size-base: 1.4rem;
+  --font-size-heading: 1.6rem;
+  --font-size-small: 1.2rem;
+  --font-size-extra-small: 1.1rem;
 
   /* Spacing */
-  --spacing-sm: 1rem;
-  --spacing-md: 1.8rem;
-  --spacing-lg: 2.2rem;
+  --spacing-sm: 0.8rem;
+  --spacing-md: 1.6rem;
+  --spacing-lg: 2rem;
 
   /* Animation timing */
   --transition-short: 0.15s ease-in-out;
@@ -151,6 +152,7 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #fdfdfd;
 }
 
 /* ========================================================================== */
@@ -168,32 +170,32 @@ h6 {
 }
 
 h1 {
-  font-size: clamp(3.6rem, 3.5vw, 4.2rem);
+  font-size: clamp(3.2rem, 3.2vw, 3.8rem);
   line-height: 1.1;
 }
 
 h2 {
-  font-size: clamp(2.8rem, 3vw, 3.6rem);
+  font-size: clamp(2.4rem, 2.8vw, 3.2rem);
   line-height: 1.15;
 }
 
 h3 {
-  font-size: clamp(2.2rem, 2.4vw, 2.8rem);
+  font-size: clamp(2rem, 2.2vw, 2.4rem);
   line-height: 1.2;
 }
 
 h4 {
-  font-size: clamp(1.8rem, 1.8vw, 2.2rem);
+  font-size: clamp(1.6rem, 1.6vw, 1.8rem);
   line-height: 1.25;
 }
 
 h5 {
-  font-size: clamp(1.4rem, 1.5vw, 1.6rem);
+  font-size: clamp(1.3rem, 1.4vw, 1.5rem);
   line-height: 1.3;
 }
 
 h6 {
-  font-size: clamp(1.1rem, 1.1vw, 1.3rem);
+  font-size: clamp(1rem, 1vw, 1.2rem);
   line-height: 1.35;
 }
 
@@ -203,7 +205,7 @@ h6 {
 
 .b1 {
   font-weight: 500;
-  font-size: clamp(1.5rem, 1.6vw, 1.7rem);
+  font-size: clamp(1.4rem, 1.5vw, 1.6rem);
   line-height: 1.4;
 }
 
@@ -223,6 +225,8 @@ p,
 .b4 {
   font-weight: 400;
   font-size: var(--font-size-small);
+  font-weight: 400;
+  font-size: var(--font-size-small);
   line-height: 1.4;
 }
 
@@ -234,7 +238,7 @@ p,
 
 .s1 {
   font-weight: 600;
-  font-size: 1.7rem;
+  font-size: 1.6rem;
   line-height: 1.4;
 }
 
@@ -253,7 +257,7 @@ p,
 
 .l2 {
   font-weight: 500;
-  font-size: 1.1rem;
+  font-size: 1rem;
   line-height: 1.3;
   text-transform: uppercase;
 }
@@ -267,44 +271,44 @@ p,
 
 .l4 {
   font-weight: 600;
-  font-size: 1.1rem;
+  font-size: 1rem;
   line-height: 1.3;
   text-transform: uppercase;
 }
 
 .text-giant {
-  font-size: clamp(1.5rem, 1.6vw, 1.7rem);
+  font-size: clamp(1.4rem, 1.5vw, 1.6rem);
   font-weight: 600;
-  line-height: clamp(1.8rem, 2.2vw, 2rem);
+  line-height: clamp(1.7rem, 2vw, 1.9rem);
 }
 
 .text-large {
-  font-size: clamp(1.3rem, 1.3vw, 1.5rem);
+  font-size: clamp(1.2rem, 1.2vw, 1.4rem);
   font-weight: 500;
-  line-height: clamp(1.7rem, 1.8vw, 1.9rem);
+  line-height: clamp(1.6rem, 1.7vw, 1.8rem);
 }
 
 .text-medium {
-  font-size: clamp(1.1rem, 1.1vw, 1.3rem);
+  font-size: clamp(1rem, 1vw, 1.2rem);
   font-weight: 500;
-  line-height: clamp(1.5rem, 1.7vw, 1.7rem);
+  line-height: clamp(1.4rem, 1.6vw, 1.6rem);
 }
 
 .text-small {
-  font-size: clamp(0.9rem, 0.9vw, 1.1rem);
+  font-size: clamp(0.8rem, 0.8vw, 1rem);
   font-weight: 500;
-  line-height: clamp(1.3rem, 1.5vw, 1.5rem);
+  line-height: clamp(1.2rem, 1.4vw, 1.4rem);
 }
 
 .text-tiny {
-  font-size: clamp(0.7rem, 0.8vw, 0.9rem);
+  font-size: clamp(0.6rem, 0.7vw, 0.8rem);
   font-weight: 500;
-  line-height: clamp(1.1rem, 1.3vw, 1.3rem);
+  line-height: clamp(1rem, 1.2vw, 1.2rem);
 }
 
 .text-tiny-uppercase {
   font-weight: 500;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   line-height: 1.4;
   text-transform: uppercase;
 }
@@ -312,7 +316,7 @@ p,
 .text-mono {
   font-family: "SM Mono", monospace;
   font-weight: 500;
-  font-size: 1.1rem;
+  font-size: 1rem;
   line-height: 1.3;
 }
 
@@ -336,7 +340,7 @@ p,
 
 .c4 {
   font-weight: 500;
-  font-size: 1.1rem;
+  font-size: 1rem;
   line-height: 1.3;
 }
 
@@ -353,7 +357,6 @@ a.link:hover,
 a.link:active,
 a.link:focus {
   color: var(--clr-link-hover);
-  transform: translateY(-0.1rem);
 }
 
 a.link-dark {
@@ -364,27 +367,22 @@ a.link-dark:hover,
 a.link-dark:active,
 a.link-dark:focus {
   color: var(--clr-link);
-  transform: translateY(-0.1rem);
 }
 
 /* ========================================================================== */
 /* Buttons */
 button {
   border: none;
-  padding: clamp(0.5rem, 0.9vw, 0.9rem) clamp(0.9rem, 1.4vw, 1.5rem);
+  padding: clamp(0.4rem, 0.8vw, 0.8rem) clamp(0.8rem, 1.3vw, 1.4rem);
   cursor: pointer;
   display: flex;
-  gap: 0.7rem;
+  gap: 0.6rem;
   align-items: center;
   justify-content: center;
   background-color: transparent;
   font-size: var(--font-size-base);
   border-radius: var(--radius-s);
   transition: background-color var(--transition-medium), border-color var(--transition-medium), color var(--transition-medium), transform var(--transition-short);
-}
-
-button:hover {
-  transform: translateY(-0.1rem);
 }
 
 a.anchor-btn {
@@ -414,7 +412,6 @@ button:disabled:hover {
 .primary-btn:focus {
   background-color: var(--clr-primary-light);
   box-shadow: var(--shadow-primary-pressed);
-  transform: translateY(-0.1rem);
 }
 
 .secondary-btn {
@@ -429,7 +426,6 @@ button:disabled:hover {
   background-color: var(--clr-black);
   color: var(--clr-white);
   box-shadow: var(--shadow-secondary-pressed);
-  transform: translateY(-0.1rem);
 }
 
 .primary-outlined-btn {
@@ -443,7 +439,6 @@ button:disabled:hover {
 .primary-outlined-btn:focus {
   background-color: var(--clr-gray-light);
   box-shadow: var(--shadow-primary-pressed);
-  transform: translateY(-0.1rem);
 }
 
 .square-btn {
@@ -600,7 +595,6 @@ textarea:focus,
 textarea:active {
   box-shadow: var(--shadow-primary-pressed);
   border-color: var(--clr-primary);
-  transform: translateY(-0.1rem);
 }
 
 input::placeholder,
@@ -912,37 +906,30 @@ label {
 /* ========================================================================== */
 /* Search Bar */
 .search-bar {
-  background-color: var(--clr-white);
-  border: 1px solid var(--clr-border);
   display: flex;
-  align-items: center;
   width: 100%;
   border-radius: var(--radius-s);
   transition: box-shadow var(--transition-medium);
+  background-color: var(--clr-gray-dark);
+  border: 1px solid #555 !important;
 }
 
 .search-bar input {
   width: 100%;
-  padding: clamp(0.5rem, 0.9vw, 0.9rem) clamp(0.9rem, 1.6vw, 1.6rem);
+  padding: clamp(0.4rem, 0.8vw, 0.8rem) clamp(0.8rem, 1.5vw, 1.5rem);
   border: none;
   outline: none;
-  color: var(--clr-text);
   font-size: var(--font-size-base);
   transition: transform var(--transition-short);
-}
-
-.search-bar input:focus {
-  transform: translateY(-0.1rem);
+  color: var(--clr-white);
+  background-color: var(--clr-gray-dark);
 }
 
 .search-bar button {
-  padding: clamp(0.5rem, 0.9vw, 0.9rem);
+  padding: clamp(0.4rem, 0.8vw, 0.8rem);
   border: none;
   transition: transform var(--transition-short);
-}
-
-.search-bar button:hover {
-  transform: translateY(-0.1rem);
+  padding-right: clamp(0.8rem, 1.5vw, 1.5rem);
 }
 
 .search-button {
@@ -974,6 +961,15 @@ label {
   background-color: rgba(0, 0, 0, 0.6);
 }
 
+.StripeElement{
+  width: 100%;
+  background-color: var(--clr-white);
+    border: 1px solid var(--clr-border);
+  flex-grow: 1;
+  padding: var(--form-input-padding);
+  border-radius: var(--radius-s);
+  font-size: var(--font-size-base);
+}
 /* ========================================================================== */
 /* Media Queries */
 @media (max-width: 1440px) {

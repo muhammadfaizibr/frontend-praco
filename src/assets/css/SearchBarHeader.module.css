@@ -1,10 +1,9 @@
 /* ========================================================================== */
 /* Search Bar */
 .searchBar {
-    background-color: var(--clr-gray-light);
-    border: 1px solid var(--clr-border);
+    background-color: var(--clr-gray-dark);
+    border: 1px solid #555;
     display: flex;
-    gap: clamp(0.8rem, 1vw, 1rem);
     align-items: stretch;
     width: 100%;
     border-radius: var(--radius-s);
@@ -16,9 +15,9 @@
     padding: clamp(0.6rem, 0.8vw, 0.8rem) clamp(1.2rem, 2vw, 2rem);
     border: none;
     outline: none;
-    color: var(--clr-text);
+    color: var(--clr-white);
     font-size: var(--font-size-base);
-    background-color: var(--clr-gray-light);
+    background-color: var(--clr-gray-dark);
 
   }
   
@@ -27,18 +26,21 @@
     border: none;
     border-radius: 0 var(--radius-s) var(--radius-s) 0;
     cursor: pointer;
+
   }
   
   /* ========================================================================== */
   /* Buttons */
   .advanceSearchButton {
-    color: var(--clr-gray-dark);
+    color: var(--clr-white);
     background-color: transparent;
   }
   
   .searchButton {
     color: var(--clr-white);
     background-color: var(--clr-gray-dark);
+    padding-right: clamp(1.2rem, 2vw, 2rem) !important;
+
   }
   
   /* ========================================================================== */

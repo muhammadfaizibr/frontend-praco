@@ -45,8 +45,8 @@ apiClient.interceptors.response.use(
           throw new Error("No refresh token available");
         }
         const response = await axios.post(
-          "http://127.0.0.1:8000/api/account/token/refresh/",
-          // "https://api.praco.co.uk/api/account/token/refresh/",
+          // "http://127.0.0.1:8000/api/account/token/refresh/",
+          "https://api.praco.co.uk/api/account/token/refresh/",
           { refresh: refreshToken },
           { timeout: 5000 }
         );
@@ -236,8 +236,8 @@ export const refreshToken = ({ refresh }, { signal } = {}) => {
     cacheKey,
     (cancelToken) =>
       axios.post(
-        "http://127.0.0.1:8000/api/account/token/refresh/",
-        // "https://api.praco.co.uk/api/account/token/refresh/",
+        // "http://127.0.0.1:8000/api/account/token/refresh/",
+        "https://api.praco.co.uk/api/account/token/refresh/",
         { refresh },
         { cancelToken, timeout: 5000 }
       ),

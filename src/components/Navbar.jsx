@@ -149,7 +149,7 @@ const Navbar = ({setIsOpen, isOpen}) => {
             <button
               className={`${NavBarStyles.actionButtonStyle} ${
                 NavBarStyles.searchMobileToggleBtn
-              } accent-palette ${searchMobile ? NavBarStyles.active : ""}`}
+              } ${searchMobile ? NavBarStyles.active : ""}`}
               type="button"
               aria-label={searchMobile ? "Close Search" : "Open Search"}
               onClick={toggleSearchMobile}
@@ -168,7 +168,7 @@ const Navbar = ({setIsOpen, isOpen}) => {
             </button>
             <button
               className={`${NavBarStyles.actionButtonStyle} ${
-                toggleUnitConversionPopup ? "primary-btn" : "accent-palette"
+                toggleUnitConversionPopup ? "primary-btn" : ""
               }`}
               type="button"
               aria-label="Toggle Unit Converter"
@@ -184,7 +184,7 @@ const Navbar = ({setIsOpen, isOpen}) => {
               />
             </button>
             <Link
-              className={`${NavBarStyles.actionButtonStyle} accent-palette`}
+              className={`${NavBarStyles.actionButtonStyle}`}
               to="/cart"
               aria-label="View Cart"
             >
@@ -197,7 +197,7 @@ const Navbar = ({setIsOpen, isOpen}) => {
             {isLoggedIn ? (
               <div className={NavBarStyles.accountWrapper}>
                 <button
-                  className={`${NavBarStyles.actionButtonStyle} accent-palette`}
+                  className={`${NavBarStyles.actionButtonStyle}`}
                   type="button"
                   aria-label="Account Menu"
                   aria-expanded={showAccountPopup}

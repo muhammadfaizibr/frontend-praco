@@ -17,18 +17,16 @@ const Products = ({ title, products, highlightedText }) => {
       <div className={productsStyles.gridContainer}>
         <div className={productsStyles.productGrid}>
           {products.map((product) => 
-              <Product
-                key={product.id}
-                id={product.id}
-                slug={product.slug}
-                category_slug={product.category.slug}
-                image={product.image}
-                title={product.title}
-                variantCount={product.variantCount}
-                alt={product.alt}
-              />
-            )
-          }
+            <Product
+              key={product.id}
+              id={product.id}
+              slug={product.slug}
+              category_slug={product.category.slug}
+              image={product.image}
+              title={product.title}
+              alt={product.alt}
+            />
+          )}
         </div>
       </div>
     </section>
@@ -42,7 +40,6 @@ Products.propTypes = {
       id: PropTypes.number.isRequired,
       image: PropTypes.string.isRequired,
       title: PropTypes.string.isRequired,
-      variantCount: PropTypes.number.isRequired,
       alt: PropTypes.string.isRequired,
     })
   ).isRequired,
@@ -54,7 +51,6 @@ Products.defaultProps = {
     id: 0,
     image: "https://praco.co.uk/cdn/shop/collections/coloured-stretch-wrap-1062x708_600x.jpg?v=1707147471",
     title: "Ph'nglui mglw'nafh",
-    variantCount: 0,
     alt: "kalita",
   }),
   highlightedText: "",

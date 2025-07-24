@@ -106,10 +106,10 @@ const TrackOrderContent = () => {
           className="clr-danger"
         />
       )}
-      <AccentNotifier
+      {/* <AccentNotifier
           icon={Info}
           text="Orders with pending payments are on hold until confirmed. Our accounts team will contact you regarding this. Your patience is appreciated."
-        /> 
+        />  */}
       {orders.length === 0 ?  <p className="b3 text-center">You have no orders.</p>: <div className={TableStyles.tableContainer}>
        
           <table className={TableStyles.table} role="grid">
@@ -117,9 +117,9 @@ const TrackOrderContent = () => {
               <tr>
                 <th className={`${TableStyles.defaultHeader} b3 clr-text`}>Order ID</th>
                 <th className={`${TableStyles.defaultHeader} b3 clr-text`}>Order Date</th>
-                <th className={`${TableStyles.defaultHeader} b3 clr-text`}>Status</th>
+                <th className={`${TableStyles.defaultHeader} b3 clr-text`}>Shpping Status</th>
                 <th className={`${TableStyles.defaultHeader} b3 clr-text`}>Payment Status</th>
-                <th className={`${TableStyles.defaultHeader} b3 clr-text`}>Payment Method</th>
+                {/* <th className={`${TableStyles.defaultHeader} b3 clr-text`}>Payment Method</th> */}
                 <th className={`${TableStyles.defaultHeader} b3 clr-text`}>Payment Verified</th>
                 <th className={`${TableStyles.defaultHeader} b3 clr-text`}>Invoice</th>
                 <th className={`${TableStyles.defaultHeader} b3 clr-text`}>Total Items</th>
@@ -156,7 +156,7 @@ const TrackOrderContent = () => {
                       order.payment_status
                     )}</span>
                   </td>
-                  <td className="b3 clr-text">{order.payment_method === "manual_payment" ? "Direct Payment" : "N/A"}</td>
+                  {/* <td className="b3 clr-text">{order.payment_method === "manual_payment" ? "Direct Payment" : "N/A"}</td> */}
                   <td className="b3 clr-text">{order.payment_verified ? "Yes" : "No"}</td>
                   <td className="b3 clr-text">
                     {order.invoice ? (

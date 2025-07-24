@@ -696,7 +696,7 @@
 }
 
 .variantNavBar {
-  background-color: var(--clr-white);
+  /* background-color: var(--clr-white); */
   backdrop-filter: blur(40px);
   z-index: 10;
   display: flex;
@@ -778,6 +778,8 @@
 .table td {
   min-width: 10rem;
   padding: var(--padding-xs);
+  background-color: var(--clr-white);
+
 }
 
 .table th:last-child,
@@ -792,7 +794,7 @@
 }
 
 .table th:last-child {
-  background-color: var(--clr-green-light);
+  background-color: var(--clr-primary-tint-light);
   color: var(--clr-green-text);
   z-index: 3;
 }
@@ -806,18 +808,18 @@
 }
 
 .defaultHeader {
-  background-color: var(--clr-accent);
+  background-color: var(--clr-primary-tint-light);
   color: var(--clr-blue-dark);
 }
 
 .unitsPerHeader,
 .unitsInputHeader {
-  background-color: var(--clr-green-light);
+  background-color: var(--clr-primary-tint-light);
   color: var(--clr-green-text);
 }
 
 .pricingTierHeader {
-  background-color: var(--clr-accent);
+  background-color: var(--clr-primary-tint-light);
   color: var(--clr-yellow-text);
 }
 
@@ -863,7 +865,7 @@
 }
 
 .selectedRow {
-  background: var(--clr-primary-tint-light);
+  /* background: var(--clr-primary-tint-light); */
   color: var(--clr-text);
 }
 

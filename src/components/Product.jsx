@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
 import ProductCardStyles from "assets/css/ProductCardStyles.module.css";
 
-const Product = ({ id, slug, category_slug, image, title, variantCount, alt }) => {
+const Product = ({ id, slug, category_slug, image, title, alt }) => {
   return (
     <div className={ProductCardStyles.productCard}>
       <div className={ProductCardStyles.imageWrapper}>
@@ -16,7 +16,6 @@ const Product = ({ id, slug, category_slug, image, title, variantCount, alt }) =
       <div className={ProductCardStyles.contentWrapper}>
         <p className={`${ProductCardStyles.productTitle} s1`}>{title}</p>
         <div className={ProductCardStyles.content}>
-          <p className="s1 clr-primary">{variantCount} {variantCount === 1 ? "Variant" : "Variants"}</p>
           <Link to={`/details/${category_slug}/${slug}`}>
             <button className="primary-btn small-btn text-medium hover-primary">
               View Details
